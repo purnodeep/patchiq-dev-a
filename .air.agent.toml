@@ -1,0 +1,21 @@
+root = "."
+tmp_dir = "tmp/agent"
+
+[build]
+  bin = "tmp/agent/agent"
+  args_bin = ["--config", "configs/agent.yaml"]
+  cmd = "go build -o tmp/agent/agent ./cmd/agent"
+  delay = 1000
+  exclude_dir = ["tmp", "vendor", "web", "web-hub", "web-agent", "packages", "node_modules", "deploy", "test", "docs"]
+  exclude_regex = ["_test\\.go$"]
+  include_dir = ["cmd/agent", "internal/agent", "internal/shared"]
+  include_ext = ["go", "toml", "yaml"]
+  kill_delay = 500
+
+[log]
+  time = false
+
+[color]
+  main = "magenta"
+  build = "yellow"
+  runner = "cyan"

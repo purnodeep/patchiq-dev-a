@@ -1,0 +1,169 @@
+{
+  "type": "smoke",
+  "date": "2026-04-04",
+  "app": "web",
+  "base_url": "http://ssh.skenzer.com:3001",
+  "pages_tested": 17,
+  "summary": {
+    "ok": 17,
+    "error": 0,
+    "timeout": 0,
+    "console_errors_total": 0,
+    "network_errors_total": 0
+  },
+  "pages": [
+    {
+      "path": "/",
+      "name": "Dashboard",
+      "status": "ok",
+      "screenshot": "smoke-dashboard.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/endpoints",
+      "name": "Endpoints",
+      "status": "ok",
+      "screenshot": "smoke-endpoints.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/patches",
+      "name": "Patches",
+      "status": "ok",
+      "screenshot": "smoke-patches.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/cves",
+      "name": "CVEs",
+      "status": "ok",
+      "screenshot": "smoke-cves.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/policies",
+      "name": "Policies",
+      "status": "ok",
+      "screenshot": "smoke-policies.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/deployments",
+      "name": "Deployments",
+      "status": "ok",
+      "screenshot": "smoke-deployments.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/workflows",
+      "name": "Workflows",
+      "status": "ok",
+      "screenshot": "smoke-workflows.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/compliance",
+      "name": "Compliance",
+      "status": "ok",
+      "screenshot": "smoke-compliance.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/alerts",
+      "name": "Alerts",
+      "status": "ok",
+      "screenshot": "smoke-alerts.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/audit",
+      "name": "Audit",
+      "status": "ok",
+      "screenshot": "smoke-audit.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/settings/general",
+      "name": "Settings General",
+      "status": "ok",
+      "screenshot": "smoke-settings-general.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/settings/identity",
+      "name": "Settings Identity",
+      "status": "ok",
+      "screenshot": "smoke-settings-identity.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/settings/tags",
+      "name": "Settings Tags",
+      "status": "ok",
+      "screenshot": "smoke-settings-tags.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/settings/roles",
+      "name": "Settings Roles",
+      "status": "ok",
+      "screenshot": "smoke-settings-roles.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/settings/user-roles",
+      "name": "Settings User Roles",
+      "status": "ok",
+      "screenshot": "smoke-settings-user-roles.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/settings/notifications",
+      "name": "Settings Notifications",
+      "status": "ok",
+      "screenshot": "smoke-settings-notifications.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    },
+    {
+      "path": "/agent-downloads",
+      "name": "Agent Downloads",
+      "status": "ok",
+      "screenshot": "smoke-agent-downloads.png",
+      "console_errors": [],
+      "network_errors": [],
+      "notes": ""
+    }
+  ]
+}

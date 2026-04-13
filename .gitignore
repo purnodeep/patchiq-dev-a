@@ -1,0 +1,85 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+bin/
+tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.override.yml
+
+# MinIO data (local dev)
+minio-data/
+
+# Claude Code local hooks
+.claude/hookify.*.local.md
+
+# Worktrees
+.claude/worktrees/
+.worktrees/
+
+# Serena MCP
+.serena/
+
+# Built binaries (root level)
+/hub
+/server
+/agent
+/migrate
+
+# Claire worktrees
+.claire/worktrees/
+
+# GoReleaser
+dist/
+
+# Internal notes
+docs/.notes/
+
+# Archive directories (underscore prefix)
+docs/_archive/
+_*/
+!__tests__/
+
+# Plan docs archive (old M2 plans)
+docs/plans/archive/
+
+# Prototype UI mockups are committed (referenced by issues)
+licensegen
+
+# Zitadel machine keys (generated at runtime)
+deploy/zitadel/machinekey/*.json
+.worktrees/
+
+# TLS/crypto keys
+*.key
+*.pem
+
+# Dev artifacts
+screenshots/
+patch-buck-json-gz/
+.playwright-mcp/
+*.png
+.superpowers/

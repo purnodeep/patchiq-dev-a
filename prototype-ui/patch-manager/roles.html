@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — Roles & Permissions</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:220px;--topbar-h:52px;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;display:flex;height:100vh;overflow:hidden}
+#sidebar{width:var(--sidebar-w);background:#0d1117;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s ease}
+#sidebar.collapsed{width:52px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;min-height:52px}
+.sb-logo-icon{width:28px;height:28px;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sb-logo-text{font-weight:600;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden}
+.sb-logo-sub{font-size:10px;color:var(--muted);white-space:nowrap}
+#sidebar.collapsed .sb-logo-text,#sidebar.collapsed .sb-logo-sub{display:none}
+.sb-group{margin-top:4px}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
+#sidebar.collapsed .sb-group-label{padding:8px 0;justify-content:center;font-size:8px;letter-spacing:0}
+.sb-group-label:hover{color:var(--text)}
+.sb-group-label .arrow{transition:.2s;font-size:9px;flex-shrink:0}
+.sb-group-label.collapsed .arrow{transform:rotate(-90deg)}
+#sidebar.collapsed .sb-group-label .arrow{display:none}
+.sb-group-items{overflow:hidden;transition:max-height .2s ease}
+.sb-item{padding:6px 16px 6px 24px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;overflow:hidden;text-decoration:none}
+#sidebar.collapsed .sb-item{padding:8px 0;justify-content:center;gap:0}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:14px;height:14px;flex-shrink:0}
+#sidebar.collapsed .sb-item-text{display:none}
+.sb-badge{margin-left:auto;background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+.sb-badge.amber{background:#f59e0b20;color:#f59e0b}
+#sidebar.collapsed .sb-badge{display:none}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.tb-menu-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);background:transparent;border:none;transition:.15s}
+.tb-menu-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-menu-btn svg{width:16px;height:16px}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-breadcrumb a{color:var(--muted);text-decoration:none;transition:.15s}
+.tb-breadcrumb a:hover{color:var(--text)}
+.tb-breadcrumb span:last-child{color:var(--text);font-weight:500}
+.tb-sep{color:#374151}
+.tb-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb-icon-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:16px;height:16px}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--danger);border-radius:50%;border:1.5px solid #0d1117}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;color:#fff;flex-shrink:0;margin-left:4px}
+#page{flex:1;overflow-y:auto;padding:20px}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.page-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.ph-left{}
+.ph-bc{font-size:11px;color:var(--muted);margin-bottom:4px}
+.ph-title{font-size:20px;font-weight:700;color:var(--text)}
+.ph-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d;border-color:#374151}
+.btn-ghost{background:transparent;color:var(--muted);border-color:transparent}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.btn-danger{background:#ef444415;color:var(--danger);border-color:#ef444430}
+.btn-danger:hover{background:#ef444425}
+.btn-sm{padding:4px 10px;font-size:11px}
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.badge-success{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-warn{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+.badge-info{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630}
+.badge-muted{background:#ffffff10;color:var(--muted);border:1px solid var(--border)}
+.badge-purple{background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630}
+.badge-system{background:#1e293b;color:var(--muted);border:1px solid var(--border);font-size:9px}
+.badge-custom{background:#f59e0b15;color:#f59e0b;border:1px solid #f59e0b30;font-size:9px}
+
+/* ROLES TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px}
+.table-scroll{overflow-x:auto}
+.table-scroll::-webkit-scrollbar{height:4px}
+.table-scroll::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:9px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+.data-table td{padding:10px 14px;border-bottom:1px solid #1e293b60;font-size:12px;vertical-align:middle}
+.data-table tr:hover td{background:#ffffff04}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr.active-row td{background:#3b82f608}
+.data-table tr.active-row:hover td{background:#3b82f610}
+.exp-row td{padding:0!important}
+.exp-content{padding:20px;background:#0a0e1a;border-top:1px solid var(--border);animation:fadeIn .2s ease}
+
+/* ROLE DETAIL PANEL */
+.role-detail{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px;animation:fadeIn .2s ease}
+.role-detail.open{display:block}
+.rd-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.rd-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;font-weight:800}
+.rd-name{font-size:18px;font-weight:700;color:var(--text)}
+.rd-desc{font-size:12px;color:var(--muted);margin-top:3px}
+.rd-actions{margin-left:auto;display:flex;gap:8px}
+.rd-users{margin-bottom:16px}
+.rd-users-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.user-pills{display:flex;gap:8px;flex-wrap:wrap}
+.user-pill{display:flex;align-items:center;gap:6px;padding:4px 10px;background:#0f172a;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text)}
+.user-avatar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+
+/* PERMISSION MATRIX */
+.pm-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.perm-matrix{width:100%;border-collapse:separate;border-spacing:3px;margin-bottom:14px}
+.perm-matrix th{font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:4px 8px;white-space:nowrap}
+.perm-matrix th.row-head{text-align:left;min-width:110px}
+.perm-matrix td.resource-name{font-size:11px;font-weight:500;color:var(--text);padding:4px 8px}
+.perm-cell{text-align:center;padding:4px;border-radius:4px}
+.perm-cell input[type=checkbox]{accent-color:var(--primary);width:14px;height:14px;cursor:pointer}
+.perm-check{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;background:#10b98120;border:1px solid #10b98130;font-size:12px;cursor:pointer;transition:.15s}
+.perm-check:hover{background:#10b98130}
+.perm-dash{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;background:#ffffff08;border:1px solid var(--border);font-size:12px;color:var(--muted);cursor:pointer;transition:.15s}
+.perm-dash:hover{background:#ffffff10}
+.perm-check.editable{cursor:pointer}
+.perm-check.editable.off{background:#ffffff08;border-color:var(--border)}
+
+/* MINI MATRIX (in expand) */
+.mini-matrix{display:grid;grid-template-columns:120px repeat(6,1fr);gap:2px;font-size:10px}
+.mm-header{padding:4px 6px;font-size:9px;font-weight:600;color:var(--muted);text-align:center;text-transform:uppercase}
+.mm-resource{padding:4px 6px;font-size:10px;font-weight:500;color:var(--muted);display:flex;align-items:center}
+.mm-cell{display:flex;align-items:center;justify-content:center;padding:3px}
+.mm-y{color:var(--success);font-size:12px}
+.mm-n{color:#374151;font-size:12px}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+#page{animation:fadeIn .2s ease}
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div>
+      <div class="sb-logo-text">PatchIQ</div>
+      <div class="sb-logo-sub">Patch Manager</div>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Overview <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="../patch-manager.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="sb-item-text">Dashboard</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Inventory <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="sb-item-text">Endpoints</span><span class="sb-badge blue">247</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg><span class="sb-item-text">Patches</span><span class="sb-badge">12</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="sb-item-text">CVEs</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Operations <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg><span class="sb-item-text">Policies</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 12L8 8m4 4l4-4"/></svg><span class="sb-item-text">Deployments</span><span class="sb-badge amber">3</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="sb-item-text">Workflows</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Reports <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="compliance.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg><span class="sb-item-text">Compliance</span></a>
+      <a class="sb-item" href="audit.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="sb-item-text">Audit</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Configuration <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 115.64 19.07"/></svg><span class="sb-item-text">Settings</span></a>
+      <a class="sb-item active" href="roles.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span class="sb-item-text">Roles</span></a>
+      <a class="sb-item" href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg><span class="sb-item-text">Notifications</span></a>
+    </div>
+  </div>
+</nav>
+
+<div id="main">
+  <div id="topbar">
+    <button class="tb-menu-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-breadcrumb">
+      <a href="../patch-manager.html">Home</a><span class="tb-sep">›</span>
+      <span>Configuration</span><span class="tb-sep">›</span>
+      <span>Roles</span>
+    </div>
+    <div class="tb-icons">
+      <button class="tb-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg><span class="notif-dot"></span></button>
+      <button class="tb-icon-btn" onclick="toggleDark()">
+        <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <div class="tb-avatar">JD</div>
+    </div>
+  </div>
+
+  <div id="page">
+    <div class="page-header">
+      <div class="ph-left">
+        <div class="ph-bc">Home / Configuration / Roles</div>
+        <div class="ph-title">Roles <span style="font-size:14px;font-weight:400;color:var(--muted)">(5)</span></div>
+      </div>
+      <div class="ph-actions">
+        <button class="btn btn-primary btn-sm" onclick="showCreateModal()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create Role
+        </button>
+      </div>
+    </div>
+
+    <!-- Role Detail Panel (shows when row clicked) -->
+    <div id="role-detail" class="role-detail">
+      <div class="rd-header">
+        <div class="rd-icon" id="rd-icon">🛡</div>
+        <div>
+          <div class="rd-name" id="rd-name">Administrator</div>
+          <div class="rd-desc" id="rd-desc">Full access to all PatchIQ resources</div>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <span id="rd-type-badge" class="badge-system badge">System</span>
+            <span style="font-size:11px;color:var(--muted)">48 permissions · 2 users</span>
+          </div>
+        </div>
+        <div class="rd-actions">
+          <button class="btn btn-outline btn-sm">Edit Role</button>
+          <button class="btn btn-danger btn-sm" id="rd-delete-btn">Delete</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeDetail()">✕ Close</button>
+        </div>
+      </div>
+      <div class="rd-users">
+        <div class="rd-users-title">Assigned Users</div>
+        <div class="user-pills" id="rd-users"></div>
+      </div>
+      <div class="pm-title">
+        Permission Matrix
+        <button class="btn btn-outline btn-sm" style="font-size:10px;padding:3px 8px">Edit Permissions</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="perm-matrix" id="rd-matrix">
+          <thead>
+            <tr>
+              <th class="row-head">Resource</th>
+              <th>View</th><th>Create</th><th>Update</th><th>Delete</th><th>Deploy</th><th>Export</th>
+            </tr>
+          </thead>
+          <tbody id="rd-matrix-body"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-primary btn-sm">Save Permissions</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeDetail()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Roles Table -->
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table class="data-table" style="min-width:760px">
+          <thead>
+            <tr><th>Name</th><th>Description</th><th>Parent Role</th><th>Users</th><th>Permissions</th><th>Type</th><th></th></tr>
+          </thead>
+          <tbody>
+            <!-- Administrator -->
+            <tr id="row-admin" onclick="showDetail('admin')" style="cursor:pointer">
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🔑</div>
+                  <div>
+                    <div style="font-weight:600">Administrator</div>
+                  </div>
+                </div>
+              </td>
+              <td style="color:var(--muted)">Full access to all PatchIQ resources</td>
+              <td style="color:var(--muted)">—</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div style="display:flex;gap:-4px">
+                    <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;border:2px solid #111827">JD</div>
+                    <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;border:2px solid #111827;margin-left:-6px">SW</div>
+                  </div>
+                  <span style="font-size:11px;color:var(--muted)">2 users</span>
+                </div>
+              </td>
+              <td><span style="font-size:12px;font-weight:600;color:var(--text)">48</span> <span style="color:var(--muted);font-size:11px">perms</span></td>
+              <td><span class="badge-system badge">System</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showDetail('admin')">View →</button></td>
+            </tr>
+
+            <!-- Operator -->
+            <tr id="row-operator" onclick="showDetail('operator')" style="cursor:pointer">
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">⚙️</div>
+                  <div><div style="font-weight:600">Operator</div></div>
+                </div>
+              </td>
+              <td style="color:var(--muted)">Deploy and manage patches and endpoints</td>
+              <td><span style="font-size:11px;color:var(--muted)">Administrator</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div style="display:flex">
+                    <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;border:2px solid #111827">RK</div>
+                    <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#4338ca);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;border:2px solid #111827;margin-left:-6px">DN</div>
+                    <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;border:2px solid #111827;margin-left:-6px">+3</div>
+                  </div>
+                  <span style="font-size:11px;color:var(--muted)">5 users</span>
+                </div>
+              </td>
+              <td><span style="font-size:12px;font-weight:600;color:var(--text)">32</span> <span style="color:var(--muted);font-size:11px">perms</span></td>
+              <td><span class="badge-system badge">System</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showDetail('operator')">View →</button></td>
+            </tr>
+
+            <!-- Analyst -->
+            <tr id="row-analyst" onclick="showDetail('analyst')" style="cursor:pointer">
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">📊</div>
+                  <div><div style="font-weight:600">Analyst</div></div>
+                </div>
+              </td>
+              <td style="color:var(--muted)">View dashboards, reports, and run evaluations</td>
+              <td><span style="font-size:11px;color:var(--muted)">Operator</span></td>
+              <td><span style="font-size:11px;color:var(--muted)">8 users</span></td>
+              <td><span style="font-size:12px;font-weight:600;color:var(--text)">18</span> <span style="color:var(--muted);font-size:11px">perms</span></td>
+              <td><span class="badge-system badge">System</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showDetail('analyst')">View →</button></td>
+            </tr>
+
+            <!-- Read Only -->
+            <tr id="row-readonly" onclick="showDetail('readonly')" style="cursor:pointer">
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#64748b,#475569);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">👁</div>
+                  <div><div style="font-weight:600">Read Only</div></div>
+                </div>
+              </td>
+              <td style="color:var(--muted)">View-only access across all resources</td>
+              <td><span style="font-size:11px;color:var(--muted)">Analyst</span></td>
+              <td><span style="font-size:11px;color:var(--muted)">12 users</span></td>
+              <td><span style="font-size:12px;font-weight:600;color:var(--text)">12</span> <span style="color:var(--muted);font-size:11px">perms</span></td>
+              <td><span class="badge-system badge">System</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showDetail('readonly')">View →</button></td>
+            </tr>
+
+            <!-- Compliance Auditor -->
+            <tr id="row-auditor" onclick="showDetail('auditor')" style="cursor:pointer">
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🛡</div>
+                  <div><div style="font-weight:600">Compliance Auditor</div></div>
+                </div>
+              </td>
+              <td style="color:var(--muted)">Compliance-focused: evaluate, report, export evidence</td>
+              <td><span style="font-size:11px;color:var(--muted)">Analyst</span></td>
+              <td><span style="font-size:11px;color:var(--muted)">3 users</span></td>
+              <td><span style="font-size:12px;font-weight:600;color:var(--text)">20</span> <span style="color:var(--muted);font-size:11px">perms</span></td>
+              <td><span class="badge-custom badge">Custom</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showDetail('auditor')">View →</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Permission Matrix Reference -->
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">Full Permission Matrix</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)">
+          <div style="width:12px;height:12px;border-radius:3px;background:#10b98130;border:1px solid #10b98140"></div> Allowed
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)">
+          <div style="width:12px;height:12px;border-radius:3px;background:#ffffff08;border:1px solid var(--border)"></div> Denied
+        </div>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" id="view-btn" onclick="setView('roles')" style="color:var(--primary)">By Role</button>
+          <button class="btn btn-ghost btn-sm" onclick="setView('resource')">By Resource</button>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:separate;border-spacing:3px;min-width:700px">
+        <thead>
+          <tr>
+            <th style="font-size:10px;font-weight:600;color:var(--muted);text-align:left;padding:6px 8px;min-width:110px">Resource</th>
+            <th style="font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:6px 8px" colspan="2">Admin</th>
+            <th style="font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:6px 8px" colspan="2">Operator</th>
+            <th style="font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:6px 8px" colspan="2">Analyst</th>
+            <th style="font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:6px 8px" colspan="2">Read Only</th>
+            <th style="font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:6px 8px" colspan="2">Auditor</th>
+          </tr>
+          <tr>
+            <th style="font-size:9px;color:var(--muted);padding:2px 8px"></th>
+            <th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">RW</th><th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">Del</th>
+            <th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">RW</th><th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">Del</th>
+            <th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">RW</th><th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">Del</th>
+            <th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">RW</th><th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">Del</th>
+            <th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">RW</th><th style="font-size:9px;color:var(--muted);text-align:center;padding:2px 4px">Del</th>
+          </tr>
+        </thead>
+        <tbody id="full-matrix-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Create Role Modal (hidden) -->
+    <div id="create-modal" style="display:none;position:fixed;inset:0;background:#00000080;z-index:100;display:none;align-items:center;justify-content:center">
+      <div style="background:#111827;border:1px solid #1e293b;border-radius:12px;padding:24px;width:480px;max-width:90vw">
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px">Create New Role</div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:12px;font-weight:500;color:var(--muted);display:block;margin-bottom:6px">Role Name</label>
+          <input style="width:100%;background:#ffffff08;border:1px solid #1e293b;border-radius:6px;padding:7px 10px;font-size:12px;color:#e2e8f0;outline:none" type="text" placeholder="e.g. Patch Operator">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:12px;font-weight:500;color:var(--muted);display:block;margin-bottom:6px">Description</label>
+          <input style="width:100%;background:#ffffff08;border:1px solid #1e293b;border-radius:6px;padding:7px 10px;font-size:12px;color:#e2e8f0;outline:none" type="text" placeholder="Brief description of this role">
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:12px;font-weight:500;color:var(--muted);display:block;margin-bottom:6px">Parent Role (inherits permissions)</label>
+          <select style="width:100%;background:#ffffff08;border:1px solid #1e293b;border-radius:6px;padding:7px 10px;font-size:12px;color:#e2e8f0;outline:none">
+            <option value="">None (start from scratch)</option>
+            <option>Administrator</option>
+            <option>Operator</option>
+            <option selected>Analyst</option>
+            <option>Read Only</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn btn-ghost btn-sm" onclick="hideCreateModal()">Cancel</button>
+          <button class="btn btn-primary btn-sm" onclick="hideCreateModal()">Create Role</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('collapsed'); }
+function toggleGroup(el){
+  el.classList.toggle('collapsed');
+  el.nextElementSibling.style.maxHeight = el.classList.contains('collapsed') ? '0' : '200px';
+}
+document.querySelectorAll('.sb-group-items').forEach(g=>g.style.maxHeight='200px');
+
+function toggleDark(){
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', document.documentElement.classList.contains('dark')?'dark':'light');
+}
+if(localStorage.getItem('theme')==='light') document.documentElement.classList.remove('dark');
+
+const ROLES = {
+  admin: {
+    icon:'🔑', color:'linear-gradient(135deg,#ef4444,#dc2626)', name:'Administrator',
+    desc:'Full access to all PatchIQ resources', type:'system',
+    perms:{Endpoints:[1,1,1,1,1,1],Patches:[1,1,1,1,1,1],CVEs:[1,1,1,1,0,1],Policies:[1,1,1,1,0,1],Deployments:[1,1,1,1,1,1],Workflows:[1,1,1,1,0,1],Compliance:[1,1,1,1,1,1],Audit:[1,0,0,0,0,1],Settings:[1,1,1,1,0,0],Roles:[1,1,1,1,0,0]},
+    users:[{id:'JD',name:'admin@acme.com',color:'linear-gradient(135deg,#3b82f6,#1d4ed8)'},{id:'SW',name:'sandy@acme.com',color:'linear-gradient(135deg,#10b981,#059669)'}]
+  },
+  operator: {
+    icon:'⚙️', color:'linear-gradient(135deg,#3b82f6,#1d4ed8)', name:'Operator',
+    desc:'Deploy and manage patches and endpoints', type:'system',
+    perms:{Endpoints:[1,1,1,0,1,1],Patches:[1,1,1,0,1,1],CVEs:[1,0,0,0,0,1],Policies:[1,1,1,0,0,0],Deployments:[1,1,1,0,1,1],Workflows:[1,1,1,0,0,0],Compliance:[1,1,0,0,1,1],Audit:[1,0,0,0,0,1],Settings:[1,0,0,0,0,0],Roles:[1,0,0,0,0,0]},
+    users:[{id:'RK',name:'rishab@acme.com',color:'linear-gradient(135deg,#f59e0b,#d97706)'},{id:'DN',name:'danish@acme.com',color:'linear-gradient(135deg,#6366f1,#4338ca)'},{id:'M1',name:'marco@acme.com',color:'linear-gradient(135deg,#8b5cf6,#6d28d9)'},{id:'L1',name:'leena@acme.com',color:'linear-gradient(135deg,#ec4899,#be185d)'},{id:'K1',name:'kiran@acme.com',color:'linear-gradient(135deg,#14b8a6,#0f766e)'}]
+  },
+  analyst: {
+    icon:'📊', color:'linear-gradient(135deg,#10b981,#059669)', name:'Analyst',
+    desc:'View dashboards, run compliance evaluations, export reports', type:'system',
+    perms:{Endpoints:[1,0,0,0,0,1],Patches:[1,0,0,0,0,1],CVEs:[1,0,0,0,0,0],Policies:[1,0,0,0,0,0],Deployments:[1,0,0,0,0,1],Workflows:[1,0,0,0,0,0],Compliance:[1,1,0,0,1,1],Audit:[1,0,0,0,0,1],Settings:[1,0,0,0,0,0],Roles:[1,0,0,0,0,0]},
+    users:[{id:'A1',name:'alice@acme.com',color:'linear-gradient(135deg,#3b82f6,#1d4ed8)'},{id:'B1',name:'bob@acme.com',color:'linear-gradient(135deg,#f59e0b,#d97706)'},{id:'C1',name:'charlie@acme.com',color:'linear-gradient(135deg,#10b981,#059669)'}]
+  },
+  readonly: {
+    icon:'👁', color:'linear-gradient(135deg,#64748b,#475569)', name:'Read Only',
+    desc:'View-only access — cannot modify any resources', type:'system',
+    perms:{Endpoints:[1,0,0,0,0,0],Patches:[1,0,0,0,0,0],CVEs:[1,0,0,0,0,0],Policies:[1,0,0,0,0,0],Deployments:[1,0,0,0,0,0],Workflows:[1,0,0,0,0,0],Compliance:[1,0,0,0,0,1],Audit:[1,0,0,0,0,0],Settings:[1,0,0,0,0,0],Roles:[0,0,0,0,0,0]},
+    users:[{id:'D1',name:'dave@acme.com',color:'linear-gradient(135deg,#8b5cf6,#6d28d9)'},{id:'E1',name:'eve@acme.com',color:'linear-gradient(135deg,#ec4899,#be185d)'}]
+  },
+  auditor: {
+    icon:'🛡', color:'linear-gradient(135deg,#f59e0b,#d97706)', name:'Compliance Auditor',
+    desc:'Compliance-focused: evaluate frameworks, generate evidence reports', type:'custom',
+    perms:{Endpoints:[1,0,0,0,0,1],Patches:[1,0,0,0,0,1],CVEs:[1,0,0,0,0,0],Policies:[1,0,0,0,0,0],Deployments:[1,0,0,0,0,1],Workflows:[1,0,0,0,0,0],Compliance:[1,1,1,0,1,1],Audit:[1,0,0,0,0,1],Settings:[1,0,0,0,0,0],Roles:[1,0,0,0,0,0]},
+    users:[{id:'F1',name:'frank@acme.com',color:'linear-gradient(135deg,#6366f1,#4338ca)'},{id:'G1',name:'grace@acme.com',color:'linear-gradient(135deg,#14b8a6,#0f766e)'},{id:'H1',name:'henry@acme.com',color:'linear-gradient(135deg,#f97316,#c2410c)'}]
+  }
+};
+
+const ACTIONS = ['View','Create','Update','Delete','Deploy','Export'];
+const RESOURCES = ['Endpoints','Patches','CVEs','Policies','Deployments','Workflows','Compliance','Audit','Settings','Roles'];
+
+let currentRole = null;
+
+function showDetail(roleId){
+  const role = ROLES[roleId];
+  currentRole = roleId;
+
+  // Update active row
+  document.querySelectorAll('.data-table tr[id^=row-]').forEach(r=>r.classList.remove('active-row'));
+  document.getElementById('row-'+roleId).classList.add('active-row');
+
+  // Set header
+  document.getElementById('rd-icon').textContent = role.icon;
+  document.getElementById('rd-icon').style.background = role.color;
+  document.getElementById('rd-name').textContent = role.name;
+  document.getElementById('rd-desc').textContent = role.desc;
+  document.getElementById('rd-type-badge').textContent = role.type === 'system' ? 'System' : 'Custom';
+  document.getElementById('rd-type-badge').className = role.type === 'system' ? 'badge-system badge' : 'badge-custom badge';
+  document.getElementById('rd-delete-btn').style.display = role.type === 'system' ? 'none' : '';
+
+  // Set users
+  const usersEl = document.getElementById('rd-users');
+  usersEl.innerHTML = role.users.map(u=>`
+    <div class="user-pill">
+      <div class="user-avatar" style="background:${u.color}">${u.id}</div>
+      ${u.name}
+    </div>
+  `).join('');
+
+  // Set matrix
+  const tbody = document.getElementById('rd-matrix-body');
+  tbody.innerHTML = RESOURCES.map(res=>{
+    const perms = role.perms[res] || [0,0,0,0,0,0];
+    return `<tr>
+      <td style="font-size:11px;font-weight:500;color:var(--text);padding:4px 8px">${res}</td>
+      ${perms.map((p,i)=>`<td class="perm-cell">
+        <div class="perm-${p?'check':'dash'} editable${p?'':' off'}" onclick="togglePerm(this)">${p?'✓':'—'}</div>
+      </td>`).join('')}
+    </tr>`;
+  }).join('');
+
+  document.getElementById('role-detail').classList.add('open');
+  document.getElementById('role-detail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function togglePerm(el){
+  el.classList.toggle('off');
+  if(el.classList.contains('off')){
+    el.classList.remove('perm-check');
+    el.classList.add('perm-dash');
+    el.textContent = '—';
+  } else {
+    el.classList.remove('perm-dash');
+    el.classList.add('perm-check');
+    el.textContent = '✓';
+  }
+}
+
+function closeDetail(){
+  document.getElementById('role-detail').classList.remove('open');
+  document.querySelectorAll('.data-table tr[id^=row-]').forEach(r=>r.classList.remove('active-row'));
+  currentRole = null;
+}
+
+// Build full matrix
+const fmb = document.getElementById('full-matrix-body');
+const roleKeys = ['admin','operator','analyst','readonly','auditor'];
+fmb.innerHTML = RESOURCES.map(res=>`
+  <tr>
+    <td style="font-size:11px;font-weight:500;color:var(--text);padding:5px 8px;white-space:nowrap">${res}</td>
+    ${roleKeys.map(rk=>{
+      const perms = ROLES[rk].perms[res] || [0,0,0,0,0,0];
+      const rw = perms[0]||perms[1]||perms[2]||perms[4]; // view/create/update/deploy
+      const del = perms[3];
+      return `
+        <td style="text-align:center;padding:3px 4px">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;background:${rw?'#10b98130':'#ffffff08'};border:1px solid ${rw?'#10b98140':'var(--border)'};font-size:11px">${rw?'<span style="color:#10b981">✓</span>':'<span style="color:#374151">—</span>'}</div>
+        </td>
+        <td style="text-align:center;padding:3px 4px">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;background:${del?'#ef444430':'#ffffff08'};border:1px solid ${del?'#ef444440':'var(--border)'};font-size:11px">${del?'<span style="color:#ef4444">✓</span>':'<span style="color:#374151">—</span>'}</div>
+        </td>
+      `;
+    }).join('')}
+  </tr>
+`).join('');
+
+function showCreateModal(){
+  const m = document.getElementById('create-modal');
+  m.style.display = 'flex';
+}
+function hideCreateModal(){
+  document.getElementById('create-modal').style.display = 'none';
+}
+document.getElementById('create-modal').addEventListener('click', function(e){
+  if(e.target === this) hideCreateModal();
+});
+
+function setView(v){ /* future enhancement */ }
+</script>
+</body>
+</html>

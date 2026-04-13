@@ -1,0 +1,8 @@
+Filesystem                         1024-blocks      Used Available Capacity  Mounted on
+/dev/disk3s1s1                      482797652  12164028 214621688     6%    /
+devfs                                     201       201         0   100%    /dev
+/dev/disk3s6                        482797652        20 214621688     1%    /System/Volumes/VM
+/dev/disk3s2                        482797652   8618768 214621688     4%    /System/Volumes/Preboot
+/dev/disk3s5                        482797652 245963984 214621688    54%    /System/Volumes/Data
+map auto_home                               0         0         0   100%    /System/Volumes/Data/home
+/dev/disk1s2                           512000      6164    493040     2%    /System/Volumes/xarts

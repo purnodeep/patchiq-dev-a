@@ -1,0 +1,17 @@
+[
+  {
+    "HotFixID": "KB5034441",
+    "Description": "Security Update",
+    "InstalledOn": "2024-01-15T00:00:00Z"
+  },
+  {
+    "HotFixID": "KB5033372",
+    "Description": "Update",
+    "InstalledOn": "2024-01-10T00:00:00Z"
+  },
+  {
+    "HotFixID": "KB5032190",
+    "Description": "Security Update",
+    "InstalledOn": "2023-12-20T00:00:00Z"
+  }
+]

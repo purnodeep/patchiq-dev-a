@@ -1,0 +1,351 @@
+openapi: 3.1.0
+
+info:
+  title: PatchIQ Agent Local API
+  version: 0.1.0
+  license:
+    name: Proprietary
+    url: https://patchiq.io/license
+
+servers:
+  - url: http://localhost:8090
+
+tags:
+  - name: System
+    description: Health and readiness checks
+  - name: Status
+    description: Agent status and enrollment info
+  - name: Patches
+    description: Pending and installed patches
+  - name: History
+    description: Patch deployment history
+  - name: Logs
+    description: Agent activity logs
+
+components:
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Opaque pagination cursor from a previous response
+
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+      description: Maximum number of items to return
+
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Unique resource identifier (UUID)
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+          default: []
+
+    AgentStatus:
+      type: object
+      required:
+        - agent_id
+        - hostname
+        - os_family
+        - os_version
+        - agent_version
+        - enrollment_status
+        - server_url
+        - last_heartbeat
+        - uptime_seconds
+      properties:
+        agent_id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+        os_family:
+          type: string
+        os_version:
+          type: string
+        agent_version:
+          type: string
+        enrollment_status:
+          type: string
+          enum:
+            - pending
+            - enrolled
+            - unenrolled
+        server_url:
+          type: string
+        last_heartbeat:
+          type:
+            - string
+            - "null"
+          format: date-time
+        uptime_seconds:
+          type: integer
+
+    PendingPatch:
+      type: object
+      required:
+        - id
+        - name
+        - version
+        - severity
+        - status
+        - queued_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: string
+        severity:
+          type: string
+          enum:
+            - critical
+            - high
+            - medium
+            - low
+            - none
+        status:
+          type: string
+          enum:
+            - queued
+            - downloading
+            - installing
+            - pending_reboot
+        queued_at:
+          type: string
+          format: date-time
+
+    HistoryEntry:
+      type: object
+      required:
+        - id
+        - patch_name
+        - patch_version
+        - action
+        - result
+        - completed_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        patch_name:
+          type: string
+        patch_version:
+          type: string
+        action:
+          type: string
+          enum:
+            - install
+            - rollback
+        result:
+          type: string
+          enum:
+            - success
+            - failed
+            - cancelled
+        error_message:
+          type:
+            - string
+            - "null"
+        completed_at:
+          type: string
+          format: date-time
+
+    LogEntry:
+      type: object
+      required:
+        - id
+        - level
+        - message
+        - timestamp
+      properties:
+        id:
+          type: string
+        level:
+          type: string
+          enum:
+            - debug
+            - info
+            - warn
+            - error
+        message:
+          type: string
+        source:
+          type:
+            - string
+            - "null"
+        timestamp:
+          type: string
+          format: date-time
+
+paths:
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Agent is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+
+  /api/v1/status:
+    get:
+      tags:
+        - Status
+      summary: Get agent status
+      operationId: getAgentStatus
+      responses:
+        "200":
+          description: Current agent status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentStatus"
+
+  /api/v1/patches/pending:
+    get:
+      tags:
+        - Patches
+      summary: List pending patches
+      operationId: listPendingPatches
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of pending patches
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PendingPatch"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+
+  /api/v1/history:
+    get:
+      tags:
+        - History
+      summary: List deployment history
+      operationId: listHistory
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of history entries
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/HistoryEntry"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+
+  /api/v1/logs:
+    get:
+      tags:
+        - Logs
+      summary: List agent logs
+      operationId: listLogs
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: level
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - debug
+              - info
+              - warn
+              - error
+          description: Filter by log level
+      responses:
+        "200":
+          description: Paginated list of log entries
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LogEntry"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer

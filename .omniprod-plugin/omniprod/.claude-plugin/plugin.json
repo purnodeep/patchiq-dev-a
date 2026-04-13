@@ -1,0 +1,72 @@
+{
+  "name": "omniprod",
+  "version": "0.3.0",
+  "description": "Two-layer product quality system. Programmatic assertions + AI perspective review. Coverage-target exploration, multi-tab capture, cross-page correlation, incremental review. The final quality gate before shipping.",
+  "author": {
+    "name": "Skenzeriq",
+    "email": "heramb@skenzeriq.com"
+  },
+  "keywords": [
+    "product-review",
+    "qa",
+    "ux",
+    "enterprise",
+    "accessibility",
+    "chrome-devtools",
+    "state-exploration",
+    "evidence-based"
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/check-findings.sh 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "OmniProd status",
+            "once": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'CHANGED=$(git diff --name-only HEAD 2>/dev/null | grep -E \"^(web/|web-hub/|web-agent/|packages/ui/)\" | head -5); if [ -n \"$CHANGED\" ]; then echo \"Frontend files modified. Run /product-check <url> to verify visual quality.\"; fi'",
+            "timeout": 10,
+            "statusMessage": "Checking for UI changes..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Write(web/*)|Write(web-hub/*)|Write(web-agent/*)|Write(packages/ui/*)|Edit(web/*)|Edit(web-hub/*)|Edit(web-agent/*)|Edit(packages/ui/*)",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/check-findings.sh --critical-only 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "OmniProd check"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if [ -f .omniprod/screenshots/current/capture-plan.json ]; then echo \"OmniProd capture plan exists at .omniprod/screenshots/current/capture-plan.json — re-read it after compaction to stay on track.\"; fi'",
+            "timeout": 5,
+            "statusMessage": "OmniProd: saving state before compaction"
+          }
+        ]
+      }
+    ]
+  }
+}

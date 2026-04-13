@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — prod-web-01</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:260px;--topbar-h:56px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+body{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:var(--sidebar-w);background:#0d1117;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s}
+#sidebar.collapsed{width:64px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-icon{width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.sb-logo-text{font-weight:700;font-size:14px;color:var(--text)}
+.sb-logo-sub{font-size:10px;color:var(--muted)}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.sb-item{padding:7px 16px 7px 20px;display:flex;align-items:center;gap:9px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;text-decoration:none;font-size:12.5px}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:15px;height:15px;flex-shrink:0}
+.sb-badge{margin-left:auto;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.red{background:#ef444420;color:#ef4444}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+.sb-badge.amber{background:#f59e0b20;color:#f59e0b}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-breadcrumb a{color:var(--muted);text-decoration:none}.tb-breadcrumb a:hover{color:var(--text)}
+.tb-sep{color:#374151}
+.tb-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb-icon-btn{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:17px;height:17px}
+.notif-badge{position:absolute;top:5px;right:5px;background:var(--danger);color:#fff;border-radius:10px;font-size:9px;font-weight:700;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid #0d1117;padding:0 3px}
+.tb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;color:#fff;flex-shrink:0}
+.tb-user{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border-radius:7px;transition:.15s}
+.tb-user:hover{background:#ffffff08}
+.tb-user-name{font-size:12px;font-weight:500}
+#page{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d;border-color:#374151}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--border)}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:5px}
+.btn-danger{background:#ef444415;color:var(--danger);border-color:#ef444430}
+.btn-danger:hover{background:#ef444425}
+.btn-warn{background:#f59e0b15;color:var(--warn);border-color:#f59e0b30}
+.btn-warn:hover{background:#f59e0b25}
+.badge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.badge-critical{background:#ef444420;color:#ef4444;border:1px solid #ef444430}
+.badge-high{background:#f9731620;color:#f97316;border:1px solid #f9731630}
+.badge-medium{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+.badge-low{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-success{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-info{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630}
+.badge-muted{background:#ffffff10;color:var(--muted);border:1px solid var(--border)}
+/* IDENTITY HEADER */
+.ep-header{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:14px}
+.ep-identity{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.ep-identity-left{display:flex;align-items:center;gap:16px}
+.ep-status-orb{width:14px;height:14px;border-radius:50%;background:var(--success);box-shadow:0 0 0 4px #10b98120;animation:pulse-orb 2s infinite;flex-shrink:0;margin-top:4px}
+@keyframes pulse-orb{0%,100%{box-shadow:0 0 0 4px #10b98120}50%{box-shadow:0 0 0 8px #10b98108}}
+.ep-hostname{font-size:26px;font-weight:700;color:var(--text);font-family:monospace}
+.ep-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+.ep-meta-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.ep-meta-item svg{width:13px;height:13px}
+.ep-actions{display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border)}
+/* CONTEXT RING */
+.context-ring{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+.ctx-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;position:relative;overflow:hidden;cursor:pointer;transition:.15s}
+.ctx-card:hover{border-color:#374151;transform:translateY(-1px)}
+.ctx-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--primary));opacity:.7}
+.ctx-val{font-size:20px;font-weight:700;color:var(--text);line-height:1.1}
+.ctx-sub{font-size:10px;color:var(--muted);margin-top:2px;margin-bottom:4px}
+.ctx-label{font-size:10px;color:var(--muted)}
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto;background:var(--card);border-radius:10px 10px 0 0;border:1px solid var(--border);border-bottom:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{padding:12px 16px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;background:transparent;border-top:none;border-left:none;border-right:none}
+.tab-btn:hover{color:var(--text);background:#ffffff05}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);background:#3b82f608}
+.tab-panel{display:none;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:20px;animation:fadeIn .15s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+/* OVERVIEW TAB */
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px}
+.card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+/* SVG BLAST RADIUS */
+.blast-svg{display:block;margin:0 auto}
+.risk-score-card{text-align:center;padding:20px}
+.risk-score-val{font-size:52px;font-weight:800;color:#ef4444;line-height:1}
+.risk-score-label{font-size:11px;color:var(--muted);margin-top:4px}
+.risk-bar{height:8px;background:linear-gradient(90deg,#10b981,#f59e0b,#ef4444);border-radius:4px;position:relative;margin:12px 0}
+.risk-bar-marker{position:absolute;top:-3px;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #ef4444;transform:translateX(-50%)}
+.event-list{display:flex;flex-direction:column;gap:8px}
+.event-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #1e293b40}
+.event-item:last-child{border-bottom:none}
+.event-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
+.event-content{flex:1}
+.event-action{font-size:12px;color:var(--text)}
+.event-time{font-size:10px;color:var(--muted);margin-top:2px}
+/* HARDWARE TAB */
+.hw-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hw-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px}
+.hw-card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.hw-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1e293b40}
+.hw-row:last-child{border-bottom:none}
+.hw-key{font-size:11px;color:var(--muted)}
+.hw-val{font-size:11px;color:var(--text);font-weight:500}
+.gauge-bar{height:6px;background:#ffffff10;border-radius:3px;overflow:hidden;margin-top:6px}
+.gauge-fill{height:100%;border-radius:3px;transition:width .8s ease}
+/* DATA TABLE */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:#0a0e1a}
+.data-table td{padding:8px 12px;border-bottom:1px solid #1e293b50;font-size:12px;vertical-align:middle}
+.data-table tr:hover td{background:#ffffff03}
+.data-table tr:last-child td{border-bottom:none}
+.chevron-btn{background:none;border:none;cursor:pointer;color:var(--muted);transition:.2s;padding:2px 4px;border-radius:3px;display:flex;align-items:center}
+.chevron-btn:hover{color:var(--text);background:#ffffff10}
+.chevron-btn.open svg{transform:rotate(90deg)}
+.chevron-btn svg{width:13px;height:13px;transition:.2s}
+.exp-row{display:none}
+.exp-row.open{display:table-row}
+.exp-row td{padding:0!important;border-bottom:1px solid var(--border)!important}
+.exp-content-inner{padding:12px 16px;background:#0a0e1a;animation:fadeIn .15s ease}
+/* AUDIT */
+.audit-stream{display:flex;flex-direction:column;gap:0}
+.audit-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #1e293b40;cursor:pointer}
+.audit-item:last-child{border-bottom:none}
+.audit-item:hover{background:#ffffff03}
+.audit-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.audit-content{flex:1}
+.audit-main{font-size:12px;color:var(--text)}
+.audit-main strong{color:var(--primary)}
+.audit-time{font-size:10px;color:var(--muted);margin-top:2px}
+.audit-expand{display:none;margin-top:8px;background:#0a0e1a;border:1px solid var(--border);border-radius:6px;padding:10px}
+.audit-expand.open{display:block}
+pre.json{font-size:10px;color:#10b981;font-family:monospace;white-space:pre-wrap;line-height:1.5}
+/* COMPLIANCE */
+.fw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.fw-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px}
+.fw-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.fw-name{font-size:12px;font-weight:600;color:var(--text)}
+.fw-score{font-size:22px;font-weight:700}
+.control-table{width:100%;border-collapse:collapse;margin-top:10px}
+.control-table th{padding:6px 8px;font-size:10px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);text-align:left}
+.control-table td{padding:6px 8px;font-size:11px;border-bottom:1px solid #1e293b30;vertical-align:middle}
+.control-table tr.overdue td{background:#ef444408}
+/* SIDEBAR nav group items hidden */
+.sb-group{margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div>
+      <div class="sb-logo-text">PatchIQ</div>
+      <div class="sb-logo-sub">Patch Manager</div>
+    </div>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Overview</div>
+    <a class="sb-item" href="../patch-manager.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Inventory</div>
+    <a class="sb-item active" href="endpoints.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Endpoints<span class="sb-badge blue">247</span></a>
+    <a class="sb-item" href="patches.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Patches<span class="sb-badge red">12</span></a>
+    <a class="sb-item" href="cves.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>CVEs</a>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Operations</div>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Policies</a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>Deployments<span class="sb-badge amber">3</span></a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Workflows</a>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Reports</div>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Compliance</a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Audit</a>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Configuration</div>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M21 12h-2M5 12H3M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 21v-2M12 5V3"/></svg>Settings</a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Roles</a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>Notifications</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <button class="tb-icon-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="tb-breadcrumb">
+      <a href="#">Home</a><span class="tb-sep">/</span>
+      <a href="#">Inventory</a><span class="tb-sep">/</span>
+      <a href="endpoints.html">Endpoints</a><span class="tb-sep">/</span>
+      <span style="color:var(--text);font-weight:500">prod-web-01</span>
+    </div>
+    <div class="tb-icons">
+      <button class="tb-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg><span class="notif-badge">3</span></button>
+      <button class="tb-icon-btn" onclick="toggleDark()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></button>
+      <div class="tb-user"><div class="tb-avatar">A</div><span class="tb-user-name">admin@acme.com</span></div>
+    </div>
+  </div>
+
+  <div id="page">
+    <!-- Identity Header -->
+    <div class="ep-header">
+      <div class="ep-identity">
+        <div class="ep-identity-left">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <span class="ep-status-orb"></span>
+              <span class="ep-hostname">prod-web-01</span>
+              <span class="badge badge-success">Online</span>
+            </div>
+            <div class="ep-meta">
+              <span class="ep-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Ubuntu 22.04 LTS</span>
+              <span class="ep-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>10.0.1.15</span>
+              <span class="ep-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Agent v1.2.3</span>
+              <span class="ep-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Enrolled Jan 15, 2026</span>
+              <span class="ep-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Heartbeat 2 minutes ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ep-actions">
+        <button class="btn btn-primary btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Scan Now</button>
+        <button class="btn btn-outline btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>Deploy Patches</button>
+        <button class="btn btn-warn btn-sm"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Isolate</button>
+        <button class="btn btn-danger btn-sm">Decommission</button>
+        <button class="btn btn-ghost btn-sm">Export Report</button>
+      </div>
+    </div>
+
+    <!-- Context Ring -->
+    <div class="context-ring">
+      <div class="ctx-card" style="--accent:#3b82f6">
+        <div class="ctx-val">342</div>
+        <div class="ctx-sub">▲ 2 today</div>
+        <div class="ctx-label">Installed Packages</div>
+      </div>
+      <div class="ctx-card" style="--accent:#ef4444">
+        <div class="ctx-val" style="color:var(--danger)">20</div>
+        <div class="ctx-sub" style="display:flex;justify-content:center;gap:3px;font-size:10px">
+          <span style="color:#ef4444">3 crit</span>
+          <span style="color:#f97316">5 high</span>
+          <span style="color:#f59e0b">12 med</span>
+        </div>
+        <div class="ctx-label">Pending Patches</div>
+      </div>
+      <div class="ctx-card" style="--accent:#ef4444">
+        <div class="ctx-val" style="color:var(--danger)">8</div>
+        <div class="ctx-sub" style="color:var(--danger);font-size:10px">↑ 2 new</div>
+        <div class="ctx-label">Critical CVEs</div>
+      </div>
+      <div class="ctx-card" style="--accent:#f59e0b">
+        <div style="display:flex;justify-content:center;margin-bottom:2px">
+          <svg width="32" height="32" style="transform:rotate(-90deg)">
+            <circle cx="16" cy="16" r="12" fill="none" stroke="#ffffff10" stroke-width="3"/>
+            <circle cx="16" cy="16" r="12" fill="none" stroke="#f59e0b" stroke-width="3" stroke-dasharray="58.9 17.0" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="ctx-val" style="color:#f59e0b;font-size:16px">78%</div>
+        <div class="ctx-label">Compliance</div>
+      </div>
+      <div class="ctx-card" style="--accent:#f59e0b">
+        <div class="ctx-val" style="color:#f59e0b">58%</div>
+        <div style="height:4px;background:#ffffff10;border-radius:2px;margin:4px 0"><div style="width:58%;height:100%;background:#f59e0b;border-radius:2px"></div></div>
+        <div class="ctx-label">Disk Usage</div>
+      </div>
+      <div class="ctx-card" style="--accent:#10b981">
+        <div class="ctx-val" style="color:#10b981;font-size:16px">45d 12h</div>
+        <div class="ctx-sub" style="color:#10b981;font-size:10px">● Running</div>
+        <div class="ctx-label">Uptime</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('overview',this)">Overview</button>
+      <button class="tab-btn" onclick="switchTab('hardware',this)">Hardware</button>
+      <button class="tab-btn" onclick="switchTab('software',this)">Software</button>
+      <button class="tab-btn" onclick="switchTab('patches',this)">Patches</button>
+      <button class="tab-btn" onclick="switchTab('cves',this)">CVE Exposure</button>
+      <button class="tab-btn" onclick="switchTab('compliance',this)">Compliance</button>
+      <button class="tab-btn" onclick="switchTab('deployments',this)">Deployments</button>
+      <button class="tab-btn" onclick="switchTab('audit',this)">Audit Log</button>
+    </div>
+
+    <!-- TAB: OVERVIEW -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="overview-grid">
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-title">Blast Radius — Top CVEs Affecting This Endpoint</div>
+            <svg class="blast-svg" width="100%" height="200" viewBox="0 0 500 200">
+              <defs>
+                <radialGradient id="bg-grd" cx="50%" cy="50%"><stop offset="0%" stop-color="#3b82f608"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+              </defs>
+              <ellipse cx="250" cy="100" rx="240" ry="90" fill="url(#bg-grd)"/>
+              <!-- center -->
+              <circle cx="250" cy="100" r="22" fill="#111827" stroke="#3b82f6" stroke-width="2"/>
+              <text x="250" y="96" text-anchor="middle" font-size="8" fill="#e2e8f0" font-family="monospace">prod</text>
+              <text x="250" y="107" text-anchor="middle" font-size="8" fill="#e2e8f0" font-family="monospace">-web-01</text>
+              <!-- CVE nodes -->
+              <line x1="250" y1="100" x2="100" y2="40" stroke="#ef444440" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <circle cx="100" cy="40" r="16" fill="#ef444415" stroke="#ef4444" stroke-width="1.5"/>
+              <text x="100" y="37" text-anchor="middle" font-size="7" fill="#ef4444">CVE</text>
+              <text x="100" y="47" text-anchor="middle" font-size="7" fill="#ef4444">21412</text>
+              <text x="100" y="23" text-anchor="middle" font-size="8" fill="#ef4444">9.8</text>
+
+              <line x1="250" y1="100" x2="150" y2="168" stroke="#ef444440" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <circle cx="150" cy="168" r="16" fill="#ef444415" stroke="#ef4444" stroke-width="1.5"/>
+              <text x="150" y="165" text-anchor="middle" font-size="7" fill="#ef4444">CVE</text>
+              <text x="150" y="175" text-anchor="middle" font-size="7" fill="#ef4444">44228</text>
+              <text x="150" y="152" text-anchor="middle" font-size="8" fill="#ef4444">9.0</text>
+
+              <line x1="250" y1="100" x2="370" y2="38" stroke="#f9731640" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <circle cx="370" cy="38" r="16" fill="#f9731615" stroke="#f97316" stroke-width="1.5"/>
+              <text x="370" y="35" text-anchor="middle" font-size="7" fill="#f97316">CVE</text>
+              <text x="370" y="45" text-anchor="middle" font-size="7" fill="#f97316">0012</text>
+              <text x="370" y="22" text-anchor="middle" font-size="8" fill="#f97316">7.8</text>
+
+              <line x1="250" y1="100" x2="420" y2="120" stroke="#f59e0b40" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <circle cx="420" cy="120" r="16" fill="#f59e0b15" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="420" y="117" text-anchor="middle" font-size="7" fill="#f59e0b">CVE</text>
+              <text x="420" y="127" text-anchor="middle" font-size="7" fill="#f59e0b">6387</text>
+              <text x="420" y="104" text-anchor="middle" font-size="8" fill="#f59e0b">6.5</text>
+
+              <line x1="250" y1="100" x2="360" y2="172" stroke="#f59e0b40" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <circle cx="360" cy="172" r="16" fill="#f59e0b15" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="360" y="169" text-anchor="middle" font-size="7" fill="#f59e0b">CVE</text>
+              <text x="360" y="179" text-anchor="middle" font-size="7" fill="#f59e0b">2023</text>
+              <text x="360" y="156" text-anchor="middle" font-size="8" fill="#f59e0b">5.9</text>
+            </svg>
+          </div>
+          <div class="card">
+            <div class="card-title">Last 5 Events</div>
+            <div class="event-list">
+              <div class="event-item"><div class="event-icon" style="background:#ef444415;color:#ef4444">⚠</div><div class="event-content"><div class="event-action">Critical CVE-2024-21412 detected in curl 8.4.0</div><div class="event-time">42 minutes ago</div></div></div>
+              <div class="event-item"><div class="event-icon" style="background:#3b82f615;color:#3b82f6">↻</div><div class="event-content"><div class="event-action">Scheduled scan completed — 20 patches pending</div><div class="event-time">2 hours ago</div></div></div>
+              <div class="event-item"><div class="event-icon" style="background:#10b98115;color:#10b981">✓</div><div class="event-content"><div class="event-action">Patch USN-6544-1 deployed successfully</div><div class="event-time">Yesterday, 14:23</div></div></div>
+              <div class="event-item"><div class="event-icon" style="background:#8b5cf615;color:#8b5cf6">♦</div><div class="event-content"><div class="event-action">Policy "Prod Weekly" assignment updated</div><div class="event-time">2 days ago</div></div></div>
+              <div class="event-item"><div class="event-icon" style="background:#3b82f615;color:#3b82f6">↻</div><div class="event-content"><div class="event-action">Agent upgraded from v1.2.2 → v1.2.3</div><div class="event-time">3 days ago</div></div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card risk-score-card" style="margin-bottom:12px">
+            <div class="card-title">Risk Score</div>
+            <div class="risk-score-val">7.2</div>
+            <div class="risk-score-label">out of 10</div>
+            <div class="risk-bar"><div class="risk-bar-marker" style="left:72%"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)"><span>Low</span><span>Medium</span><span>High</span><span>Critical</span></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Endpoint Summary</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6">
+              <strong style="color:var(--text)">prod-web-01</strong> is a production web server running Ubuntu 22.04 LTS with 8 vCPUs and 32 GB RAM. It currently has <strong style="color:#ef4444">3 critical</strong>, <strong style="color:#f97316">5 high</strong>, and 12 medium severity patches pending. Overall compliance score is <strong style="color:#f59e0b">78%</strong> with HIPAA being the most at-risk framework at 65%. The endpoint has been online continuously for 45 days and last checked in 2 minutes ago.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: HARDWARE -->
+    <div class="tab-panel" id="tab-hardware">
+      <div class="hw-grid">
+        <div class="hw-card">
+          <div class="hw-card-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>CPU</div>
+          <div class="hw-row"><span class="hw-key">Model</span><span class="hw-val">Intel Xeon E5-2680 v4</span></div>
+          <div class="hw-row"><span class="hw-key">Cores / Threads</span><span class="hw-val">8 / 16</span></div>
+          <div class="hw-row"><span class="hw-key">Base Clock</span><span class="hw-val">2.4 GHz</span></div>
+          <div class="hw-row"><span class="hw-key">Architecture</span><span class="hw-val">x86_64</span></div>
+          <div class="hw-row"><span class="hw-key">Virtualization</span><span class="badge badge-info">KVM</span></div>
+          <div style="margin-top:10px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--muted)">CPU Usage</span><span style="color:#10b981;font-weight:600">45%</span></div>
+            <div class="gauge-bar"><div class="gauge-fill" style="width:45%;background:#10b981"></div></div>
+          </div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-card-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6h20v12H2zM2 10h20M6 6v12M10 6v12M14 6v12M18 6v12"/></svg>Memory</div>
+          <div class="hw-row"><span class="hw-key">Total RAM</span><span class="hw-val">32 GB DDR4</span></div>
+          <div class="hw-row"><span class="hw-key">Used</span><span class="hw-val" style="color:#f59e0b">23.0 GB</span></div>
+          <div class="hw-row"><span class="hw-key">Available</span><span class="hw-val">9.0 GB</span></div>
+          <div style="margin-top:6px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--muted)">RAM Usage</span><span style="color:#f59e0b;font-weight:600">72%</span></div>
+            <div class="gauge-bar"><div class="gauge-fill" style="width:72%;background:#f59e0b"></div></div>
+          </div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #1e293b40">
+            <div class="hw-row"><span class="hw-key">Swap Total</span><span class="hw-val">4 GB</span></div>
+            <div class="hw-row"><span class="hw-key">Swap Used</span><span class="hw-val">1.8 GB</span></div>
+            <div style="margin-top:6px">
+              <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span style="color:var(--muted)">Swap Usage</span><span style="color:#3b82f6;font-weight:600">45%</span></div>
+              <div class="gauge-bar"><div class="gauge-fill" style="width:45%;background:#3b82f6"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="hw-card" style="grid-column:1/-1">
+          <div class="hw-card-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>Storage</div>
+          <table class="data-table">
+            <thead><tr><th>Mount Point</th><th>Filesystem</th><th>Total</th><th>Used</th><th>Available</th><th>Usage</th></tr></thead>
+            <tbody>
+              <tr><td style="font-family:monospace">/</td><td style="color:var(--muted)">ext4</td><td>120 GB</td><td>69.6 GB</td><td>50.4 GB</td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:100px;height:6px;background:#ffffff10;border-radius:3px;overflow:hidden"><div style="width:58%;height:100%;background:#f59e0b;border-radius:3px"></div></div><span style="font-size:11px;color:#f59e0b">58%</span></div></td></tr>
+              <tr><td style="font-family:monospace">/data</td><td style="color:var(--muted)">xfs</td><td>500 GB</td><td>360 GB</td><td>140 GB</td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:100px;height:6px;background:#ffffff10;border-radius:3px;overflow:hidden"><div style="width:72%;height:100%;background:#f97316;border-radius:3px"></div></div><span style="font-size:11px;color:#f97316">72%</span></div></td></tr>
+              <tr><td style="font-family:monospace">/boot</td><td style="color:var(--muted)">vfat</td><td>512 MB</td><td>128 MB</td><td>384 MB</td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:100px;height:6px;background:#ffffff10;border-radius:3px;overflow:hidden"><div style="width:25%;height:100%;background:#10b981;border-radius:3px"></div></div><span style="font-size:11px;color:#10b981">25%</span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="hw-card">
+          <div class="hw-card-title">Network Interfaces</div>
+          <table class="data-table">
+            <thead><tr><th>Interface</th><th>IP Address</th><th>Status</th><th>Speed</th><th>MAC</th></tr></thead>
+            <tbody>
+              <tr><td style="font-family:monospace">eth0</td><td style="font-family:monospace">10.0.1.15</td><td><span class="badge badge-success">UP</span></td><td>1 Gbps</td><td style="font-family:monospace;color:var(--muted);font-size:10px">00:1A:2B:3C:4D:5E</td></tr>
+              <tr><td style="font-family:monospace">lo</td><td style="font-family:monospace">127.0.0.1</td><td><span class="badge badge-success">UP</span></td><td>—</td><td style="color:var(--muted);font-size:10px">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="hw-card">
+          <div class="hw-card-title">System Information</div>
+          <div class="hw-row"><span class="hw-key">BIOS Version</span><span class="hw-val">UEFI 2.6 (SeaBIOS 1.16.2)</span></div>
+          <div class="hw-row"><span class="hw-key">BIOS Date</span><span class="hw-val">04/01/2023</span></div>
+          <div class="hw-row"><span class="hw-key">Hypervisor</span><span class="hw-val"><span class="badge badge-info">KVM</span></span></div>
+          <div class="hw-row"><span class="hw-key">System UUID</span><span class="hw-val" style="font-family:monospace;font-size:10px">a1b2c3d4-e5f6-...</span></div>
+          <div class="hw-row"><span class="hw-key">Serial Number</span><span class="hw-val" style="font-family:monospace;font-size:10px">VM-2024-001215</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SOFTWARE -->
+    <div class="tab-panel" id="tab-software">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted)">342 packages installed</div>
+        <button class="btn btn-outline btn-sm">Export SBOM</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:16px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+          <table class="data-table" id="softwareTable">
+            <thead><tr><th>Package</th><th>Version</th><th>Arch</th><th>Source</th><th>Installed</th><th>Size</th><th></th></tr></thead>
+            <tbody id="softwareBody"></tbody>
+          </table>
+        </div>
+        <div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px">
+            <div class="card-title">License Distribution</div>
+            <canvas id="licenseChart" width="220" height="220"></canvas>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:8px;font-size:11px"><span style="width:10px;height:10px;background:#3b82f6;border-radius:50%;flex-shrink:0"></span>MIT — 45%</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:11px"><span style="width:10px;height:10px;background:#10b981;border-radius:50%;flex-shrink:0"></span>Apache 2.0 — 30%</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:11px"><span style="width:10px;height:10px;background:#f59e0b;border-radius:50%;flex-shrink:0"></span>GPL — 15%</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:11px"><span style="width:10px;height:10px;background:#8b5cf6;border-radius:50%;flex-shrink:0"></span>Other — 10%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PATCHES -->
+    <div class="tab-panel" id="tab-patches">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px 14px;background:#ef444408;border:1px solid #ef444425;border-radius:8px">
+        <span style="color:#ef4444;font-size:13px;font-weight:600">3 Critical</span>
+        <span style="color:var(--border)">•</span>
+        <span style="color:#f97316;font-size:13px;font-weight:600">5 High</span>
+        <span style="color:var(--border)">•</span>
+        <span style="color:#f59e0b;font-size:13px;font-weight:600">12 Medium</span>
+        <button class="btn btn-danger btn-sm" style="margin-left:auto">Deploy All Critical</button>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <table class="data-table">
+          <thead><tr><th>Patch Name</th><th>Version</th><th>Severity</th><th>CVE Count</th><th>Highest CVSS</th><th>Status</th><th></th></tr></thead>
+          <tbody id="patchesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: CVE EXPOSURE -->
+    <div class="tab-panel" id="tab-cves">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <table class="data-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Exploit</th><th>KEV</th><th>Affected Package</th><th>Remediation Patch</th><th>Discovered</th></tr></thead>
+          <tbody id="cveBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: COMPLIANCE -->
+    <div class="tab-panel" id="tab-compliance">
+      <div class="fw-grid">
+        <div class="fw-card">
+          <div class="fw-card-head">
+            <div>
+              <div class="fw-name">NIST SP 800-53</div>
+              <div style="font-size:10px;color:var(--muted)">80 controls evaluated</div>
+            </div>
+            <div>
+              <svg width="44" height="44" style="transform:rotate(-90deg)"><circle cx="22" cy="22" r="18" fill="none" stroke="#ffffff10" stroke-width="4"/><circle cx="22" cy="22" r="18" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="88.0 25.1" stroke-linecap="round"/></svg>
+              <div class="fw-score" style="color:#f59e0b;text-align:center;margin-top:-34px;position:relative">78%</div>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" style="width:100%;margin-top:8px">Evaluate Now</button>
+        </div>
+        <div class="fw-card">
+          <div class="fw-card-head">
+            <div>
+              <div class="fw-name">PCI DSS v4.0</div>
+              <div style="font-size:10px;color:var(--muted)">248 requirements</div>
+            </div>
+            <div>
+              <svg width="44" height="44" style="transform:rotate(-90deg)"><circle cx="22" cy="22" r="18" fill="none" stroke="#ffffff10" stroke-width="4"/><circle cx="22" cy="22" r="18" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="103.9 9.2" stroke-linecap="round"/></svg>
+              <div class="fw-score" style="color:#10b981;text-align:center;margin-top:-34px;position:relative">92%</div>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" style="width:100%;margin-top:8px">Evaluate Now</button>
+        </div>
+        <div class="fw-card">
+          <div class="fw-card-head">
+            <div>
+              <div class="fw-name">HIPAA Security</div>
+              <div style="font-size:10px;color:var(--muted)">45 safeguards</div>
+            </div>
+            <div>
+              <svg width="44" height="44" style="transform:rotate(-90deg)"><circle cx="22" cy="22" r="18" fill="none" stroke="#ffffff10" stroke-width="4"/><circle cx="22" cy="22" r="18" fill="none" stroke="#ef4444" stroke-width="4" stroke-dasharray="73.2 40.0" stroke-linecap="round"/></svg>
+              <div class="fw-score" style="color:#ef4444;text-align:center;margin-top:-34px;position:relative">65%</div>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" style="width:100%;margin-top:8px">Evaluate Now</button>
+        </div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px">
+        <div class="card-title">90-Day Compliance Trend</div>
+        <canvas id="complianceTrendChart" height="80"></canvas>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <div style="padding:12px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text)">NIST — Control Breakdown</div>
+        <table class="control-table">
+          <thead><tr><th>Control ID</th><th>Name</th><th>Status</th><th>SLA</th><th>Evidence</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:monospace;color:var(--primary)">AC-2</td><td>Account Management</td><td><span class="badge badge-success">Pass</span></td><td style="color:var(--muted)">—</td><td style="color:var(--muted);font-size:10px">audit_log_2026.json</td></tr>
+            <tr><td style="font-family:monospace;color:var(--primary)">AC-17</td><td>Remote Access</td><td><span class="badge badge-success">Pass</span></td><td style="color:var(--muted)">—</td><td style="color:var(--muted);font-size:10px">ssh_config_verified</td></tr>
+            <tr class="overdue"><td style="font-family:monospace;color:var(--danger)">SI-2</td><td>Flaw Remediation</td><td><span class="badge badge-critical">Overdue</span></td><td style="color:#ef4444;font-weight:600">3d left</td><td style="color:var(--muted);font-size:10px">Awaiting patch deploy</td></tr>
+            <tr class="overdue"><td style="font-family:monospace;color:var(--danger)">CM-6</td><td>Configuration Settings</td><td><span class="badge badge-critical">Fail</span></td><td style="color:#ef4444;font-weight:600">Overdue</td><td style="color:var(--muted);font-size:10px">CIS Benchmark gap</td></tr>
+            <tr><td style="font-family:monospace;color:var(--primary)">AU-2</td><td>Event Logging</td><td><span class="badge badge-medium">Partial</span></td><td style="color:#f59e0b">12d left</td><td style="color:var(--muted);font-size:10px">Audit daemon config</td></tr>
+            <tr><td style="font-family:monospace;color:var(--primary)">IA-5</td><td>Authenticator Management</td><td><span class="badge badge-success">Pass</span></td><td style="color:var(--muted)">—</td><td style="color:var(--muted);font-size:10px">MFA verified</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: DEPLOYMENTS -->
+    <div class="tab-panel" id="tab-deployments">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <table class="data-table">
+          <thead><tr><th>Deploy ID</th><th>Policy</th><th>Status</th><th>Patches</th><th>Started</th><th>Completed</th><th>Duration</th><th>Result</th><th></th></tr></thead>
+          <tbody id="deployBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: AUDIT LOG -->
+    <div class="tab-panel" id="tab-audit">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <select class="filter-select" style="background:#111827;border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:11px;outline:none">
+          <option>All Events</option>
+          <option>Scan</option>
+          <option>Deploy</option>
+          <option>Policy Change</option>
+          <option>Agent Update</option>
+        </select>
+        <input type="text" placeholder="Search actor..." style="background:#111827;border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:11px;outline:none;width:160px">
+        <button class="btn btn-outline btn-sm">Export CSV</button>
+        <button class="btn btn-outline btn-sm">Export JSON</button>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px">
+        <div class="audit-stream" id="auditStream"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Software data ─────────────────────────────────────────────────────────────
+const packages=[
+  {name:'nginx',ver:'1.24.0',arch:'amd64',src:'apt',date:'2026-01-15',size:'1.2MB',hasUpdate:true,cves:2},
+  {name:'openssl',ver:'3.0.13',arch:'amd64',src:'apt',date:'2026-02-01',size:'3.8MB',hasUpdate:false,cves:1},
+  {name:'curl',ver:'8.4.0',arch:'amd64',src:'apt',date:'2026-01-20',size:'380KB',hasUpdate:true,cves:3},
+  {name:'python3',ver:'3.11.7',arch:'amd64',src:'apt',date:'2026-01-10',size:'14MB',hasUpdate:false,cves:0},
+  {name:'openssh-server',ver:'9.3p1',arch:'amd64',src:'apt',date:'2026-01-15',size:'1.1MB',hasUpdate:false,cves:1},
+  {name:'linux-kernel',ver:'6.5.0',arch:'amd64',src:'apt',date:'2026-01-08',size:'45MB',hasUpdate:true,cves:5},
+  {name:'glibc',ver:'2.38',arch:'amd64',src:'apt',date:'2026-01-05',size:'12MB',hasUpdate:false,cves:0},
+  {name:'systemd',ver:'253.5',arch:'amd64',src:'apt',date:'2026-01-05',size:'8.2MB',hasUpdate:false,cves:0},
+  {name:'bash',ver:'5.2.15',arch:'amd64',src:'apt',date:'2025-12-20',size:'820KB',hasUpdate:false,cves:0},
+  {name:'git',ver:'2.43.0',arch:'amd64',src:'apt',date:'2026-02-10',size:'6.5MB',hasUpdate:false,cves:0},
+  {name:'vim',ver:'9.0.1672',arch:'amd64',src:'apt',date:'2025-12-15',size:'2.8MB',hasUpdate:false,cves:0},
+  {name:'wget',ver:'1.21.4',arch:'amd64',src:'apt',date:'2026-01-18',size:'640KB',hasUpdate:false,cves:0},
+  {name:'libssl3',ver:'3.0.13',arch:'amd64',src:'apt',date:'2026-02-01',size:'2.1MB',hasUpdate:false,cves:1},
+  {name:'docker-ce',ver:'25.0.3',arch:'amd64',src:'docker',date:'2026-02-15',size:'42MB',hasUpdate:true,cves:1},
+  {name:'nodejs',ver:'20.11.0',arch:'amd64',src:'nodesource',date:'2026-01-25',size:'28MB',hasUpdate:false,cves:0},
+  {name:'postgresql-16',ver:'16.1',arch:'amd64',src:'pgdg',date:'2026-01-12',size:'18MB',hasUpdate:false,cves:0},
+  {name:'redis',ver:'7.2.4',arch:'amd64',src:'apt',date:'2026-02-05',size:'4.5MB',hasUpdate:false,cves:0},
+  {name:'netcat',ver:'1.226',arch:'amd64',src:'apt',date:'2025-11-30',size:'120KB',hasUpdate:false,cves:0},
+  {name:'strace',ver:'6.5',arch:'amd64',src:'apt',date:'2025-12-10',size:'1.8MB',hasUpdate:false,cves:0},
+  {name:'htop',ver:'3.3.0',arch:'amd64',src:'apt',date:'2025-12-01',size:'240KB',hasUpdate:false,cves:0},
+];
+
+const patchData=[
+  {name:'USN-6587-1',ver:'curl 8.5.0',sev:'Critical',cves:3,cvss:9.8,status:'Pending'},
+  {name:'USN-6544-1',ver:'openssl 3.0.14',sev:'Critical',cves:2,cvss:9.1,status:'Pending'},
+  {name:'RHSA-2024:0012',ver:'linux-kernel 6.6.0',sev:'Critical',cves:5,cvss:8.8,status:'Pending'},
+  {name:'USN-6500-1',ver:'nginx 1.25.3',sev:'High',cves:2,cvss:7.8,status:'Pending'},
+  {name:'DSA-5570-1',ver:'openssh 9.6p1',sev:'High',cves:1,cvss:7.5,status:'Pending'},
+  {name:'USN-6450-1',ver:'python3 3.12.0',sev:'High',cves:2,cvss:7.2,status:'Pending'},
+  {name:'USN-6399-1',ver:'systemd 255',sev:'Medium',cves:1,cvss:6.5,status:'Pending'},
+  {name:'USN-6378-1',ver:'glibc 2.39',sev:'Medium',cves:1,cvss:5.9,status:'Pending'},
+  {name:'DSA-5532-1',ver:'libssl3 3.0.15',sev:'Medium',cves:2,cvss:6.1,status:'Pending'},
+  {name:'USN-6200-1',ver:'bash 5.2.21',sev:'Low',cves:1,cvss:3.3,status:'Pending'},
+];
+
+const cveData=[
+  {id:'CVE-2024-21412',cvss:9.8,sev:'Critical',exploit:true,kev:true,pkg:'curl 8.4.0',patch:'USN-6587-1',date:'2026-01-15'},
+  {id:'CVE-2024-0553',cvss:9.1,sev:'Critical',exploit:false,kev:false,pkg:'openssl 3.0.13',patch:'USN-6544-1',date:'2026-01-22'},
+  {id:'CVE-2024-1086',cvss:8.8,sev:'Critical',exploit:true,kev:true,pkg:'linux-kernel 6.5.0',patch:'RHSA-2024:0012',date:'2026-02-05'},
+  {id:'CVE-2023-44487',cvss:7.8,sev:'High',exploit:true,kev:true,pkg:'nginx 1.24.0',patch:'USN-6500-1',date:'2025-12-18'},
+  {id:'CVE-2023-48795',cvss:7.5,sev:'High',exploit:false,kev:false,pkg:'openssh-server 9.3p1',patch:'DSA-5570-1',date:'2026-01-08'},
+  {id:'CVE-2024-0232',cvss:7.2,sev:'High',exploit:false,kev:false,pkg:'python3 3.11.7',patch:'USN-6450-1',date:'2026-01-30'},
+  {id:'CVE-2023-40283',cvss:6.5,sev:'Medium',exploit:false,kev:false,pkg:'systemd 253.5',patch:'USN-6399-1',date:'2025-12-28'},
+  {id:'CVE-2023-4527',cvss:5.9,sev:'Medium',exploit:false,kev:false,pkg:'glibc 2.38',patch:'USN-6378-1',date:'2026-02-12'},
+  {id:'CVE-2024-0727',cvss:6.1,sev:'Medium',exploit:false,kev:false,pkg:'libssl3 3.0.13',patch:'DSA-5532-1',date:'2026-01-20'},
+  {id:'CVE-2022-3219',cvss:3.3,sev:'Low',exploit:false,kev:false,pkg:'bash 5.2.15',patch:'USN-6200-1',date:'2025-11-25'},
+];
+
+const deployData=[
+  {id:'DEP-0842',policy:'Prod Critical Monthly',status:'success',patches:3,started:'2026-02-28 02:00',completed:'2026-02-28 02:18',duration:'18m 23s',result:'3/3 OK'},
+  {id:'DEP-0791',policy:'Prod Critical Monthly',status:'partial',patches:5,started:'2026-01-31 02:00',completed:'2026-01-31 02:35',duration:'35m 12s',result:'4/5 OK'},
+  {id:'DEP-0745',policy:'Prod Weekly',status:'success',patches:8,started:'2026-01-24 02:00',completed:'2026-01-24 02:41',duration:'41m 05s',result:'8/8 OK'},
+  {id:'DEP-0698',policy:'Prod Weekly',status:'success',patches:6,started:'2026-01-17 02:00',completed:'2026-01-17 02:28',duration:'28m 44s',result:'6/6 OK'},
+  {id:'DEP-0651',policy:'Emergency Patch',status:'failed',patches:2,started:'2026-01-12 16:45',completed:'2026-01-12 16:58',duration:'13m 02s',result:'0/2 OK'},
+  {id:'DEP-0604',policy:'Prod Weekly',status:'success',patches:4,started:'2026-01-10 02:00',completed:'2026-01-10 02:22',duration:'22m 17s',result:'4/4 OK'},
+  {id:'DEP-0557',policy:'Prod Critical Monthly',status:'success',patches:2,started:'2025-12-28 02:00',completed:'2025-12-28 02:12',duration:'12m 34s',result:'2/2 OK'},
+  {id:'DEP-0510',policy:'Prod Weekly',status:'success',patches:9,started:'2025-12-20 02:00',completed:'2025-12-20 02:52',duration:'52m 18s',result:'9/9 OK'},
+];
+
+const auditData=[
+  {actor:'admin@acme.com',color:'#3b82f6',action:'triggered scan on',resource:'prod-web-01',detail:'Full vulnerability scan',time:'2h ago',payload:'{"action":"scan","type":"full","triggered_by":"admin@acme.com","endpoint_id":"prod-web-01","timestamp":"2026-03-10T08:42:00Z"}'},
+  {actor:'system',color:'#10b981',action:'completed patch deployment',resource:'DEP-0842',detail:'3 patches installed successfully',time:'10 days ago',payload:'{"action":"deploy_complete","deployment_id":"DEP-0842","patches_installed":3,"patches_failed":0}'},
+  {actor:'sandy@acme.com',color:'#8b5cf6',action:'assigned policy',resource:'Prod Critical Monthly',detail:'Policy assignment via API',time:'12 days ago',payload:'{"action":"policy_assign","policy_id":"pol-critical-monthly","endpoint_id":"prod-web-01"}'},
+  {actor:'system',color:'#10b981',action:'upgraded agent',resource:'v1.2.2 → v1.2.3',detail:'Auto-upgrade from update channel',time:'15 days ago',payload:'{"action":"agent_upgrade","from_version":"1.2.2","to_version":"1.2.3"}'},
+  {actor:'admin@acme.com',color:'#3b82f6',action:'exported compliance report',resource:'NIST SP 800-53',detail:'PDF report downloaded',time:'18 days ago',payload:'{"action":"report_export","framework":"NIST","format":"pdf"}'},
+  {actor:'system',color:'#f59e0b',action:'detected critical CVE',resource:'CVE-2024-21412',detail:'New critical CVE in curl 8.4.0',time:'23 days ago',payload:'{"action":"cve_detected","cve_id":"CVE-2024-21412","cvss":9.8,"package":"curl 8.4.0"}'},
+  {actor:'heramb@acme.com',color:'#ef4444',action:'changed group membership',resource:'Web Servers',detail:'Added to Web Servers group',time:'25 days ago',payload:'{"action":"group_change","group":"web-servers","op":"add"}'},
+  {actor:'system',color:'#10b981',action:'ran scheduled scan',resource:'prod-web-01',detail:'Weekly automated scan',time:'27 days ago',payload:'{"action":"scan","type":"scheduled","schedule":"weekly"}'},
+  {actor:'admin@acme.com',color:'#3b82f6',action:'enrolled endpoint',resource:'prod-web-01',detail:'Initial enrollment via agent installer',time:'55 days ago',payload:'{"action":"enroll","endpoint_id":"prod-web-01","agent_version":"1.2.2","ip":"10.0.1.15"}'},
+];
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function cvssBar(score){
+  const color=score>=9?'#ef4444':score>=7?'#f97316':score>=4?'#f59e0b':'#10b981';
+  return `<div style="display:flex;align-items:center;gap:6px"><div style="width:60px;height:5px;background:#ffffff10;border-radius:3px;overflow:hidden"><div style="width:${score*10}%;height:100%;background:${color};border-radius:3px"></div></div><span style="font-size:11px;font-weight:600;color:${color}">${score}</span></div>`;
+}
+
+function renderSoftware(){
+  const tbody=document.getElementById('softwareBody');
+  tbody.innerHTML=packages.map((p,i)=>`
+    <tr>
+      <td><span style="font-family:monospace;font-weight:500;color:var(--text)">${p.name}</span></td>
+      <td style="font-family:monospace;color:var(--muted);font-size:11px">${p.ver}</td>
+      <td style="color:var(--muted);font-size:11px">${p.arch}</td>
+      <td><span class="badge badge-muted">${p.src}</span></td>
+      <td style="color:var(--muted);font-size:11px">${p.date}</td>
+      <td style="color:var(--muted);font-size:11px">${p.size}</td>
+      <td><button class="chevron-btn" onclick="toggleSoftRow(this,${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+    </tr>
+    <tr class="exp-row" id="soft-exp-${i}"><td colspan="7" style="padding:0!important;border-bottom:1px solid var(--border)!important">
+      <div class="exp-content-inner">
+        ${p.hasUpdate?`<span class="badge badge-info" style="margin-right:8px">Update available</span>`:''}
+        ${p.cves>0?`<span class="badge badge-critical">${p.cves} CVEs affecting this version</span>`:`<span class="badge badge-success">No known CVEs</span>`}
+        <span style="color:var(--muted);font-size:11px;margin-left:8px">License: MIT</span>
+      </div>
+    </td></tr>
+  `).join('');
+}
+
+function toggleSoftRow(btn,i){
+  btn.classList.toggle('open');
+  document.getElementById(`soft-exp-${i}`).classList.toggle('open');
+}
+
+function renderPatches(){
+  const tbody=document.getElementById('patchesBody');
+  tbody.innerHTML=patchData.map((p,i)=>`
+    <tr>
+      <td><span style="font-family:monospace;color:var(--primary);font-weight:600">${p.name}</span></td>
+      <td style="color:var(--muted);font-size:11px">${p.ver}</td>
+      <td><span class="badge badge-${p.sev.toLowerCase()}">${p.sev}</span></td>
+      <td style="font-size:12px">${p.cves}</td>
+      <td>${cvssBar(p.cvss)}</td>
+      <td><span class="badge badge-warn">Pending</span></td>
+      <td><button class="chevron-btn" onclick="togglePatchRow(this,${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+    </tr>
+    <tr class="exp-row" id="patch-exp-${i}"><td colspan="7" style="padding:0!important;border-bottom:1px solid var(--border)!important">
+      <div class="exp-content-inner">
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="font-size:11px;color:var(--muted)">CVEs: <span style="color:var(--danger)">CVE-2024-${21412+i*13}, CVE-2024-${553+i*7}</span></div>
+          <div style="font-size:11px;color:var(--muted)">CVSS: <strong style="color:var(--text)">${p.cvss}</strong></div>
+          ${p.cvss>=9?`<span class="badge badge-critical">Exploit Available</span>`:''}
+          <button class="btn btn-primary btn-sm" style="margin-left:auto">Deploy This Patch</button>
+        </div>
+      </div>
+    </td></tr>
+  `).join('');
+}
+function togglePatchRow(btn,i){btn.classList.toggle('open');document.getElementById(`patch-exp-${i}`).classList.toggle('open');}
+
+function renderCVEs(){
+  const tbody=document.getElementById('cveBody');
+  tbody.innerHTML=cveData.map((c,i)=>`
+    <tr>
+      <td><span style="font-family:monospace;color:var(--primary);font-weight:600;cursor:pointer;text-decoration:underline">${c.id}</span></td>
+      <td>${cvssBar(c.cvss)}</td>
+      <td><span class="badge badge-${c.sev.toLowerCase()}">${c.sev}</span></td>
+      <td>${c.exploit?`<span style="color:#ef4444" title="Exploit available">🛡 Yes</span>`:`<span style="color:var(--muted)">No</span>`}</td>
+      <td>${c.kev?`<span style="color:#f59e0b" title="CISA KEV">⚑ Yes</span>`:`<span style="color:var(--muted)">No</span>`}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--muted)">${c.pkg}</td>
+      <td><span style="font-family:monospace;font-size:11px;color:var(--primary)">${c.patch}</span></td>
+      <td style="font-size:11px;color:var(--muted)">${c.date}</td>
+    </tr>
+  `).join('');
+}
+
+function renderDeployments(){
+  const tbody=document.getElementById('deployBody');
+  tbody.innerHTML=deployData.map((d,i)=>`
+    <tr>
+      <td><span style="font-family:monospace;color:var(--primary)">${d.id}</span></td>
+      <td style="font-size:11px">${d.policy}</td>
+      <td><span class="badge badge-${d.status==='success'?'success':d.status==='partial'?'medium':'critical'}">${d.status==='success'?'Success':d.status==='partial'?'Partial':'Failed'}</span></td>
+      <td style="font-size:12px">${d.patches}</td>
+      <td style="font-size:11px;color:var(--muted)">${d.started}</td>
+      <td style="font-size:11px;color:var(--muted)">${d.completed}</td>
+      <td style="font-size:11px;color:var(--muted);font-family:monospace">${d.duration}</td>
+      <td style="font-size:12px;color:${d.result.startsWith(d.patches)?'#10b981':'#f59e0b'}">${d.result}</td>
+      <td><button class="chevron-btn" onclick="toggleDeployRow(this,${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+    </tr>
+    <tr class="exp-row" id="deploy-exp-${i}"><td colspan="9" style="padding:0!important;border-bottom:1px solid var(--border)!important">
+      <div class="exp-content-inner">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Deployment log (stdout):</div>
+        <pre style="background:#0a0e1a;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:10px;color:#10b981;font-family:monospace;white-space:pre-wrap;max-height:120px;overflow-y:auto">[${d.started}] Starting deployment ${d.id}
+[INFO] Applying ${d.patches} patches via policy "${d.policy}"
+[INFO] Patch 1/3: Downloading USN-6587-1 ... OK
+[INFO] Patch 1/3: Installing ... OK
+[INFO] Patch 2/3: Downloading USN-6544-1 ... OK
+[INFO] Patch 2/3: Installing ... OK
+[${d.completed}] Deployment completed: ${d.result}</pre>
+        ${d.status==='failed'?`<button class="btn btn-primary btn-sm" style="margin-top:8px">Retry Deployment</button>`:''}
+      </div>
+    </td></tr>
+  `).join('');
+}
+function toggleDeployRow(btn,i){btn.classList.toggle('open');document.getElementById(`deploy-exp-${i}`).classList.toggle('open');}
+
+function renderAudit(){
+  const container=document.getElementById('auditStream');
+  container.innerHTML=auditData.map((a,i)=>`
+    <div class="audit-item" onclick="toggleAuditItem(this)">
+      <div class="audit-avatar" style="background:${a.color}">${a.actor[0].toUpperCase()}</div>
+      <div class="audit-content">
+        <div class="audit-main"><strong>${a.actor}</strong> ${a.action} <strong>${a.resource}</strong> — ${a.detail}</div>
+        <div class="audit-time">${a.time}</div>
+        <div class="audit-expand"><pre class="json">${JSON.stringify(JSON.parse(a.payload),null,2)}</pre></div>
+      </div>
+    </div>
+  `).join('');
+}
+function toggleAuditItem(el){el.querySelector('.audit-expand').classList.toggle('open');}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+let chartsInited=false;
+function initCharts(){
+  if(chartsInited)return;
+  chartsInited=true;
+  // License pie
+  new Chart(document.getElementById('licenseChart'),{
+    type:'doughnut',
+    data:{labels:['MIT','Apache 2.0','GPL','Other'],datasets:[{data:[45,30,15,10],backgroundColor:['#3b82f6','#10b981','#f59e0b','#8b5cf6'],borderWidth:0,borderRadius:4}]},
+    options:{cutout:'65%',plugins:{legend:{display:false}},animation:{duration:600}}
+  });
+  // Compliance trend
+  new Chart(document.getElementById('complianceTrendChart'),{
+    type:'line',
+    data:{
+      labels:['90d ago','80d','70d','60d','50d','40d','30d','20d','10d','Today'],
+      datasets:[
+        {label:'NIST',data:[62,65,68,70,73,74,75,76,77,78],borderColor:'#f59e0b',tension:.4,pointRadius:2,borderWidth:2,fill:false},
+        {label:'PCI',data:[85,86,87,88,88,89,90,91,91,92],borderColor:'#10b981',tension:.4,pointRadius:2,borderWidth:2,fill:false},
+        {label:'HIPAA',data:[55,56,57,58,60,61,62,63,64,65],borderColor:'#ef4444',tension:.4,pointRadius:2,borderWidth:2,fill:false},
+      ]
+    },
+    options:{plugins:{legend:{labels:{color:'#64748b',font:{size:10},boxWidth:10}}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'#1e293b30'}},y:{min:40,max:100,ticks:{color:'#64748b',font:{size:10}},grid:{color:'#1e293b50'}}}}
+  });
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  location.hash=id;
+  if(id==='software'||id==='compliance')initCharts();
+}
+
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+function toggleDark(){
+  document.documentElement.classList.toggle('dark');
+  const d=document.documentElement.classList.contains('dark');
+  localStorage.setItem('theme',d?'dark':'light');
+}
+
+(function(){
+  const saved=localStorage.getItem('theme');
+  if(saved==='light')document.documentElement.classList.remove('dark');
+  renderSoftware();renderPatches();renderCVEs();renderDeployments();renderAudit();
+  const hash=location.hash.replace('#','');
+  if(hash){
+    const btn=document.querySelector(`.tab-btn[onclick*="'${hash}'"]`);
+    if(btn)switchTab(hash,btn);
+  }
+})();
+</script>
+</body>
+</html>

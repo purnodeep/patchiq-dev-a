@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "xvfb-run",
+      "args": [
+        "--auto-servernum",
+        "--server-args=-screen 0 1920x1080x24",
+        "npx",
+        "chrome-devtools-mcp@latest",
+        "--headless",
+        "--viewport",
+        "1920x1080",
+        "--no-usage-statistics",
+        "--chromeArg=--no-sandbox"
+      ]
+    }
+  }
+}

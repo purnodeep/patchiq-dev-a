@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Worktrees
+.worktrees/
+
+# IDE
+.vscode/
+.idea/
+
+# Go build artifacts
+bin/
+tmp/
+
+# Node modules (rebuilt inside Docker)
+node_modules/
+web/node_modules/
+web-hub/node_modules/
+web-agent/node_modules/
+packages/ui/node_modules/
+
+# Frontend build output (rebuilt inside Docker)
+web/dist/
+web-hub/dist/
+web-agent/dist/
+
+# Environment files
+.env
+.env.prod
+.env.*
+
+# Documentation (not needed in images)
+docs/
+
+# Claude
+.claude/
+CLAUDE.md

@@ -1,0 +1,20 @@
+root = "."
+tmp_dir = "tmp/server"
+
+[build]
+  bin = "tmp/server/server"
+  cmd = "go build -o tmp/server/server ./cmd/server"
+  delay = 1000
+  exclude_dir = ["tmp", "vendor", "web", "web-hub", "web-agent", "packages", "node_modules", "deploy", "test", "docs"]
+  exclude_regex = ["_test\\.go$"]
+  include_dir = ["cmd/server", "internal/server", "internal/shared"]
+  include_ext = ["go", "toml", "yaml"]
+  kill_delay = 500
+
+[log]
+  time = false
+
+[color]
+  main = "green"
+  build = "yellow"
+  runner = "cyan"

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Agent — Overview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --teal:#14b8a6;--teal-dim:#0d9488;--teal-glow:rgba(20,184,166,0.35);
+  --bg:#0f172a;--card:#1e293b;--card2:#162032;--border:#2d3f52;
+  --text:#e2e8f0;--muted:#64748b;
+  --success:#10b981;--warn:#f59e0b;--danger:#ef4444;
+  --topbar-h:64px;--tabbar-h:48px;
+}
+html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+body{min-height:100vh;background:var(--bg)}
+
+/* Light mode overrides */
+html.light{background:#f1f5f9;color:#0f172a}
+html.light body{background:#f1f5f9;color:#0f172a}
+html.light #topbar{background:#fff;border-color:#e2e8f0}
+html.light #tabbar{background:#fff;border-color:#e2e8f0}
+html.light .card{background:#fff;border-color:#e2e8f0}
+html.light .card-inner{background:#f8fafc;border-color:#e2e8f0}
+html.light .text-muted{color:#64748b}
+html.light .gauge-bg{background:#e2e8f0}
+html.light .hero-meta{color:#475569}
+html.light .tab-inactive{color:#64748b}
+html.light .tab-inactive:hover{background:#f0fdfa;color:#0d9488}
+html.light .stat-mini{background:#f8fafc;border-color:#e2e8f0}
+html.light .quick-stat{background:#fff;border-color:#e2e8f0}
+html.light .quick-stat-label{color:#64748b}
+
+/* Topbar */
+#topbar{height:var(--topbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:fixed;top:0;left:0;right:0;z-index:100}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-name{font-size:16px;font-weight:700;color:var(--teal);letter-spacing:-.3px}
+.hostname{font-family:monospace;font-size:13px;color:var(--muted);background:#ffffff08;padding:3px 10px;border-radius:20px;border:1px solid var(--border)}
+.status-dot-wrap{display:flex;align-items:center;gap:6px;font-size:12px;color:#10b981}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;position:relative}
+.status-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:#10b981;opacity:.4;animation:pulse-ring 2s ease-out infinite}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.4}70%{transform:scale(1.8);opacity:0}100%{transform:scale(1.8);opacity:0}}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.toggle-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:.15s}
+.toggle-btn:hover{background:#ffffff0d;color:var(--text)}
+.toggle-btn svg{width:18px;height:18px}
+
+/* Tab bar */
+#tabbar{height:var(--tabbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 24px;gap:2px;position:fixed;top:var(--topbar-h);left:0;right:0;z-index:99}
+.tab{padding:0 18px;display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;position:relative;transition:.15s;white-space:nowrap;border-bottom:2px solid transparent}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.tab-inactive:hover{background:rgba(20,184,166,.08);color:var(--teal)}
+.tab-badge{background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;border:1px solid #ef444430}
+.tab-badge.teal{background:rgba(20,184,166,.15);color:var(--teal);border-color:rgba(20,184,166,.3)}
+.tab-dot{width:7px;height:7px;border-radius:50%;background:#10b981}
+
+/* Main content */
+#page{padding:calc(var(--topbar-h) + var(--tabbar-h) + 24px) 24px 40px;max-width:1280px;margin:0 auto}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:.15s}
+.card:hover{border-color:#3d5168}
+.card-inner{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.card-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.teal-border-left{border-left:3px solid var(--teal)}
+
+/* Status orb */
+.orb-wrap{display:flex;flex-direction:column;align-items:center;padding:40px 0 32px}
+.orb{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 35% 35%, #2dd4bf, #14b8a6, #0d9488);box-shadow:0 0 30px var(--teal-glow),0 0 60px var(--teal-glow),0 0 100px rgba(20,184,166,.15);animation:orb-pulse 3s ease-in-out infinite;position:relative;display:flex;align-items:center;justify-content:center}
+.orb::before{content:'';position:absolute;inset:-6px;border-radius:50%;background:radial-gradient(circle,rgba(20,184,166,.2),transparent 70%);animation:orb-outer 3s ease-in-out infinite}
+@keyframes orb-pulse{
+  0%,100%{box-shadow:0 0 30px var(--teal-glow),0 0 60px var(--teal-glow),0 0 100px rgba(20,184,166,.15);transform:scale(1)}
+  50%{box-shadow:0 0 40px rgba(20,184,166,.5),0 0 80px rgba(20,184,166,.3),0 0 120px rgba(20,184,166,.2);transform:scale(1.03)}
+}
+@keyframes orb-outer{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+.orb-icon{font-size:48px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.orb-status{font-size:28px;font-weight:700;color:var(--teal);margin-top:20px}
+.orb-sub{font-size:13px;color:var(--muted);margin-top:4px}
+.orb-meta{display:flex;gap:24px;margin-top:20px;flex-wrap:wrap;justify-content:center}
+.orb-meta-item{display:flex;flex-direction:column;align-items:center;gap:3px}
+.orb-meta-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.orb-meta-val{font-size:13px;font-weight:600;color:var(--text);font-family:monospace}
+
+/* Gauge bars */
+.gauge-wrap{margin-bottom:14px}
+.gauge-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.gauge-label{font-size:12px;font-weight:500;color:var(--text)}
+.gauge-sub{font-size:11px;color:var(--muted)}
+.gauge-pct{font-size:13px;font-weight:700}
+.gauge-bg{height:8px;background:#1e3a5f;border-radius:4px;overflow:hidden}
+.gauge-fill{height:100%;border-radius:4px;width:0;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.gauge-fill.green{background:linear-gradient(90deg,#0d9488,#14b8a6)}
+.gauge-fill.amber{background:linear-gradient(90deg,#d97706,#f59e0b)}
+.gauge-fill.red{background:linear-gradient(90deg,#dc2626,#ef4444)}
+.gauge-detail{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* SVG ring gauge */
+.ring-gauge{position:relative;width:80px;height:80px}
+.ring-gauge svg{transform:rotate(-90deg)}
+.ring-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+
+/* Stat items */
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-key{color:var(--muted);font-size:12px}
+.stat-val{font-size:12px;font-weight:500;color:var(--text);font-family:monospace}
+.stat-mini{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;font-family:monospace;color:var(--text)}
+
+/* Mini bar inline */
+.mini-bar-wrap{display:flex;align-items:center;gap:6px}
+.mini-bar{height:4px;width:60px;background:#1e3a5f;border-radius:2px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:2px;background:var(--teal)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.badge.green{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge.amber{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+.badge.red{background:#ef444420;color:#ef4444;border:1px solid #ef444430}
+.badge.teal{background:rgba(20,184,166,.15);color:var(--teal);border:1px solid rgba(20,184,166,.3)}
+.badge.gray{background:#1e293b;color:var(--muted);border:1px solid var(--border)}
+
+/* Quick stats strip */
+.quick-stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;display:flex;flex-direction:column;gap:6px}
+.quick-stat-val{font-size:28px;font-weight:700;color:var(--text)}
+.quick-stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.dot-counts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.dot-count{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600}
+
+/* Connected dot */
+.conn-dot{width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;margin-right:4px;position:relative}
+.conn-dot::after{content:'';position:absolute;inset:-2px;border-radius:50%;background:#10b981;opacity:.3;animation:pulse-ring 2s ease-out infinite}
+
+/* Sparkline */
+#sparkCanvas{display:block}
+
+/* Grid layouts */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+@media(max-width:1100px){.grid-3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.grid-3,.grid-4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <div class="brand">
+    <span class="brand-name">PatchIQ Agent</span>
+    <span class="hostname">prod-web-01</span>
+    <div class="status-dot-wrap">
+      <div class="status-dot"></div>
+      <span>Healthy</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="toggle-btn" onclick="toggleTheme()" title="Toggle dark/light">
+      <svg id="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- TAB BAR -->
+<nav id="tabbar">
+  <a href="index.html" class="tab active">
+    <div class="tab-dot"></div>
+    Overview
+  </a>
+  <a href="patches.html" class="tab tab-inactive">
+    Patches
+    <span class="tab-badge">20</span>
+  </a>
+  <a href="history.html" class="tab tab-inactive">History</a>
+  <a href="logs.html" class="tab tab-inactive">Logs</a>
+  <a href="settings.html" class="tab tab-inactive">Settings</a>
+</nav>
+
+<!-- MAIN -->
+<main id="page">
+
+  <!-- HERO — Status Orb -->
+  <div class="orb-wrap">
+    <div class="orb">
+      <span class="orb-icon">✓</span>
+    </div>
+    <div class="orb-status">Healthy</div>
+    <div class="orb-sub text-muted">All systems operational</div>
+    <div class="orb-meta">
+      <div class="orb-meta-item">
+        <span class="orb-meta-label">Hostname</span>
+        <span class="orb-meta-val">prod-web-01</span>
+      </div>
+      <div class="orb-meta-item">
+        <span class="orb-meta-label">OS</span>
+        <span class="orb-meta-val">Ubuntu 22.04 LTS</span>
+      </div>
+      <div class="orb-meta-item">
+        <span class="orb-meta-label">Agent Version</span>
+        <span class="orb-meta-val">v1.2.3</span>
+      </div>
+      <div class="orb-meta-item">
+        <span class="orb-meta-label">Uptime</span>
+        <span class="orb-meta-val" id="uptime-val">45d 12h 34m</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2 — System Cards -->
+  <div class="grid-3">
+
+    <!-- Card 1: Agent Health -->
+    <div class="card teal-border-left">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Agent Health
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Status</span>
+        <span class="badge green">● Running</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">PID</span>
+        <span class="stat-val">12847</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Memory</span>
+        <div class="mini-bar-wrap">
+          <span class="stat-val">42 MB</span>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:22%"></div></div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">CPU</span>
+        <div class="mini-bar-wrap">
+          <span class="stat-val">0.3%</span>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:3%"></div></div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Last Heartbeat</span>
+        <span class="stat-val" style="color:#10b981">30s ago</span>
+      </div>
+      <div class="stat-row" style="border-bottom:none;margin-top:4px">
+        <span class="stat-key">Server</span>
+        <span style="font-size:11px;color:#10b981;display:flex;align-items:center">
+          <span class="conn-dot"></span>pm.acme.com:8443
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 2: Server Connection -->
+    <div class="card teal-border-left">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        Server Connection
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Server URL</span>
+        <span class="stat-val" style="font-size:11px">pm.acme.com:8443</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Status</span>
+        <span class="badge green">● Connected</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Latency</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="stat-val" style="color:#10b981">12ms</span>
+          <canvas id="sparkCanvas" width="80" height="24"></canvas>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Certificate</span>
+        <span class="stat-val" style="font-size:11px;color:#10b981">Valid · Dec 2026</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Last Sync</span>
+        <span class="stat-val">5 min ago</span>
+      </div>
+      <div class="stat-row" style="border-bottom:none">
+        <span class="stat-key">Next Sync</span>
+        <span class="stat-val" id="next-sync-val" style="color:var(--teal)">in 10:00</span>
+      </div>
+    </div>
+
+    <!-- Card 3: System Info -->
+    <div class="card teal-border-left">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        System Info
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Hostname</span>
+        <span class="stat-val">prod-web-01</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">OS</span>
+        <span class="stat-val" style="font-size:11px">Ubuntu 22.04.4 LTS</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Kernel</span>
+        <span class="stat-val" style="font-size:11px">6.5.0-44-generic</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Architecture</span>
+        <span class="stat-val">x86_64</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">IP Address</span>
+        <span class="stat-val">10.0.1.15</span>
+      </div>
+      <div class="stat-row" style="border-bottom:none">
+        <span class="stat-key">MAC</span>
+        <span class="stat-val" style="font-size:11px">02:42:ac:11:00:03</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 3 — Hardware Snapshot -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+      Hardware Snapshot
+    </div>
+
+    <div class="gauge-wrap">
+      <div class="gauge-header">
+        <div>
+          <div class="gauge-label">CPU — Intel Xeon E5-2680 v4 @ 2.40GHz</div>
+          <div class="gauge-sub">8 cores · 16 threads</div>
+        </div>
+        <div class="gauge-pct" style="color:#14b8a6">45%</div>
+      </div>
+      <div class="gauge-bg"><div class="gauge-fill green" data-pct="45"></div></div>
+    </div>
+
+    <div class="gauge-wrap">
+      <div class="gauge-header">
+        <div>
+          <div class="gauge-label">Memory — 16 GB DDR4</div>
+          <div class="gauge-sub">11.5 GB used · 4.5 GB available · 0.8 GB cached</div>
+        </div>
+        <div class="gauge-pct" style="color:#f59e0b">72%</div>
+      </div>
+      <div class="gauge-bg"><div class="gauge-fill amber" data-pct="72"></div></div>
+    </div>
+
+    <div class="gauge-wrap">
+      <div class="gauge-header">
+        <div>
+          <div class="gauge-label">Disk / — 120 GB SSD</div>
+          <div class="gauge-sub">69.6 GB used · 50.4 GB free</div>
+        </div>
+        <div class="gauge-pct" style="color:#14b8a6">58%</div>
+      </div>
+      <div class="gauge-bg"><div class="gauge-fill green" data-pct="58"></div></div>
+    </div>
+
+    <div class="gauge-wrap" style="margin-bottom:0">
+      <div class="gauge-header">
+        <div>
+          <div class="gauge-label">Disk /data — 500 GB HDD</div>
+          <div class="gauge-sub">360 GB used · 140 GB free</div>
+        </div>
+        <div class="gauge-pct" style="color:#f59e0b">72%</div>
+      </div>
+      <div class="gauge-bg"><div class="gauge-fill amber" data-pct="72"></div></div>
+    </div>
+  </div>
+
+  <!-- ROW 4 — Compliance Mini-Cards -->
+  <div class="grid-3">
+
+    <div class="card teal-border-left" style="display:flex;gap:20px;align-items:center">
+      <div class="ring-gauge">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="32" fill="none" stroke="#1e3a5f" stroke-width="8"/>
+          <circle cx="40" cy="40" r="32" fill="none" stroke="#f59e0b" stroke-width="8"
+            stroke-dasharray="201.06" stroke-dashoffset="44.2" stroke-linecap="round"
+            style="transition:stroke-dashoffset 1.2s ease"/>
+        </svg>
+        <div class="ring-pct" style="color:#f59e0b">78%</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:600;margin-bottom:6px">NIST CSF 2.0</div>
+        <span class="badge amber">Needs Improvement</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">12 controls failing</div>
+      </div>
+    </div>
+
+    <div class="card teal-border-left" style="display:flex;gap:20px;align-items:center">
+      <div class="ring-gauge">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="32" fill="none" stroke="#1e3a5f" stroke-width="8"/>
+          <circle cx="40" cy="40" r="32" fill="none" stroke="#10b981" stroke-width="8"
+            stroke-dasharray="201.06" stroke-dashoffset="16.1" stroke-linecap="round"
+            style="transition:stroke-dashoffset 1.2s ease"/>
+        </svg>
+        <div class="ring-pct" style="color:#10b981">92%</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:600;margin-bottom:6px">PCI DSS 4.0</div>
+        <span class="badge green">Compliant</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">3 controls failing</div>
+      </div>
+    </div>
+
+    <div class="card teal-border-left" style="display:flex;gap:20px;align-items:center">
+      <div class="ring-gauge">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="32" fill="none" stroke="#1e3a5f" stroke-width="8"/>
+          <circle cx="40" cy="40" r="32" fill="none" stroke="#ef4444" stroke-width="8"
+            stroke-dasharray="201.06" stroke-dashoffset="70.4" stroke-linecap="round"
+            style="transition:stroke-dashoffset 1.2s ease"/>
+        </svg>
+        <div class="ring-pct" style="color:#ef4444">65%</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:600;margin-bottom:6px">HIPAA</div>
+        <span class="badge red">Non-Compliant</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">24 controls failing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 5 — Quick Stats Strip -->
+  <div class="grid-4">
+    <div class="quick-stat">
+      <div class="quick-stat-label">Installed Packages</div>
+      <div class="quick-stat-val">342</div>
+    </div>
+    <div class="quick-stat">
+      <div class="quick-stat-label">Pending Patches</div>
+      <div class="quick-stat-val" style="color:var(--teal)">20</div>
+      <div class="dot-counts">
+        <span class="dot-count" style="color:#ef4444">● 3 critical</span>
+        <span class="dot-count" style="color:#f97316">● 5 high</span>
+        <span class="dot-count" style="color:#eab308">● 12 medium</span>
+      </div>
+    </div>
+    <div class="quick-stat">
+      <div class="quick-stat-label">Last Scan</div>
+      <div class="quick-stat-val" style="font-size:22px">2h ago</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">342 packages checked</div>
+    </div>
+    <div class="quick-stat">
+      <div class="quick-stat-label">Next Scan</div>
+      <div class="quick-stat-val" id="next-scan-val" style="font-size:22px;color:var(--teal)">4:00:00</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">in ~4 hours</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// Theme toggle
+function toggleTheme(){
+  const h=document.documentElement;
+  if(h.classList.contains('dark')){
+    h.classList.replace('dark','light');
+    localStorage.setItem('theme','light');
+    document.getElementById('sun-icon').style.display='block';
+    document.getElementById('moon-icon').style.display='none';
+  } else {
+    h.classList.replace('light','dark');
+    localStorage.setItem('theme','dark');
+    document.getElementById('sun-icon').style.display='none';
+    document.getElementById('moon-icon').style.display='block';
+  }
+}
+(function(){
+  const t=localStorage.getItem('theme')||'dark';
+  document.documentElement.classList.add(t);
+  if(t==='light'){
+    document.getElementById('sun-icon').style.display='block';
+    document.getElementById('moon-icon').style.display='none';
+  }
+})();
+
+// Animate gauge fills on load
+document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){
+    document.querySelectorAll('.gauge-fill[data-pct]').forEach(function(el){
+      el.style.width=el.getAttribute('data-pct')+'%';
+    });
+  },200);
+});
+
+// Sparkline for latency
+(function(){
+  const canvas=document.getElementById('sparkCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const data=[14,12,11,13,15,12,18,11,12,10,13,14,12,11,13,12,14,11,13,12];
+  const w=80,h=24,min=8,max=20;
+  ctx.clearRect(0,0,w,h);
+  ctx.beginPath();
+  data.forEach(function(v,i){
+    const x=(i/(data.length-1))*w;
+    const y=h-((v-min)/(max-min))*(h-4)-2;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle='#14b8a6';ctx.lineWidth=1.5;ctx.stroke();
+})();
+
+// Next sync countdown
+let syncSec=600;
+function updateSync(){
+  syncSec--;
+  if(syncSec<0)syncSec=600;
+  const m=Math.floor(syncSec/60),s=syncSec%60;
+  document.getElementById('next-sync-val').textContent=`in ${m}:${String(s).padStart(2,'0')}`;
+}
+setInterval(updateSync,1000);
+
+// Next scan countdown
+let scanSec=14400;
+function updateScan(){
+  scanSec--;
+  if(scanSec<0)scanSec=14400;
+  const h=Math.floor(scanSec/3600),m=Math.floor((scanSec%3600)/60),s=scanSec%60;
+  document.getElementById('next-scan-val').textContent=`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+setInterval(updateScan,1000);
+
+// Uptime counter
+let uptimeSec=45*86400+12*3600+34*60;
+function updateUptime(){
+  uptimeSec++;
+  const d=Math.floor(uptimeSec/86400),h=Math.floor((uptimeSec%86400)/3600),m=Math.floor((uptimeSec%3600)/60);
+  document.getElementById('uptime-val').textContent=`${d}d ${h}h ${m}m`;
+}
+setInterval(updateUptime,60000);
+</script>
+</body>
+</html>

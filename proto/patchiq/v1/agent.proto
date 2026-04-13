@@ -1,0 +1,152 @@
+syntax = "proto3";
+
+package patchiq.v1;
+
+import "google/protobuf/timestamp.proto";
+import "patchiq/v1/common.proto";
+
+// AgentService handles all agent-to-server communication.
+// Designed for offline-first operation: agents buffer messages locally and sync
+// via SyncOutbox/SyncInbox. Protocol version is negotiated during Enroll to
+// allow agents and server to evolve independently.
+service AgentService {
+  // Enroll registers a new agent and negotiates protocol version.
+  rpc Enroll(EnrollRequest) returns (EnrollResponse);
+
+  // Heartbeat is a bidirectional stream for agent liveness and server-pushed config.
+  rpc Heartbeat(stream HeartbeatRequest) returns (stream HeartbeatResponse);
+
+  // SyncOutbox streams queued messages (inventory, command results, events) from agent to server.
+  rpc SyncOutbox(stream OutboxMessage) returns (stream OutboxAck);
+
+  // SyncInbox streams pending commands from server to agent.
+  rpc SyncInbox(InboxRequest) returns (stream CommandRequest);
+}
+
+// OutboxMessageType identifies the kind of payload in an OutboxMessage.
+enum OutboxMessageType {
+  OUTBOX_MESSAGE_TYPE_UNSPECIFIED = 0;
+  OUTBOX_MESSAGE_TYPE_INVENTORY = 1;
+  OUTBOX_MESSAGE_TYPE_COMMAND_RESULT = 2;
+  OUTBOX_MESSAGE_TYPE_HEARTBEAT = 3;
+  OUTBOX_MESSAGE_TYPE_EVENT = 4;
+}
+
+// AgentStatus represents the agent's current operational state.
+enum AgentStatus {
+  AGENT_STATUS_UNSPECIFIED = 0;
+  AGENT_STATUS_IDLE = 1;
+  AGENT_STATUS_BUSY = 2;
+  AGENT_STATUS_ERROR = 3;
+  AGENT_STATUS_UPDATING = 4;
+}
+
+// EnrollmentErrorCode identifies why enrollment failed.
+enum EnrollmentErrorCode {
+  ENROLLMENT_ERROR_CODE_UNSPECIFIED = 0;
+  ENROLLMENT_ERROR_CODE_INVALID_TOKEN = 1;
+  ENROLLMENT_ERROR_CODE_TOKEN_EXPIRED = 2;
+  ENROLLMENT_ERROR_CODE_TOKEN_ALREADY_USED = 3;
+  ENROLLMENT_ERROR_CODE_PROTOCOL_VERSION_INCOMPATIBLE = 4;
+  ENROLLMENT_ERROR_CODE_ENDPOINT_LIMIT_EXCEEDED = 5;
+}
+
+// OutboxRejectionCode indicates how the server handled an OutboxMessage.
+enum OutboxRejectionCode {
+  // Message accepted; no error.
+  OUTBOX_REJECTION_CODE_UNSPECIFIED = 0;
+  // Permanent: discard.
+  OUTBOX_REJECTION_CODE_UNKNOWN_TYPE = 1;
+  // Permanent: discard.
+  OUTBOX_REJECTION_CODE_SCHEMA_VERSION_MISMATCH = 2;
+  // Permanent: discard.
+  OUTBOX_REJECTION_CODE_PAYLOAD_INVALID = 3;
+  // Transient: retry with backoff.
+  OUTBOX_REJECTION_CODE_SERVER_OVERLOADED = 4;
+  // Fatal: re-enroll before retrying.
+  OUTBOX_REJECTION_CODE_AGENT_NOT_ENROLLED = 5;
+}
+
+// HeartbeatDirective carries server instructions to the agent.
+enum HeartbeatDirective {
+  // Normal operation.
+  HEARTBEAT_DIRECTIVE_UNSPECIFIED = 0;
+  // Agent must re-enroll.
+  HEARTBEAT_DIRECTIVE_RE_ENROLL = 1;
+  // Mandatory update.
+  HEARTBEAT_DIRECTIVE_UPDATE_REQUIRED = 2;
+  // Orderly shutdown.
+  HEARTBEAT_DIRECTIVE_SHUTDOWN = 3;
+  // Protocol version no longer supported.
+  HEARTBEAT_DIRECTIVE_PROTOCOL_UNSUPPORTED = 4;
+}
+
+message EnrollRequest {
+  AgentInfo agent_info = 1;
+  string enrollment_token = 2;
+  EndpointInfo endpoint_info = 3;
+}
+
+message EnrollResponse {
+  string agent_id = 1;
+  bytes mtls_certificate = 2;
+  // Negotiated as min(AgentInfo.protocol_version, server_max_protocol_version) during enrollment.
+  uint32 negotiated_protocol_version = 3;
+  AgentConfig config = 4;
+  UpdateInfo update_available = 5;
+  // When error_code != UNSPECIFIED, agent_id and mtls_certificate will be empty.
+  EnrollmentErrorCode error_code = 6;
+  string error_message = 7;
+}
+
+message HeartbeatRequest {
+  string agent_id = 1;
+  uint32 protocol_version = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  AgentStatus status = 4;
+  ResourceUsage resource_usage = 5;
+  int64 uptime_seconds = 6;
+  google.protobuf.Timestamp last_scan_time = 7;
+  uint32 offline_queue_depth = 8;
+}
+
+message HeartbeatResponse {
+  google.protobuf.Timestamp server_timestamp = 1;
+  uint32 commands_pending = 2;
+  AgentConfig config_update = 3;
+  UpdateInfo update_available = 4;
+  HeartbeatDirective directive = 5;
+  string directive_message = 6;
+}
+
+message ResourceUsage {
+  double cpu_percent = 1;
+  uint64 memory_bytes = 2;
+  uint64 disk_bytes = 3;
+}
+
+message OutboxMessage {
+  string message_id = 1;
+  uint32 protocol_version = 2;
+  OutboxMessageType type = 3;
+  // Serialized payload determined by type:
+  //   INVENTORY       — InventoryReport
+  //   COMMAND_RESULT  — CommandResponse
+  //   HEARTBEAT       — HeartbeatRequest (offline snapshot when live stream unavailable)
+  //   EVENT           — DomainEvent (TODO(PIQ-2): define in M1)
+  bytes payload = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+message OutboxAck {
+  string message_id = 1;
+  // UNSPECIFIED means the message was accepted.
+  OutboxRejectionCode rejection_code = 2;
+  string rejection_detail = 3;
+}
+
+message InboxRequest {
+  string agent_id = 1;
+  uint32 protocol_version = 2;
+  string last_received_id = 3;
+}

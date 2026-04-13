@@ -1,0 +1,68 @@
+server:
+  http:
+    port: 8080
+    read_timeout: 30s
+    write_timeout: 30s
+    idle_timeout: 120s
+  grpc:
+    port: 50051
+    reflection: false
+  shutdown_timeout: 15s
+  minio:
+    endpoint: "localhost:9400"
+    access_key: "minioadmin"
+    secret_key: "minioadmin"
+    bucket: "patchiq-reports"
+    use_ssl: false
+  cors_origins:
+    - "http://localhost:3001"
+    - "http://localhost:3002"
+    - "http://localhost:3003"
+    - "http://localhost:3301"
+    - "http://localhost:4000"
+    - "http://localhost:4100"
+    - "http://localhost:5173"
+    - "http://localhost:5174"
+    - "http://localhost:5175"
+    - "http://ssh.skenzer.com:3001"
+
+database:
+  url: "" # Set via PATCHIQ_DATABASE_URL env var
+  max_conns: 200
+  min_conns: 50
+
+watermill:
+  postgres_url: "" # Set via PATCHIQ_WATERMILL_POSTGRES_URL env var
+
+valkey:
+  url: "" # Set via PATCHIQ_VALKEY_URL env var
+
+river:
+  max_workers: 100
+
+log:
+  level: "info"
+  format: "json"
+
+otel:
+  endpoint: "localhost:4317"
+  insecure: true
+
+iam:
+  zitadel:
+    domain: "localhost:8085"
+    secure: false
+    client_id: "364916403880394758"
+    client_secret: ""
+    service_account_key: ""  # Set via PATCHIQ_IAM_ZITADEL_SERVICE_ACCOUNT_KEY env var
+    redirect_uri: "http://localhost:8080/api/v1/auth/callback"
+  session:
+    cookie_name: "piq_session"
+    cookie_secure: false
+    cookie_domain: "localhost"
+    access_token_ttl: 24h
+    refresh_token_ttl: 168h
+    remember_me_ttl: 168h
+    post_login_url: "http://localhost:3001/"
+
+env: "development"

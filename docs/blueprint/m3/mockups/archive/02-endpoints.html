@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Endpoints</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-page: #09090b;
+      --bg-card: #18181b;
+      --bg-elevated: #1c1c1f;
+      --border: #27272a;
+      --border-light: #3f3f46;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --brand: #3b82f6;
+      --brand-dim: rgba(59, 130, 246, 0.12);
+      --brand-border: rgba(59, 130, 246, 0.3);
+      --critical: #ef4444;
+      --high: #f97316;
+      --medium: #eab308;
+      --low: #3b82f6;
+      --status-online: #22c55e;
+      --status-offline: #71717a;
+      --status-patching: #3b82f6;
+      --status-stale: #f59e0b;
+      --sidebar-width: 220px;
+      --topbar-height: 52px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── LAYOUT ─── */
+    .app-shell {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-badge {
+      font-size: 9px;
+      font-weight: 600;
+      background: var(--brand-dim);
+      color: var(--brand);
+      border: 1px solid var(--brand-border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar-section {
+      padding: 8px 8px 0;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 8px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 8px;
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 450;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+      text-decoration: none;
+      margin-bottom: 1px;
+    }
+
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+    .nav-item.active {
+      background: var(--brand-dim);
+      color: var(--brand);
+      font-weight: 550;
+    }
+    .nav-item.active .nav-icon { color: var(--brand); }
+
+    .nav-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 600;
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── TOPBAR ─── */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: var(--topbar-height);
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .breadcrumb-sep {
+      color: var(--border-light);
+      font-size: 14px;
+    }
+
+    .breadcrumb-current {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .topbar-icon-btn:hover { background: rgba(255,255,255,0.06); border-color: var(--border-light); color: var(--text-primary); }
+
+    .topbar-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+    }
+
+    .topbar-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* ─── PAGE BODY ─── */
+    .page-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px 24px 32px;
+    }
+
+    /* ─── PAGE HEADER ─── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .page-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .count-pill {
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--brand-dim);
+      color: var(--brand);
+      border: 1px solid var(--brand-border);
+      padding: 2px 9px;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+    }
+
+    .page-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.12s;
+      white-space: nowrap;
+      font-family: 'Geist', sans-serif;
+    }
+
+    .btn-primary {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+    }
+    .btn-primary:hover { background: #2563eb; border-color: #2563eb; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border-color: transparent;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-secondary);
+      border-color: var(--border-light);
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); border-color: var(--border-light); }
+
+    /* ─── BULK ACTION BAR ─── */
+    .bulk-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #1e293b;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 8px;
+      padding: 8px 14px;
+      margin-bottom: 12px;
+    }
+
+    .bulk-count {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brand);
+      white-space: nowrap;
+    }
+
+    .bulk-divider {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+    }
+
+    .bulk-clear {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+    }
+    .bulk-clear:hover { color: var(--text-secondary); text-decoration-color: var(--text-secondary); }
+
+    /* ─── FILTER BAR ─── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .filter-pills {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: rgba(39,39,42,0.7);
+      color: var(--text-muted);
+      transition: all 0.12s;
+      white-space: nowrap;
+    }
+    .filter-pill:hover { border-color: var(--border-light); color: var(--text-secondary); }
+
+    .filter-pill.active-all {
+      background: rgba(59,130,246,0.1);
+      color: var(--brand);
+      border-color: rgba(59,130,246,0.3);
+    }
+    .filter-pill.active-online {
+      background: rgba(34,197,94,0.1);
+      color: #22c55e;
+      border-color: rgba(34,197,94,0.3);
+    }
+    .filter-pill.active-offline {
+      background: rgba(113,113,122,0.15);
+      color: #a1a1aa;
+      border-color: rgba(113,113,122,0.35);
+    }
+    .filter-pill.active-patching {
+      background: rgba(59,130,246,0.1);
+      color: var(--brand);
+      border-color: rgba(59,130,246,0.3);
+    }
+    .filter-pill.active-stale {
+      background: rgba(245,158,11,0.1);
+      color: #f59e0b;
+      border-color: rgba(245,158,11,0.3);
+    }
+
+    .pill-count {
+      font-size: 10px;
+      font-weight: 700;
+      opacity: 0.75;
+    }
+
+    .filter-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    .filter-select-wrap {
+      position: relative;
+    }
+
+    .filter-select {
+      appearance: none;
+      background: rgba(39,39,42,0.7);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 5px 28px 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-family: 'Geist', sans-serif;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+    .filter-select:hover { border-color: var(--border-light); }
+    .filter-select:focus { border-color: var(--brand); }
+
+    .filter-select-chevron {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      font-size: 10px;
+    }
+
+    .search-wrap {
+      position: relative;
+      margin-left: auto;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .search-input {
+      background: rgba(39,39,42,0.7);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 6px 12px 6px 32px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-family: 'Geist', sans-serif;
+      outline: none;
+      width: 220px;
+      transition: border-color 0.12s, width 0.2s;
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus { border-color: var(--brand); width: 260px; }
+
+    .density-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .density-btn:hover { border-color: var(--border-light); color: var(--text-secondary); background: rgba(255,255,255,0.04); }
+
+    /* ─── TABLE ─── */
+    .table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #141416;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    thead th {
+      padding: 9px 12px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    thead th:first-child { padding-left: 14px; width: 36px; }
+    thead th:last-child { width: 40px; text-align: center; }
+
+    .th-sortable {
+      cursor: pointer;
+    }
+    .th-sortable:hover { color: var(--text-secondary); }
+
+    .sort-indicator {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 4px;
+      color: var(--text-muted);
+      font-size: 9px;
+      opacity: 0.5;
+    }
+    .sort-indicator.active { opacity: 1; color: var(--brand); }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(39,39,42,0.7);
+      transition: background 0.1s;
+      cursor: pointer;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+    tbody tr.selected { background: rgba(59,130,246,0.06); }
+    tbody tr.expanded { background: rgba(59,130,246,0.04); }
+
+    td {
+      padding: 10px 12px;
+      vertical-align: middle;
+    }
+    td:first-child { padding-left: 14px; }
+    td:last-child { text-align: center; }
+
+    /* Custom checkbox */
+    .checkbox-cell {
+      display: flex;
+      align-items: center;
+    }
+
+    .cb {
+      width: 15px;
+      height: 15px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border-light);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.1s;
+    }
+    .cb.checked {
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+    .cb.checked::after {
+      content: '';
+      width: 8px;
+      height: 5px;
+      border-left: 1.5px solid #fff;
+      border-bottom: 1.5px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+      display: block;
+    }
+
+    /* Hostname cell */
+    .hostname-cell {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-dot.online { background: var(--status-online); box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
+    .status-dot.offline { background: var(--status-offline); }
+    .status-dot.patching {
+      background: var(--status-patching);
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+    .status-dot.stale { background: var(--status-stale); }
+
+    @keyframes pulse-dot {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+      50% { box-shadow: 0 0 0 4px rgba(59,130,246,0.4); }
+    }
+
+    .hostname-text {
+      font-family: 'GeistMono', monospace;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: -0.2px;
+    }
+
+    /* OS cell */
+    .os-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .os-icon { font-size: 14px; line-height: 1; }
+    .os-text { font-size: 12px; color: var(--text-secondary); }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .status-badge.online { background: rgba(34,197,94,0.12); color: #22c55e; }
+    .status-badge.offline { background: rgba(113,113,122,0.15); color: #71717a; }
+    .status-badge.patching { background: rgba(59,130,246,0.12); color: #60a5fa; }
+    .status-badge.stale { background: rgba(245,158,11,0.12); color: #f59e0b; }
+
+    .patching-pulse {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #60a5fa;
+      animation: badge-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes badge-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    /* Risk score */
+    .risk-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .risk-score-num {
+      font-family: 'GeistMono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      width: 22px;
+      text-align: right;
+    }
+
+    .risk-bar-track {
+      width: 60px;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .risk-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    .risk-fill-low { background: #22c55e; }
+    .risk-fill-med { background: #eab308; }
+    .risk-fill-high { background: #ef4444; }
+
+    /* Agent version */
+    .agent-ver {
+      font-family: 'GeistMono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Last seen */
+    .last-seen {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .last-seen-stale { color: var(--status-stale); }
+
+    /* Pending patches */
+    .patches-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .patches-count {
+      font-family: 'GeistMono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 18px;
+    }
+
+    .sev-dots {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .sev-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+    .sev-dot.critical { background: var(--critical); }
+    .sev-dot.high { background: var(--high); }
+    .sev-dot.medium { background: var(--medium); }
+
+    /* Tags */
+    .tags-cell {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 550;
+      white-space: nowrap;
+      font-family: 'GeistMono', monospace;
+      letter-spacing: -0.2px;
+    }
+
+    /* 8-color tag palette */
+    .tag-env-production { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+    .tag-env-staging     { background: rgba(234,179,8,0.12);  color: #facc15; border: 1px solid rgba(234,179,8,0.2); }
+    .tag-env-dev         { background: rgba(168,85,247,0.12); color: #c084fc; border: 1px solid rgba(168,85,247,0.2); }
+    .tag-team-infra      { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+    .tag-team-platform   { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+    .tag-team-backend    { background: rgba(20,184,166,0.12); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.2); }
+    .tag-priority-critical{ background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .tag-region-us-east  { background: rgba(249,115,22,0.12); color: #fb923c; border: 1px solid rgba(249,115,22,0.2); }
+    .tag-region-eu-west  { background: rgba(236,72,153,0.12); color: #f472b6; border: 1px solid rgba(236,72,153,0.2); }
+    .tag-tier-critical   { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .tag-tier-standard   { background: rgba(113,113,122,0.15); color: #a1a1aa; border: 1px solid rgba(113,113,122,0.2); }
+    .tag-owner-sre       { background: rgba(20,184,166,0.12); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.2); }
+    .tag-owner-devops    { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+
+    .tag-more {
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+    }
+
+    /* Actions button */
+    .actions-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.1s;
+    }
+    .actions-btn:hover { background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-secondary); }
+
+    /* ─── EXPANDED ROW ─── */
+    .expanded-row td {
+      padding: 0;
+      background: transparent;
+    }
+
+    .expanded-panel {
+      margin: 0 12px 12px;
+      background: #141416;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--brand);
+      border-radius: 0 8px 8px 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    .exp-section {
+      padding: 14px 16px;
+    }
+
+    .exp-section + .exp-section {
+      border-left: 1px solid var(--border);
+    }
+
+    .exp-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    .sys-metric {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .sys-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 32px;
+      flex-shrink: 0;
+    }
+
+    .sys-bar-track {
+      flex: 1;
+      height: 5px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .sys-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+    .sys-bar-low { background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .sys-bar-med { background: linear-gradient(90deg, #eab308, #facc15); }
+    .sys-bar-high { background: linear-gradient(90deg, #f97316, #ef4444); }
+
+    .sys-val {
+      font-family: 'GeistMono', monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+      width: 34px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .patch-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 7px;
+      padding: 5px 8px;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .patch-name {
+      font-family: 'GeistMono', monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .patch-badge {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 3px;
+      letter-spacing: 0.03em;
+    }
+    .patch-badge.applied { background: rgba(34,197,94,0.12); color: #22c55e; }
+    .patch-badge.failed { background: rgba(239,68,68,0.12); color: #ef4444; }
+    .patch-badge.pending { background: rgba(245,158,11,0.12); color: #f59e0b; }
+
+    .patch-date {
+      font-size: 10px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .qa-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-secondary);
+      transition: all 0.12s;
+      font-family: 'Geist', sans-serif;
+    }
+    .qa-btn:hover { background: rgba(255,255,255,0.07); border-color: var(--border-light); color: var(--text-primary); }
+    .qa-btn.qa-primary {
+      background: var(--brand-dim);
+      border-color: var(--brand-border);
+      color: var(--brand);
+    }
+    .qa-btn.qa-primary:hover { background: rgba(59,130,246,0.2); }
+
+    /* ─── PAGINATION ─── */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      padding: 11px 14px;
+      border-top: 1px solid var(--border);
+      background: #141416;
+    }
+
+    .pagination-info {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .pagination-nums {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin: 0 auto;
+    }
+
+    .page-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-family: 'Geist', sans-serif;
+      transition: all 0.1s;
+    }
+    .page-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+    .page-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); font-weight: 600; }
+    .page-btn.disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .per-page-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .per-page-label { font-size: 12px; color: var(--text-muted); }
+
+    .per-page-select {
+      appearance: none;
+      background: rgba(39,39,42,0.7);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 4px 22px 4px 8px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-family: 'Geist', sans-serif;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* ─── TOOLTIP FEEL ─── */
+    .with-tooltip { position: relative; }
+    .with-tooltip:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e1e22;
+      border: 1px solid var(--border-light);
+      color: var(--text-secondary);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 5px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 100;
+      font-family: 'GeistMono', monospace;
+    }
+
+    /* ─── SVG ICONS ─── */
+    .icon { display: inline-block; vertical-align: middle; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">P</div>
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <span class="logo-text">PatchIQ</span>
+      </div>
+      <span class="logo-badge" style="margin-left:auto;">M3</span>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="nav-item" style="margin-top:6px;">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1.5" y="1.5" width="5" height="5" rx="1.2"/><rect x="9.5" y="1.5" width="5" height="5" rx="1.2"/>
+          <rect x="1.5" y="9.5" width="5" height="5" rx="1.2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/>
+        </svg>
+        Dashboard
+      </div>
+
+      <div class="sidebar-section-label">Assets</div>
+
+      <div class="nav-item active">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/>
+          <line x1="4" y1="7" x2="4" y2="7" stroke-linecap="round" stroke-width="2"/>
+          <line x1="7" y1="7" x2="12" y2="7" stroke-linecap="round"/>
+          <line x1="4" y1="9.5" x2="4" y2="9.5" stroke-linecap="round" stroke-width="2"/>
+          <line x1="7" y1="9.5" x2="10" y2="9.5" stroke-linecap="round"/>
+        </svg>
+        Endpoints
+        <span class="nav-badge" style="background:rgba(59,130,246,0.12);color:var(--brand);">1247</span>
+      </div>
+
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="9"/><line x1="8" y1="11" x2="8" y2="11" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Patches
+        <span class="nav-badge">24</span>
+      </div>
+
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M8 1.5 L14 4.5 V8 C14 11.5 11 14 8 14.5 C5 14 2 11.5 2 8 V4.5 Z"/>
+        </svg>
+        CVEs
+      </div>
+
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M2 12 L6 8 L9 11 L13 5"/>
+          <circle cx="13" cy="5" r="1.5" fill="currentColor" stroke="none"/>
+        </svg>
+        Compliance
+      </div>
+
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="4" width="12" height="9" rx="1.5"/>
+          <path d="M5 4 V3 C5 2.4 5.4 2 6 2 H10 C10.6 2 11 2.4 11 3 V4"/>
+        </svg>
+        Deployments
+      </div>
+
+      <div class="sidebar-section-label">Configuration</div>
+
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M3 5h10M3 8h7M3 11h5"/><rect x="1.5" y="2" width="13" height="12" rx="1.5"/>
+        </svg>
+        Policies
+      </div>
+
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="4" cy="8" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="12" cy="12" r="2"/>
+          <line x1="6" y1="7" x2="10" y2="5"/><line x1="6" y1="9" x2="10" y2="11"/>
+        </svg>
+        Workflows
+      </div>
+
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M3 4 L3 12 M7 6 L7 12 M11 2 L11 12"/>
+          <circle cx="3" cy="3" r="1.2" fill="currentColor" stroke="none"/>
+          <circle cx="7" cy="5" r="1.2" fill="currentColor" stroke="none"/>
+          <circle cx="11" cy="1.5" r="1.2" fill="currentColor" stroke="none"/>
+        </svg>
+        Tags
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="5" r="2.5"/><path d="M2.5 14 C2.5 11 5 9 8 9 C11 9 13.5 11 13.5 14"/>
+        </svg>
+        heramb@patchiq
+      </div>
+      <div class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="2.5"/>
+          <path d="M8 1v1.5M8 13.5V15M15 8h-1.5M2.5 8H1M12.7 3.3l-1.1 1.1M4.4 11.6l-1.1 1.1M12.7 12.7l-1.1-1.1M4.4 4.4L3.3 3.3"/>
+        </svg>
+        Settings
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span>Assets</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Endpoints</span>
+      </div>
+      <div class="topbar-right">
+        <!-- Bell -->
+        <button class="topbar-icon-btn" title="Notifications" style="position:relative;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M8 1.5 C5.5 1.5 4 3.5 4 5.5 V8.5 L2.5 10 H13.5 L12 8.5 V5.5 C12 3.5 10.5 1.5 8 1.5Z"/>
+            <path d="M6.5 10 C6.5 11.4 7.2 12 8 12 C8.8 12 9.5 11.4 9.5 10"/>
+          </svg>
+          <span style="position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:#ef4444;border:1.5px solid var(--bg-card);"></span>
+        </button>
+
+        <div class="topbar-divider"></div>
+
+        <!-- Org selector -->
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:rgba(39,39,42,0.5);">
+          <div style="width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#6366f1,#3b82f6);flex-shrink:0;"></div>
+          <span style="font-size:12px;color:var(--text-secondary);font-weight:500;">Acme Corp</span>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted);">
+            <path d="M2 3.5 L5 6.5 L8 3.5"/>
+          </svg>
+        </div>
+
+        <div class="topbar-divider"></div>
+        <div class="topbar-avatar" title="heramb">H</div>
+      </div>
+    </header>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Endpoints</h1>
+          <span class="count-pill">1,247</span>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-ghost">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M3 8 H13 M8 3 L13 8 L8 13"/>
+            </svg>
+            Import
+          </button>
+          <button class="btn btn-ghost">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M8 2 V10 M4 7 L8 11 L12 7"/>
+              <path d="M2.5 13 H13.5"/>
+            </svg>
+            Export
+          </button>
+          <button class="btn btn-outline">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7">
+              <circle cx="8" cy="8" r="5.5"/>
+              <path d="M8 5.5 V8.5 L10 10.5"/>
+            </svg>
+            Scan All
+          </button>
+          <button class="btn btn-primary">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
+            </svg>
+            Register Endpoint
+          </button>
+        </div>
+      </div>
+
+      <!-- BULK ACTION BAR -->
+      <div class="bulk-bar">
+        <span class="bulk-count">3 endpoints selected</span>
+        <div class="bulk-divider"></div>
+        <button class="btn btn-outline" style="padding:5px 11px;font-size:12px;">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M5 4 V3 C5 2.4 5.4 2 6 2 H10 C10.6 2 11 2.4 11 3 V4"/></svg>
+          Deploy Patches
+        </button>
+        <button class="btn btn-outline" style="padding:5px 11px;font-size:12px;">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"/><path d="M8 5.5 V8.5 L10 10.5"/></svg>
+          Scan Now
+        </button>
+        <button class="btn btn-outline" style="padding:5px 11px;font-size:12px;">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4 L3 12 M7 6 L7 12 M11 2 L11 12"/></svg>
+          Assign Tags
+        </button>
+        <button class="btn btn-outline" style="padding:5px 11px;font-size:12px;">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2 V10 M4 7 L8 11 L12 7"/><path d="M2.5 13 H13.5"/></svg>
+          Export Selected
+        </button>
+        <span class="bulk-clear">Clear selection</span>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="filter-pills">
+          <div class="filter-pill active-all">All <span class="pill-count">1,247</span></div>
+          <div class="filter-pill">Online <span class="pill-count">1,089</span></div>
+          <div class="filter-pill">Offline <span class="pill-count">98</span></div>
+          <div class="filter-pill">Patching <span class="pill-count">42</span></div>
+          <div class="filter-pill">Stale <span class="pill-count">18</span></div>
+        </div>
+
+        <div class="filter-sep"></div>
+
+        <div class="filter-select-wrap">
+          <select class="filter-select">
+            <option>All OS</option>
+            <option>🐧 Linux</option>
+            <option>🪟 Windows</option>
+            <option>🍎 macOS</option>
+          </select>
+          <span class="filter-select-chevron">▾</span>
+        </div>
+
+        <div class="filter-select-wrap">
+          <select class="filter-select">
+            <option>All Tags</option>
+            <option>env:production</option>
+            <option>env:staging</option>
+            <option>team:infra</option>
+            <option>priority:critical</option>
+          </select>
+          <span class="filter-select-chevron">▾</span>
+        </div>
+
+        <div class="filter-select-wrap">
+          <select class="filter-select">
+            <option>Any Risk</option>
+            <option>Critical (8-10)</option>
+            <option>High (6-8)</option>
+            <option>Medium (4-6)</option>
+            <option>Low (0-4)</option>
+          </select>
+          <span class="filter-select-chevron">▾</span>
+        </div>
+
+        <div class="search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7">
+            <circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/>
+          </svg>
+          <input class="search-input" type="text" placeholder="Search endpoints..." />
+        </div>
+
+        <!-- Right controls -->
+        <div style="display:flex;align-items:center;gap:4px;margin-left:4px;">
+          <button class="density-btn" title="Comfortable density">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+              <line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>
+            </svg>
+          </button>
+          <button class="density-btn" title="Compact density">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+              <line x1="2" y1="3" x2="14" y2="3"/><line x1="2" y1="6" x2="14" y2="6"/><line x1="2" y1="9" x2="14" y2="9"/><line x1="2" y1="12" x2="14" y2="12"/>
+            </svg>
+          </button>
+          <div style="width:1px;height:18px;background:var(--border);margin:0 2px;"></div>
+          <button class="density-btn" title="Column visibility">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+              <rect x="2" y="2" width="4" height="12" rx="1"/><rect x="7.5" y="2" width="4" height="12" rx="1" opacity="0.5"/><rect x="13" y="2" width="1" height="12" rx="0.5" opacity="0.3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th><div class="checkbox-cell"><div class="cb"></div></div></th>
+                <th class="th-sortable">Hostname <span class="sort-indicator active">↑</span></th>
+                <th class="th-sortable">OS <span class="sort-indicator">↕</span></th>
+                <th>Status</th>
+                <th class="th-sortable">Risk Score <span class="sort-indicator">↕</span></th>
+                <th>Agent Ver</th>
+                <th class="th-sortable">Last Seen <span class="sort-indicator">↕</span></th>
+                <th class="th-sortable">Pending <span class="sort-indicator">↕</span></th>
+                <th>Tags</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <!-- Row 1 — selected -->
+              <tr class="selected">
+                <td><div class="checkbox-cell"><div class="cb checked"></div></div></td>
+                <td>
+                  <div class="hostname-cell">
+                    <div class="status-dot online"></div>
+                    <span class="hostname-text">prod-web-01.us-east</span>
+                  </div>
+                </td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">Ubuntu 22.04</span></div></td>
+                <td><span class="status-badge online">Online</span></td>
+                <td>
+                  <div class="risk-cell">
+                    <span class="risk-score-num" style="color:#ef4444;">8.4</span>
+                    <div class="risk-bar-track"><div class="risk-bar-fill risk-fill-high" style="width:84%;"></div></div>
+                  </div>
+                </td>
+                <td><span class="agent-ver">v2.4.1</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:32:01 UTC">2m ago</span></td>
+                <td>
+                  <div class="patches-cell">
+                    <span class="patches-count">14</span>
+                    <div class="sev-dots">
+                      <div class="sev-dot critical" title="3 critical"></div>
+                      <div class="sev-dot critical"></div>
+                      <div class="sev-dot critical"></div>
+                      <div class="sev-dot high" title="4 high"></div>
+                      <div class="sev-dot high"></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="tags-cell">
+                    <span class="tag-pill tag-env-production">env:production</span>
+                    <span class="tag-pill tag-team-infra">team:infra</span>
+                    <span class="tag-pill tag-region-us-east">region:us-east</span>
+                  </div>
+                </td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 2 — selected -->
+              <tr class="selected">
+                <td><div class="checkbox-cell"><div class="cb checked"></div></div></td>
+                <td>
+                  <div class="hostname-cell">
+                    <div class="status-dot patching"></div>
+                    <span class="hostname-text">prod-api-03.us-east</span>
+                  </div>
+                </td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">RHEL 9.2</span></div></td>
+                <td>
+                  <span class="status-badge patching">
+                    <span class="patching-pulse"></span>Patching
+                  </span>
+                </td>
+                <td>
+                  <div class="risk-cell">
+                    <span class="risk-score-num" style="color:#f97316;">6.1</span>
+                    <div class="risk-bar-track"><div class="risk-bar-fill risk-fill-med" style="width:61%;"></div></div>
+                  </div>
+                </td>
+                <td><span class="agent-ver">v2.4.1</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:31:44 UTC">1m ago</span></td>
+                <td>
+                  <div class="patches-cell">
+                    <span class="patches-count">7</span>
+                    <div class="sev-dots">
+                      <div class="sev-dot critical"></div>
+                      <div class="sev-dot high"></div>
+                      <div class="sev-dot high"></div>
+                      <div class="sev-dot medium"></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="tags-cell">
+                    <span class="tag-pill tag-env-production">env:production</span>
+                    <span class="tag-pill tag-team-backend">team:backend</span>
+                    <span class="tag-pill tag-priority-critical">priority:critical</span>
+                  </div>
+                </td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 3 — EXPANDED -->
+              <tr class="expanded">
+                <td><div class="checkbox-cell"><div class="cb checked"></div></div></td>
+                <td>
+                  <div class="hostname-cell">
+                    <div class="status-dot online"></div>
+                    <span class="hostname-text">prod-db-primary.us-east</span>
+                  </div>
+                </td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">Ubuntu 20.04</span></div></td>
+                <td><span class="status-badge online">Online</span></td>
+                <td>
+                  <div class="risk-cell">
+                    <span class="risk-score-num" style="color:#ef4444;">9.1</span>
+                    <div class="risk-bar-track"><div class="risk-bar-fill risk-fill-high" style="width:91%;"></div></div>
+                  </div>
+                </td>
+                <td><span class="agent-ver">v2.3.9</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:30:58 UTC">3m ago</span></td>
+                <td>
+                  <div class="patches-cell">
+                    <span class="patches-count">22</span>
+                    <div class="sev-dots">
+                      <div class="sev-dot critical"></div>
+                      <div class="sev-dot critical"></div>
+                      <div class="sev-dot critical"></div>
+                      <div class="sev-dot high"></div>
+                      <div class="sev-dot high"></div>
+                      <div class="sev-dot medium"></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="tags-cell">
+                    <span class="tag-pill tag-env-production">env:production</span>
+                    <span class="tag-pill tag-tier-critical">tier:critical</span>
+                    <span class="tag-pill tag-owner-sre">owner:sre</span>
+                    <span class="tag-more">+2</span>
+                  </div>
+                </td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Expanded panel row -->
+              <tr class="expanded-row">
+                <td colspan="10">
+                  <div class="expanded-panel">
+
+                    <!-- Left: System Info -->
+                    <div class="exp-section">
+                      <div class="exp-section-title">System Resources</div>
+                      <div class="sys-metric">
+                        <span class="sys-label">CPU</span>
+                        <div class="sys-bar-track"><div class="sys-bar-fill sys-bar-low" style="width:23%;"></div></div>
+                        <span class="sys-val">23%</span>
+                      </div>
+                      <div class="sys-metric">
+                        <span class="sys-label">RAM</span>
+                        <div class="sys-bar-track"><div class="sys-bar-fill sys-bar-med" style="width:67%;"></div></div>
+                        <span class="sys-val">67%</span>
+                      </div>
+                      <div class="sys-metric">
+                        <span class="sys-label">Disk</span>
+                        <div class="sys-bar-track"><div class="sys-bar-fill sys-bar-high" style="width:82%;"></div></div>
+                        <span class="sys-val">82%</span>
+                      </div>
+                      <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                        <div style="font-size:10px;color:var(--text-muted);">IP Address</div>
+                        <div style="font-family:'GeistMono',monospace;font-size:10px;color:var(--text-secondary);">10.0.1.14</div>
+                        <div style="font-size:10px;color:var(--text-muted);">Uptime</div>
+                        <div style="font-family:'GeistMono',monospace;font-size:10px;color:var(--text-secondary);">47d 3h</div>
+                        <div style="font-size:10px;color:var(--text-muted);">Kernel</div>
+                        <div style="font-family:'GeistMono',monospace;font-size:10px;color:var(--text-secondary);">5.15.0-97</div>
+                      </div>
+                    </div>
+
+                    <!-- Center: Recent Patches -->
+                    <div class="exp-section">
+                      <div class="exp-section-title">Recent Patch Activity</div>
+                      <div class="patch-item">
+                        <span class="patch-name">openssl 3.0.2-0ubuntu1.14</span>
+                        <span class="patch-badge applied">Applied</span>
+                        <span class="patch-date">Mar 21</span>
+                      </div>
+                      <div class="patch-item">
+                        <span class="patch-name">linux-image-5.15.0-97</span>
+                        <span class="patch-badge failed">Failed</span>
+                        <span class="patch-date">Mar 20</span>
+                      </div>
+                      <div class="patch-item">
+                        <span class="patch-name">curl 7.81.0-1ubuntu1.16</span>
+                        <span class="patch-badge pending">Pending</span>
+                        <span class="patch-date">Mar 23</span>
+                      </div>
+                      <div style="margin-top:8px;display:flex;gap:12px;">
+                        <div style="text-align:center;">
+                          <div style="font-family:'GeistMono',monospace;font-size:16px;font-weight:700;color:#22c55e;">18</div>
+                          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Applied</div>
+                        </div>
+                        <div style="text-align:center;">
+                          <div style="font-family:'GeistMono',monospace;font-size:16px;font-weight:700;color:#ef4444;">3</div>
+                          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Failed</div>
+                        </div>
+                        <div style="text-align:center;">
+                          <div style="font-family:'GeistMono',monospace;font-size:16px;font-weight:700;color:#f59e0b;">22</div>
+                          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">Pending</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Right: Quick Actions -->
+                    <div class="exp-section">
+                      <div class="exp-section-title">Quick Actions</div>
+                      <div class="quick-actions">
+                        <button class="qa-btn qa-primary">
+                          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M5 4 V3 C5 2.4 5.4 2 6 2 H10 C10.6 2 11 2.4 11 3 V4"/><path d="M8 7 L8 10 M6 8.5 L8 10.5 L10 8.5"/></svg>
+                          Deploy 22 Patches
+                        </button>
+                        <button class="qa-btn">
+                          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"/><path d="M8 5.5 V8.5 L10 10.5"/></svg>
+                          Scan Now
+                        </button>
+                        <button class="qa-btn">
+                          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><line x1="4" y1="7" x2="4" y2="7" stroke-linecap="round" stroke-width="2"/><line x1="7" y1="7" x2="12" y2="7" stroke-linecap="round"/></svg>
+                          View Detail
+                          <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-left:auto;"><path d="M3 8 H13 M8 3 L13 8 L8 13"/></svg>
+                        </button>
+                      </div>
+                      <div style="margin-top:10px;padding:8px;border-radius:5px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);">
+                        <div style="font-size:10px;font-weight:600;color:#ef4444;margin-bottom:3px;">⚠ 3 Critical CVEs</div>
+                        <div style="font-size:10px;color:var(--text-muted);">CVE-2024-1086, CVE-2024-0727, CVE-2023-6932</div>
+                      </div>
+                    </div>
+
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 4 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot stale"></div><span class="hostname-text">staging-web-02.eu-west</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">Debian 12</span></div></td>
+                <td><span class="status-badge stale">Stale</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#f97316;">5.7</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-med" style="width:57%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.3.5</span></td>
+                <td><span class="last-seen last-seen-stale with-tooltip" data-tip="2026-03-22 08:17:33 UTC">30h ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count">9</span><div class="sev-dots"><div class="sev-dot high"></div><div class="sev-dot high"></div><div class="sev-dot medium"></div><div class="sev-dot medium"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-staging">env:staging</span><span class="tag-pill tag-region-eu-west">region:eu-west</span><span class="tag-pill tag-team-platform">team:platform</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 5 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot online"></div><span class="hostname-text">prod-worker-07.us-east</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🪟</span><span class="os-text">Windows Server 2022</span></div></td>
+                <td><span class="status-badge online">Online</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#eab308;">4.2</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-med" style="width:42%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.4.0</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:28:12 UTC">6m ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count">5</span><div class="sev-dots"><div class="sev-dot high"></div><div class="sev-dot medium"></div><div class="sev-dot medium"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-production">env:production</span><span class="tag-pill tag-team-backend">team:backend</span><span class="tag-pill tag-owner-devops">owner:devops</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 6 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot offline"></div><span class="hostname-text">dev-build-01.internal</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">Ubuntu 22.04</span></div></td>
+                <td><span class="status-badge offline">Offline</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#71717a;">2.1</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-low" style="width:21%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.2.8</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 10:44:01 UTC">4h ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count" style="color:var(--text-muted);">2</span><div class="sev-dots"><div class="sev-dot medium"></div><div class="sev-dot medium"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-dev">env:dev</span><span class="tag-pill tag-team-infra">team:infra</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 7 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot online"></div><span class="hostname-text">prod-cache-01.us-east</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">Ubuntu 22.04</span></div></td>
+                <td><span class="status-badge online">Online</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#ef4444;">7.8</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-high" style="width:78%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.4.1</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:33:10 UTC">1m ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count">11</span><div class="sev-dots"><div class="sev-dot critical"></div><div class="sev-dot critical"></div><div class="sev-dot high"></div><div class="sev-dot high"></div><div class="sev-dot high"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-production">env:production</span><span class="tag-pill tag-team-infra">team:infra</span><span class="tag-pill tag-tier-critical">tier:critical</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 8 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot patching"></div><span class="hostname-text">prod-lb-02.eu-west</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">Alpine 3.19</span></div></td>
+                <td><span class="status-badge patching"><span class="patching-pulse"></span>Patching</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#eab308;">4.9</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-med" style="width:49%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.4.1</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:33:05 UTC">now</span></td>
+                <td><div class="patches-cell"><span class="patches-count">6</span><div class="sev-dots"><div class="sev-dot high"></div><div class="sev-dot high"></div><div class="sev-dot medium"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-production">env:production</span><span class="tag-pill tag-region-eu-west">region:eu-west</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 9 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot online"></div><span class="hostname-text">MacBook-Pro-HR-01</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🍎</span><span class="os-text">macOS 14.4</span></div></td>
+                <td><span class="status-badge online">Online</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#eab308;">4.4</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-med" style="width:44%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.4.0</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:19:47 UTC">14m ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count">3</span><div class="sev-dots"><div class="sev-dot medium"></div><div class="sev-dot medium"></div><div class="sev-dot medium"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-production">env:production</span><span class="tag-pill tag-owner-devops">owner:devops</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 10 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot online"></div><span class="hostname-text">prod-k8s-node-04.us-east</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">RHEL 9.3</span></div></td>
+                <td><span class="status-badge online">Online</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#ef4444;">8.9</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-high" style="width:89%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.4.1</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:32:58 UTC">1m ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count">19</span><div class="sev-dots"><div class="sev-dot critical"></div><div class="sev-dot critical"></div><div class="sev-dot critical"></div><div class="sev-dot high"></div><div class="sev-dot high"></div><div class="sev-dot medium"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-production">env:production</span><span class="tag-pill tag-team-platform">team:platform</span><span class="tag-pill tag-priority-critical">priority:critical</span><span class="tag-more">+1</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 11 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot offline"></div><span class="hostname-text">staging-db-02.eu-west</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">PostgreSQL 16 / Deb</span></div></td>
+                <td><span class="status-badge offline">Offline</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#71717a;">1.8</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-low" style="width:18%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.3.9</span></td>
+                <td><span class="last-seen last-seen-stale with-tooltip" data-tip="2026-03-23 09:02:18 UTC">5h ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count" style="color:var(--text-muted);">1</span><div class="sev-dots"><div class="sev-dot medium"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-staging">env:staging</span><span class="tag-pill tag-region-eu-west">region:eu-west</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 12 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot online"></div><span class="hostname-text">prod-metrics-01.us-east</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">Ubuntu 22.04</span></div></td>
+                <td><span class="status-badge online">Online</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#eab308;">5.5</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-med" style="width:55%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.4.1</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:31:22 UTC">3m ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count">8</span><div class="sev-dots"><div class="sev-dot high"></div><div class="sev-dot high"></div><div class="sev-dot medium"></div><div class="sev-dot medium"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-production">env:production</span><span class="tag-pill tag-team-infra">team:infra</span><span class="tag-pill tag-owner-sre">owner:sre</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 13 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot online"></div><span class="hostname-text">DESKTOP-WIN-FIN-07</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🪟</span><span class="os-text">Windows 11 23H2</span></div></td>
+                <td><span class="status-badge online">Online</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#ef4444;">7.3</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-high" style="width:73%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.3.9</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:07:44 UTC">26m ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count">12</span><div class="sev-dots"><div class="sev-dot critical"></div><div class="sev-dot critical"></div><div class="sev-dot high"></div><div class="sev-dot high"></div><div class="sev-dot high"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-production">env:production</span><span class="tag-pill tag-tier-standard">tier:standard</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 14 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot stale"></div><span class="hostname-text">prod-mq-01.us-east</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🐧</span><span class="os-text">Ubuntu 20.04</span></div></td>
+                <td><span class="status-badge stale">Stale</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#f97316;">6.6</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-med" style="width:66%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.3.7</span></td>
+                <td><span class="last-seen last-seen-stale with-tooltip" data-tip="2026-03-22 19:51:02 UTC">19h ago</span></td>
+                <td><div class="patches-cell"><span class="patches-count">10</span><div class="sev-dots"><div class="sev-dot critical"></div><div class="sev-dot high"></div><div class="sev-dot high"></div><div class="sev-dot medium"></div></div></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-production">env:production</span><span class="tag-pill tag-team-backend">team:backend</span><span class="tag-pill tag-region-us-east">region:us-east</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+              <!-- Row 15 -->
+              <tr>
+                <td><div class="checkbox-cell"><div class="cb"></div></div></td>
+                <td><div class="hostname-cell"><div class="status-dot online"></div><span class="hostname-text">MacBook-Pro-ENG-14</span></div></td>
+                <td><div class="os-cell"><span class="os-icon">🍎</span><span class="os-text">macOS 14.3.1</span></div></td>
+                <td><span class="status-badge online">Online</span></td>
+                <td><div class="risk-cell"><span class="risk-score-num" style="color:#22c55e;">1.4</span><div class="risk-bar-track"><div class="risk-bar-fill risk-fill-low" style="width:14%;"></div></div></div></td>
+                <td><span class="agent-ver">v2.4.1</span></td>
+                <td><span class="last-seen with-tooltip" data-tip="2026-03-23 14:33:19 UTC">just now</span></td>
+                <td><div class="patches-cell"><span class="patches-count" style="color:var(--text-muted);">0</span></div></td>
+                <td><div class="tags-cell"><span class="tag-pill tag-env-production">env:production</span><span class="tag-pill tag-owner-devops">owner:devops</span><span class="tag-pill tag-tier-standard">tier:standard</span></div></td>
+                <td><button class="actions-btn">⋯</button></td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination-bar">
+          <span class="pagination-info">Showing 1–15 of 1,247 endpoints</span>
+
+          <div class="pagination-nums">
+            <button class="page-btn disabled">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <span style="padding:0 4px;color:var(--text-muted);font-size:12px;">…</span>
+            <button class="page-btn">25</button>
+            <button class="page-btn">›</button>
+          </div>
+
+          <div class="per-page-wrap">
+            <span class="per-page-label">Per page</span>
+            <div style="position:relative;">
+              <select class="per-page-select">
+                <option>15</option>
+                <option>25</option>
+                <option>50</option>
+                <option>100</option>
+              </select>
+              <span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--text-muted);pointer-events:none;">▾</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /table-wrap -->
+
+    </div><!-- /page-body -->
+  </div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<script>
+  // Minimal interactivity for demo feel
+  document.querySelectorAll('.cb').forEach(cb => {
+    cb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      cb.classList.toggle('checked');
+    });
+  });
+
+  document.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.filter-pill').forEach(p => {
+        p.className = 'filter-pill';
+      });
+      const text = pill.textContent.trim().toLowerCase();
+      if (text.startsWith('all')) pill.classList.add('active-all');
+      else if (text.startsWith('online')) pill.classList.add('active-online');
+      else if (text.startsWith('offline')) pill.classList.add('active-offline');
+      else if (text.startsWith('patching')) pill.classList.add('active-patching');
+      else if (text.startsWith('stale')) pill.classList.add('active-stale');
+    });
+  });
+
+  // Row click to expand (toggle)
+  document.querySelectorAll('tbody tr:not(.expanded-row)').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.cb') || e.target.closest('.actions-btn')) return;
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hub Dashboard — PatchIQ Hub</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          indigo: {
+            50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',
+            400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',
+            800:'#3730a3',900:'#312e81'
+          }
+        }
+      }
+    }
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  :root { --sidebar-w: 260px; }
+  .sidebar-collapsed { --sidebar-w: 64px; }
+  #sidebar { width: var(--sidebar-w); transition: width 0.3s ease; overflow: hidden; }
+  #main-content { margin-left: var(--sidebar-w); transition: margin-left 0.3s ease; }
+  .nav-label { transition: opacity 0.2s, width 0.2s; white-space: nowrap; }
+  .sidebar-collapsed .nav-label { opacity: 0; width: 0; overflow: hidden; }
+  .sidebar-collapsed .group-label { opacity: 0; width: 0; overflow: hidden; display: none; }
+  .sidebar-collapsed .badge { display: none; }
+  .sidebar-collapsed .logo-text { opacity: 0; width: 0; overflow: hidden; }
+  .sidebar-collapsed .collapse-chevron { transform: rotate(180deg); }
+
+  /* Topology SVG styles */
+  .hub-node { filter: drop-shadow(0 0 12px rgba(99,102,241,0.6)); }
+  .hub-pulse { animation: hubpulse 2s ease-in-out infinite; }
+  @keyframes hubpulse {
+    0%,100% { r: 60; opacity: 1; }
+    50% { r: 68; opacity: 0.7; }
+  }
+  .pm-node:hover { cursor: pointer; filter: brightness(1.2); }
+  .sync-dash { stroke-dasharray: 6 4; animation: dashmove 1s linear infinite; }
+  @keyframes dashmove { to { stroke-dashoffset: -20; } }
+  .node-tooltip {
+    position: absolute; background: rgba(15,23,42,0.95); border: 1px solid #334155;
+    color: #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 12px;
+    pointer-events: none; z-index: 100; white-space: nowrap; display: none;
+  }
+  .dark .node-tooltip { background: rgba(15,23,42,0.98); }
+
+  /* Feed pipeline animation */
+  .feed-pipe { position: relative; overflow: hidden; }
+  .pipe-particle {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    top: 50%; transform: translateY(-50%);
+    animation: flowpipe 2s linear infinite;
+  }
+  @keyframes flowpipe {
+    0% { left: -10px; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { left: calc(100% + 10px); opacity: 0; }
+  }
+  .pipe-particle:nth-child(2) { animation-delay: 0.6s; }
+  .pipe-particle:nth-child(3) { animation-delay: 1.2s; }
+  .pipe-particle-red {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    top: 50%; transform: translateY(-50%);
+    background: #ef4444; opacity: 0.5;
+    animation: flowpipe-blocked 3s linear infinite;
+  }
+  @keyframes flowpipe-blocked {
+    0% { left: -10px; opacity: 0; }
+    20% { opacity: 0.6; left: 30%; }
+    40% { opacity: 0; left: 35%; }
+    100% { left: 35%; opacity: 0; }
+  }
+
+  /* Activity stream */
+  .activity-item { border-left: 3px solid; padding-left: 12px; }
+
+  /* Sunburst segments */
+  .sunburst-seg { transition: opacity 0.2s; cursor: pointer; }
+  .sunburst-seg:hover { opacity: 0.8; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+</style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-30">
+  <!-- Logo -->
+  <div class="h-14 flex items-center px-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
+    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+      <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+    </div>
+    <span class="logo-text ml-3 font-bold text-indigo-600 text-lg">PatchIQ Hub</span>
+    <button onclick="toggleSidebar()" class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 collapse-chevron transition-transform">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-1">
+    <!-- Overview -->
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Overview</p>
+      <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+    </div>
+    <!-- Fleet -->
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Fleet</p>
+      <a href="clients.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Clients</span>
+        <span class="badge ml-auto text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full">8</span>
+      </a>
+      <a href="deployments.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <span class="nav-label">Deployments</span>
+        <span class="badge ml-auto text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">2</span>
+      </a>
+    </div>
+    <!-- Catalog -->
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Catalog</p>
+      <a href="catalog.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
+        <span class="nav-label">Catalog</span>
+      </a>
+      <a href="feeds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+        <span class="nav-label">Feeds</span>
+      </a>
+    </div>
+    <!-- Licensing -->
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Licensing</p>
+      <a href="licenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+        <span class="nav-label">Licenses</span>
+      </a>
+    </div>
+    <!-- Configuration -->
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Configuration</p>
+      <a href="configuration.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Settings</span>
+      </a>
+    </div>
+  </nav>
+</aside>
+
+<!-- Topbar -->
+<header id="topbar" class="fixed top-0 right-0 h-14 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center px-4 gap-4 z-20" style="left: var(--sidebar-w); transition: left 0.3s ease;">
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+    <span class="text-slate-700 dark:text-slate-200 font-medium">Dashboard</span>
+  </div>
+
+  <!-- Client Switcher -->
+  <div class="mx-auto relative" id="clientSwitcherWrap">
+    <button onclick="toggleClientSwitcher()" class="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm font-medium hover:border-indigo-400 transition-colors">
+      <div class="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">A</div>
+      <span>Acme Corp</span>
+      <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    </button>
+    <div id="clientSwitcherMenu" class="hidden absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-xl z-50 py-2">
+      <p class="px-3 py-1 text-xs font-semibold text-slate-400 uppercase">Switch Client</p>
+      <div id="clientMenuItems"></div>
+      <div class="border-t border-slate-100 dark:border-slate-700 mt-1 pt-1">
+        <a href="clients.html" class="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-700">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h8"/></svg>
+          View All Clients
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right actions -->
+  <div class="flex items-center gap-3 ml-auto">
+    <button class="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+    </button>
+    <button onclick="toggleTheme()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400" id="themeToggle">
+      <svg class="w-5 h-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      <svg class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    </button>
+    <div class="flex items-center gap-2 cursor-pointer">
+      <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold">H</div>
+      <span class="text-sm font-medium hidden sm:block">hubadmin@msp.com</span>
+    </div>
+  </div>
+</header>
+
+<!-- Node tooltip -->
+<div class="node-tooltip" id="nodeTooltip"></div>
+
+<!-- Main content -->
+<main id="main-content" class="pt-14 min-h-screen">
+  <div class="p-6 space-y-6">
+
+    <!-- Row 1: Fleet Topology -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="font-bold text-lg">Fleet Topology</h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400">Real-time view of connected Patch Manager instances</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs">
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>Healthy</span>
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>Warning</span>
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>Error</span>
+        </div>
+      </div>
+      <div class="relative" style="height:480px;">
+        <svg id="topologySvg" width="100%" height="100%" viewBox="0 0 900 480" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <radialGradient id="hubGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#818cf8"/>
+              <stop offset="100%" stop-color="#4f46e5"/>
+            </radialGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- Connection lines (drawn behind nodes) -->
+          <g id="connectionLines"></g>
+          <!-- PM Nodes -->
+          <g id="pmNodes"></g>
+          <!-- Hub node (center, on top) -->
+          <g id="hubGroup">
+            <circle class="hub-pulse" cx="450" cy="240" r="60" fill="url(#hubGrad)" filter="url(#glow)" opacity="0.3"/>
+            <circle cx="450" cy="240" r="52" fill="url(#hubGrad)" filter="url(#glow)" class="hub-node"/>
+            <text x="450" y="236" text-anchor="middle" fill="white" font-weight="bold" font-size="11">PatchIQ</text>
+            <text x="450" y="251" text-anchor="middle" fill="white" font-weight="bold" font-size="11">Hub</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Row 2: Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <!-- Card 1: Connected PMs -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Connected PMs</p>
+            <p class="text-3xl font-bold">7<span class="text-slate-400 text-xl">/8</span></p>
+            <p class="text-xs text-green-500 mt-1 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              87.5% connected
+            </p>
+          </div>
+          <canvas id="pmDonut" width="80" height="80"></canvas>
+        </div>
+      </div>
+      <!-- Card 2: Catalog Entries -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Catalog Entries</p>
+            <p class="text-3xl font-bold">1,247</p>
+            <p class="text-xs text-green-500 mt-1 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+              +23 this week
+            </p>
+          </div>
+          <canvas id="catalogSparkline" width="100" height="50"></canvas>
+        </div>
+      </div>
+      <!-- Card 3: Active Feeds -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Active Feeds</p>
+            <p class="text-3xl font-bold">4<span class="text-slate-400 text-xl">/5</span></p>
+            <p class="text-xs text-red-500 mt-1 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 001.75-2.99L13.75 4a2 2 0 00-3.5 0L2.25 16A2 2 0 004 19z"/></svg>
+              MSRC feed error
+            </p>
+          </div>
+          <div class="flex flex-col gap-2 justify-center">
+            <div class="flex gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-green-500" title="NVD"></span>
+              <span class="w-3 h-3 rounded-full bg-green-500" title="KEV"></span>
+              <span class="w-3 h-3 rounded-full bg-red-500" title="MSRC"></span>
+            </div>
+            <div class="flex gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-green-500" title="Custom 1"></span>
+              <span class="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-600" title="Custom 2 (off)"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Card 4: Licenses -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">Licenses</p>
+            <p class="text-3xl font-bold">8 <span class="text-slate-400 text-xl">active</span></p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">1,117 / 2,000 endpoints</p>
+          </div>
+          <div class="flex flex-col items-end gap-2">
+            <canvas id="licenseGauge" width="60" height="60"></canvas>
+            <span class="text-xs text-amber-500">55.9% used</span>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+            <div class="bg-indigo-500 h-2 rounded-full" style="width: 55.9%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Feed Pipeline + Catalog Growth -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <!-- Feed Pipeline -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <h3 class="font-bold mb-1">Feed Pipeline</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Live data ingestion from vulnerability feeds to catalog</p>
+        <div class="flex items-center gap-0 mt-2">
+          <!-- Sources -->
+          <div class="flex flex-col gap-5 flex-shrink-0 w-28">
+            <div class="text-center">
+              <div class="px-3 py-2 rounded-lg border-2 border-green-400 bg-green-50 dark:bg-green-900/20 text-xs font-bold text-green-700 dark:text-green-400">NVD</div>
+              <p class="text-xs text-slate-500 mt-1">1,247 entries</p>
+            </div>
+            <div class="text-center">
+              <div class="px-3 py-2 rounded-lg border-2 border-green-400 bg-green-50 dark:bg-green-900/20 text-xs font-bold text-green-700 dark:text-green-400">KEV</div>
+              <p class="text-xs text-slate-500 mt-1">892 entries</p>
+            </div>
+            <div class="text-center">
+              <div class="px-3 py-2 rounded-lg border-2 border-red-400 bg-red-50 dark:bg-red-900/20 text-xs font-bold text-red-700 dark:text-red-400">MSRC</div>
+              <p class="text-xs text-red-400 mt-1">⚠ Error</p>
+            </div>
+          </div>
+          <!-- Pipes -->
+          <div class="flex flex-col gap-5 flex-1 px-3">
+            <!-- NVD pipe -->
+            <div class="relative h-8 flex items-center">
+              <div class="w-full h-2 bg-green-200 dark:bg-green-900/40 rounded-full feed-pipe relative overflow-hidden">
+                <div class="pipe-particle bg-green-500"></div>
+                <div class="pipe-particle bg-green-400"></div>
+                <div class="pipe-particle bg-green-500"></div>
+              </div>
+              <svg class="absolute right-0 w-4 h-4 text-green-500 -mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
+            </div>
+            <!-- KEV pipe -->
+            <div class="relative h-8 flex items-center">
+              <div class="w-full h-2 bg-green-200 dark:bg-green-900/40 rounded-full feed-pipe relative overflow-hidden">
+                <div class="pipe-particle bg-green-500" style="animation-delay:0.3s"></div>
+                <div class="pipe-particle bg-green-400" style="animation-delay:0.9s"></div>
+                <div class="pipe-particle bg-green-500" style="animation-delay:1.5s"></div>
+              </div>
+              <svg class="absolute right-0 w-4 h-4 text-green-500 -mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
+            </div>
+            <!-- MSRC pipe (blocked) -->
+            <div class="relative h-8 flex items-center">
+              <div class="w-full h-2 bg-red-200 dark:bg-red-900/40 rounded-full feed-pipe relative overflow-hidden">
+                <div class="pipe-particle-red" style="animation-delay:0s"></div>
+              </div>
+              <svg class="absolute right-0 w-4 h-4 text-red-400 -mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            </div>
+          </div>
+          <!-- Catalog destination -->
+          <div class="flex-shrink-0 w-28 text-center">
+            <div class="px-3 py-4 rounded-xl border-2 border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20">
+              <p class="text-xs font-bold text-indigo-700 dark:text-indigo-400">Catalog</p>
+              <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">1,247</p>
+              <p class="text-xs text-slate-500">entries</p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          MSRC: Last sync failed 2h ago — "Connection timeout to api.msrc.microsoft.com"
+        </div>
+      </div>
+
+      <!-- Catalog Growth Chart -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <h3 class="font-bold mb-1">Catalog Growth</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Cumulative entries over last 90 days</p>
+        <canvas id="catalogGrowthChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <!-- Row 4: License Sunburst -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+      <h3 class="font-bold mb-1">License Distribution</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Breakdown by tier and status</p>
+      <div class="flex items-center justify-center gap-8 flex-wrap">
+        <div class="relative" style="width:320px;height:320px;">
+          <svg id="sunburstSvg" width="320" height="320" viewBox="0 0 320 320"></svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <p id="sunburstCenter" class="text-3xl font-bold">8</p>
+            <p class="text-sm text-slate-500">Active</p>
+          </div>
+        </div>
+        <div id="sunburstLegend" class="flex flex-col gap-3 min-w-48"></div>
+      </div>
+    </div>
+
+    <!-- Row 5: Recent Activity -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold">Recent Activity</h3>
+        <a href="#" class="text-xs text-indigo-500 hover:text-indigo-600">View all</a>
+      </div>
+      <div class="space-y-3" id="activityStream"></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ─── Theme ───────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  html.classList.toggle('dark');
+  localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+}
+(function(){
+  const t = localStorage.getItem('theme');
+  if (t === 'light') document.documentElement.classList.remove('dark');
+  else document.documentElement.classList.add('dark');
+})();
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.documentElement.classList.toggle('sidebar-collapsed');
+  const sidebar = document.getElementById('sidebar');
+  const topbar = document.getElementById('topbar');
+  const main = document.getElementById('main-content');
+  const w = document.documentElement.classList.contains('sidebar-collapsed') ? '64px' : '260px';
+  document.documentElement.style.setProperty('--sidebar-w', w);
+}
+
+// ─── Client Switcher ─────────────────────────────────────────────────────────
+const clients = [
+  { name: 'Acme Corp', color: '#6366f1', initial: 'A' },
+  { name: 'TechStart Inc', color: '#10b981', initial: 'T' },
+  { name: 'DataFlow Ltd', color: '#f59e0b', initial: 'D' },
+  { name: 'SecureBank', color: '#3b82f6', initial: 'S' },
+  { name: 'MedHealth', color: '#8b5cf6', initial: 'M' },
+  { name: 'GovTech', color: '#ef4444', initial: 'G' },
+  { name: 'EduNet', color: '#14b8a6', initial: 'E' },
+  { name: 'RetailPlus', color: '#f97316', initial: 'R' }
+];
+
+function toggleClientSwitcher() {
+  document.getElementById('clientSwitcherMenu').classList.toggle('hidden');
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('clientSwitcherWrap').contains(e.target))
+    document.getElementById('clientSwitcherMenu').classList.add('hidden');
+});
+
+(function buildClientMenu() {
+  const el = document.getElementById('clientMenuItems');
+  clients.forEach(c => {
+    el.innerHTML += `<a href="client-detail.html" class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700">
+      <div class="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" style="background:${c.color}">${c.initial}</div>
+      <span>${c.name}</span>
+    </a>`;
+  });
+})();
+
+// ─── Topology ────────────────────────────────────────────────────────────────
+const pmClients = [
+  { name: 'Acme Corp', status: 'healthy', endpoints: 247, syncing: false },
+  { name: 'TechStart Inc', status: 'healthy', endpoints: 89, syncing: true },
+  { name: 'DataFlow Ltd', status: 'warning', endpoints: 156, syncing: false },
+  { name: 'SecureBank', status: 'healthy', endpoints: 312, syncing: true },
+  { name: 'MedHealth', status: 'healthy', endpoints: 78, syncing: false },
+  { name: 'GovTech', status: 'error', endpoints: 45, syncing: false },
+  { name: 'EduNet', status: 'healthy', endpoints: 123, syncing: true },
+  { name: 'RetailPlus', status: 'healthy', endpoints: 67, syncing: false }
+];
+
+const statusColors = { healthy: '#22c55e', warning: '#f59e0b', error: '#ef4444' };
+const lastSyncs = ['2 min ago','8 min ago','45 min ago','1 min ago','12 min ago','3h ago','5 min ago','22 min ago'];
+
+function buildTopology() {
+  const cx = 450, cy = 240, r = 165;
+  const linesG = document.getElementById('connectionLines');
+  const nodesG = document.getElementById('pmNodes');
+  const tooltip = document.getElementById('nodeTooltip');
+  const svgEl = document.getElementById('topologySvg');
+  const svgRect = svgEl.getBoundingClientRect.bind(svgEl);
+  const maxEp = Math.max(...pmClients.map(c => c.endpoints));
+
+  pmClients.forEach((client, i) => {
+    const angle = (i / pmClients.length) * 2 * Math.PI - Math.PI / 2;
+    const nx = cx + r * Math.cos(angle);
+    const ny = cy + r * Math.sin(angle);
+    const nodeR = 18 + (client.endpoints / maxEp) * 22;
+    const col = statusColors[client.status];
+
+    // Line
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+    line.setAttribute('x2', nx); line.setAttribute('y2', ny);
+    line.setAttribute('stroke', col); line.setAttribute('stroke-width', '2');
+    line.setAttribute('opacity', '0.6');
+    if (client.syncing) line.classList.add('sync-dash');
+    linesG.appendChild(line);
+
+    // Node group
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.classList.add('pm-node');
+    g.setAttribute('transform', `translate(${nx},${ny})`);
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('r', nodeR);
+    circle.setAttribute('fill', col + '33');
+    circle.setAttribute('stroke', col);
+    circle.setAttribute('stroke-width', '2.5');
+    g.appendChild(circle);
+
+    const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    const nameParts = client.name.split(' ');
+    if (nameParts.length === 1) {
+      textEl.setAttribute('text-anchor', 'middle');
+      textEl.setAttribute('dy', '0.35em');
+      textEl.setAttribute('fill', col);
+      textEl.setAttribute('font-size', '9');
+      textEl.setAttribute('font-weight', 'bold');
+      textEl.textContent = client.name;
+    } else {
+      nameParts.slice(0, 2).forEach((part, pi) => {
+        const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+        tspan.setAttribute('x', '0');
+        tspan.setAttribute('dy', pi === 0 ? '-0.3em' : '1.1em');
+        tspan.setAttribute('text-anchor', 'middle');
+        tspan.setAttribute('fill', col);
+        tspan.setAttribute('font-size', '8');
+        tspan.setAttribute('font-weight', 'bold');
+        tspan.textContent = part;
+        textEl.appendChild(tspan);
+      });
+    }
+    g.appendChild(textEl);
+
+    // Endpoint count label
+    const epLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    epLabel.setAttribute('text-anchor', 'middle');
+    epLabel.setAttribute('y', nodeR + 13);
+    epLabel.setAttribute('fill', '#94a3b8');
+    epLabel.setAttribute('font-size', '9');
+    epLabel.textContent = client.endpoints + ' eps';
+    g.appendChild(epLabel);
+
+    // Syncing indicator
+    if (client.syncing) {
+      const syncDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      syncDot.setAttribute('cx', nodeR - 4);
+      syncDot.setAttribute('cy', -(nodeR - 4));
+      syncDot.setAttribute('r', '4');
+      syncDot.setAttribute('fill', '#6366f1');
+      const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+      animate.setAttribute('attributeName', 'opacity');
+      animate.setAttribute('values', '1;0.3;1');
+      animate.setAttribute('dur', '1.5s');
+      animate.setAttribute('repeatCount', 'indefinite');
+      syncDot.appendChild(animate);
+      g.appendChild(syncDot);
+    }
+
+    // Interactions
+    g.addEventListener('mousemove', (e) => {
+      const t = tooltip;
+      const statusLabel = { healthy: '✓ Healthy', warning: '⚠ Warning', error: '✕ Error' }[client.status];
+      const statusColor = { healthy: '#22c55e', warning: '#f59e0b', error: '#ef4444' }[client.status];
+      t.innerHTML = `
+        <div class="font-bold mb-1">${client.name}</div>
+        <div style="color:${statusColor}">${statusLabel}</div>
+        <div class="text-slate-400">${client.endpoints} endpoints</div>
+        <div class="text-slate-400">Last sync: ${lastSyncs[i]}</div>
+        ${client.syncing ? '<div class="text-indigo-400 text-xs">● Syncing now</div>' : ''}
+      `;
+      t.style.display = 'block';
+      t.style.left = (e.clientX + 14) + 'px';
+      t.style.top = (e.clientY - 10) + 'px';
+    });
+    g.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+    g.addEventListener('click', () => { window.location.href = 'client-detail.html'; });
+
+    nodesG.appendChild(g);
+  });
+}
+buildTopology();
+
+// ─── Stat Card Charts ─────────────────────────────────────────────────────────
+// PM Donut
+new Chart(document.getElementById('pmDonut'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [7, 1],
+      backgroundColor: ['#22c55e', '#cbd5e1'],
+      borderWidth: 0
+    }]
+  },
+  options: { cutout: '70%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+});
+
+// Catalog Sparkline
+new Chart(document.getElementById('catalogSparkline'), {
+  type: 'line',
+  data: {
+    labels: Array.from({length:30},(_,i)=>i),
+    datasets: [{
+      data: [1000,1010,1020,1025,1030,1050,1060,1080,1090,1100,1105,1110,1115,1130,1140,1150,1160,1175,1185,1190,1200,1210,1215,1220,1225,1230,1235,1240,1245,1247],
+      borderColor: '#6366f1',
+      backgroundColor: 'rgba(99,102,241,0.15)',
+      fill: true,
+      tension: 0.4,
+      borderWidth: 2,
+      pointRadius: 0
+    }]
+  },
+  options: { plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}}, elements:{line:{borderWidth:2}} }
+});
+
+// License Gauge (donut)
+new Chart(document.getElementById('licenseGauge'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [1117, 883],
+      backgroundColor: ['#6366f1', '#e2e8f0'],
+      borderWidth: 0
+    }]
+  },
+  options: { cutout: '65%', plugins: { legend: { display: false }, tooltip: { enabled: false } }, rotation: -90, circumference: 180 }
+});
+
+// Catalog Growth Chart
+(function() {
+  const days = 90;
+  const labels = [];
+  const nvd = [], kev = [], msrc = [];
+  let n=800, k=600, m=300;
+  const now = new Date();
+  for (let i = days; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate() - i);
+    labels.push(d.toLocaleDateString('en-US', {month:'short',day:'numeric'}));
+    n += Math.random()*8 + 2; nvd.push(Math.round(n));
+    k += Math.random()*5 + 1; kev.push(Math.round(k));
+    if (i > 15) { m += Math.random()*4 + 1; msrc.push(Math.round(m)); }
+    else { msrc.push(null); } // MSRC stopped
+  }
+  const isDark = document.documentElement.classList.contains('dark');
+  const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  new Chart(document.getElementById('catalogGrowthChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'NVD', data:nvd, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.15)', fill:true, tension:0.4, borderWidth:2, pointRadius:0 },
+        { label:'KEV', data:kev, borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.1)', fill:true, tension:0.4, borderWidth:2, pointRadius:0 },
+        { label:'MSRC', data:msrc, borderColor:'#a855f7', backgroundColor:'rgba(168,85,247,0.08)', fill:true, tension:0.4, borderWidth:2, pointRadius:0, spanGaps:false }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { position:'top', labels:{ boxWidth:12, padding:16, color: isDark?'#94a3b8':'#475569' } },
+        tooltip: { mode:'index', intersect:false }
+      },
+      scales: {
+        x: { ticks: { maxTicksLimit:10, color: isDark?'#64748b':'#94a3b8' }, grid:{color:gridColor} },
+        y: { ticks: { color: isDark?'#64748b':'#94a3b8' }, grid:{color:gridColor} }
+      },
+      interaction: { mode:'nearest', axis:'x', intersect:false }
+    }
+  });
+})();
+
+// ─── Sunburst ─────────────────────────────────────────────────────────────────
+(function() {
+  const tiers = [
+    { name:'Enterprise', color:'#6366f1', count:3, ep:1059 },
+    { name:'Professional', color:'#3b82f6', count:2, ep:33 },
+    { name:'Standard', color:'#22c55e', count:2, ep:25 },
+    { name:'Trial', color:'#94a3b8', count:1, ep:45 }
+  ];
+  const statuses = [
+    { name:'Active', fill:'solid' },
+    { name:'Expiring', fill:'amber' },
+    { name:'Expired', fill:'red' }
+  ];
+  const tierData = [
+    { tier:0, active:2, expiring:1, expired:0 },
+    { tier:1, active:1, expiring:1, expired:0 },
+    { tier:2, active:2, expiring:0, expired:0 },
+    { tier:3, active:0, expiring:0, expired:1 }
+  ];
+  const svg = document.getElementById('sunburstSvg');
+  const cx=160, cy=160, r1=70, r2=100, r3=130;
+  const total = tiers.reduce((s,t)=>s+t.count,0);
+  let startAngle = -Math.PI/2;
+  const tooltip = document.getElementById('nodeTooltip');
+  const legend = document.getElementById('sunburstLegend');
+
+  tiers.forEach((tier,ti) => {
+    const frac = tier.count/total;
+    const sweep = frac * 2 * Math.PI;
+    const endAngle = startAngle + sweep;
+    const midAngle = startAngle + sweep/2;
+    // Inner segment
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const d = describeArc(cx,cy,r1,r2,startAngle,endAngle);
+    path.setAttribute('d',d);
+    path.setAttribute('fill', tier.color);
+    path.setAttribute('opacity','0.85');
+    path.classList.add('sunburst-seg');
+    svg.appendChild(path);
+    path.addEventListener('mousemove', e => {
+      tooltip.innerHTML = `<b>${tier.name}</b><br>${tier.count} licenses<br>${tier.ep} endpoints`;
+      tooltip.style.display='block'; tooltip.style.left=(e.clientX+14)+'px'; tooltip.style.top=(e.clientY-10)+'px';
+    });
+    path.addEventListener('mouseleave',()=>tooltip.style.display='none');
+
+    // Outer segments (statuses)
+    const td = tierData[ti];
+    const statusCounts = [td.active, td.expiring, td.expired];
+    const statusColors2 = [tier.color, '#f59e0b', '#ef4444'];
+    const statusOpacity = [1, 0.8, 0.7];
+    let subStart = startAngle;
+    statusCounts.forEach((sc, si) => {
+      if (sc === 0) return;
+      const subSweep = (sc/tier.count) * sweep;
+      const outerPath = document.createElementNS('http://www.w3.org/2000/svg','path');
+      outerPath.setAttribute('d', describeArc(cx,cy,r2+4,r3,subStart,subStart+subSweep));
+      outerPath.setAttribute('fill', statusColors2[si]);
+      outerPath.setAttribute('opacity', statusOpacity[si]);
+      outerPath.classList.add('sunburst-seg');
+      outerPath.addEventListener('mousemove', e => {
+        const sn = ['Active','Expiring','Expired'][si];
+        tooltip.innerHTML = `<b>${tier.name} — ${sn}</b><br>${sc} licenses`;
+        tooltip.style.display='block'; tooltip.style.left=(e.clientX+14)+'px'; tooltip.style.top=(e.clientY-10)+'px';
+      });
+      outerPath.addEventListener('mouseleave',()=>tooltip.style.display='none');
+      svg.appendChild(outerPath);
+      subStart += subSweep;
+    });
+
+    startAngle = endAngle;
+  });
+
+  // Center hole
+  const center = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  center.setAttribute('cx',cx); center.setAttribute('cy',cy); center.setAttribute('r',r1-2);
+  center.setAttribute('fill','transparent');
+  svg.appendChild(center);
+
+  // Legend
+  tiers.forEach(t => {
+    legend.innerHTML += `
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-sm flex-shrink-0" style="background:${t.color}"></span>
+        <span class="text-sm"><b>${t.name}</b> — ${t.count} licenses, ${t.ep} endpoints</span>
+      </div>`;
+  });
+  legend.innerHTML += `<div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600 text-xs text-slate-400">
+    <div class="flex items-center gap-2 mb-1"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>Expiring within 30 days</div>
+    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>Expired</div>
+  </div>`;
+
+  function describeArc(cx,cy,r1,r2,startAngle,endAngle) {
+    const x1=cx+r1*Math.cos(startAngle),y1=cy+r1*Math.sin(startAngle);
+    const x2=cx+r2*Math.cos(startAngle),y2=cy+r2*Math.sin(startAngle);
+    const x3=cx+r2*Math.cos(endAngle),y3=cy+r2*Math.sin(endAngle);
+    const x4=cx+r1*Math.cos(endAngle),y4=cy+r1*Math.sin(endAngle);
+    const large = endAngle-startAngle > Math.PI ? 1 : 0;
+    return `M ${x1} ${y1} L ${x2} ${y2} A ${r2} ${r2} 0 ${large} 1 ${x3} ${y3} L ${x4} ${y4} A ${r1} ${r1} 0 ${large} 0 ${x1} ${y1} Z`;
+  }
+})();
+
+// ─── Activity Stream ──────────────────────────────────────────────────────────
+(function() {
+  const activities = [
+    { icon:'sync', color:'border-indigo-400', bg:'bg-indigo-50 dark:bg-indigo-900/20', text:'Acme Corp synced 12 new patches successfully', time:'5 min ago' },
+    { icon:'feed', color:'border-blue-400', bg:'bg-blue-50 dark:bg-blue-900/20', text:'NVD feed: 23 new CVE entries ingested', time:'1h ago' },
+    { icon:'warn', color:'border-amber-400', bg:'bg-amber-50 dark:bg-amber-900/20', text:'DataFlow Ltd license approaching expiration (14 days)', time:'2h ago' },
+    { icon:'sync', color:'border-indigo-400', bg:'bg-indigo-50 dark:bg-indigo-900/20', text:'SecureBank synced 8 patches (312 endpoints updated)', time:'3h ago' },
+    { icon:'error', color:'border-red-400', bg:'bg-red-50 dark:bg-red-900/20', text:'MSRC feed sync failed: Connection timeout', time:'2h ago' },
+    { icon:'client', color:'border-green-400', bg:'bg-green-50 dark:bg-green-900/20', text:'TechStart Inc reconnected after 45-minute outage', time:'4h ago' },
+    { icon:'feed', color:'border-blue-400', bg:'bg-blue-50 dark:bg-blue-900/20', text:'KEV feed: 5 high-severity vulnerabilities added', time:'5h ago' },
+    { icon:'sync', color:'border-indigo-400', bg:'bg-indigo-50 dark:bg-indigo-900/20', text:'EduNet synced full catalog (1,247 entries)', time:'6h ago' },
+    { icon:'warn', color:'border-amber-400', bg:'bg-amber-50 dark:bg-amber-900/20', text:'GovTech PM unreachable — sync failed 3 times', time:'8h ago' },
+    { icon:'client', color:'border-green-400', bg:'bg-green-50 dark:bg-green-900/20', text:'RetailPlus agent count increased by 5 (now 67)', time:'12h ago' }
+  ];
+  const icons = {
+    sync: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>',
+    feed: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>',
+    warn: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 001.75-2.99L13.75 4a2 2 0 00-3.5 0L2.25 16A2 2 0 004 19z"/></svg>',
+    error: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+    client: '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>'
+  };
+  const colMap = { 'border-indigo-400':'text-indigo-500','border-blue-400':'text-blue-500','border-amber-400':'text-amber-500','border-red-400':'text-red-500','border-green-400':'text-green-500' };
+  const container = document.getElementById('activityStream');
+  activities.forEach(a => {
+    const iconColor = colMap[a.color];
+    container.innerHTML += `
+      <div class="flex items-start gap-3 p-3 rounded-xl ${a.bg} border-l-4 ${a.color}">
+        <span class="${iconColor} mt-0.5">${icons[a.icon]}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm">${a.text}</p>
+        </div>
+        <span class="text-xs text-slate-400 flex-shrink-0">${a.time}</span>
+      </div>`;
+  });
+})();
+</script>
+</body>
+</html>

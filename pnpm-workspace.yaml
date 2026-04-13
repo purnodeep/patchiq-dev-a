@@ -1,0 +1,5 @@
+packages:
+  - "web"
+  - "web-hub"
+  - "web-agent"
+  - "packages/ui"

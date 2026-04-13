@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<oval_definitions xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5"
+                  xmlns:red-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#linux">
+  <definitions>
+    <definition id="oval:com.redhat.rhsa:def:20240893" version="1" class="patch">
+      <metadata>
+        <title>RHSA-2024:0893: python3 security update (Important)</title>
+        <affected family="unix">
+          <platform>Red Hat Enterprise Linux 9</platform>
+        </affected>
+        <reference source="CVE" ref_id="CVE-2023-6597" ref_url="https://access.redhat.com/security/cve/CVE-2023-6597"/>
+        <reference source="CVE" ref_id="CVE-2024-0450" ref_url="https://access.redhat.com/security/cve/CVE-2024-0450"/>
+        <advisory>
+          <severity>Important</severity>
+          <issued date="2024-02-20"/>
+          <updated date="2024-02-20"/>
+        </advisory>
+        <description>Python is an interpreted, interactive, object-oriented programming language that supports modules, classes, exceptions, high-level dynamic data types, and dynamic typing.</description>
+      </metadata>
+    </definition>
+    <definition id="oval:com.redhat.rhsa:def:20240811" version="1" class="patch">
+      <metadata>
+        <title>RHSA-2024:0811: sudo security update (Moderate)</title>
+        <affected family="unix">
+          <platform>Red Hat Enterprise Linux 8</platform>
+        </affected>
+        <reference source="CVE" ref_id="CVE-2023-42465" ref_url="https://access.redhat.com/security/cve/CVE-2023-42465"/>
+        <advisory>
+          <severity>Moderate</severity>
+          <issued date="2024-02-14"/>
+          <updated date="2024-02-14"/>
+        </advisory>
+        <description>The sudo packages contain the sudo utility which allows system administrators to provide certain users with the permission to execute privileged commands.</description>
+      </metadata>
+    </definition>
+    <definition id="oval:com.redhat.rhsa:def:20240100" version="1" class="vulnerability">
+      <metadata>
+        <title>CVE-2024-0100: some vulnerability (Low)</title>
+        <affected family="unix">
+          <platform>Red Hat Enterprise Linux 9</platform>
+        </affected>
+        <reference source="CVE" ref_id="CVE-2024-0100" ref_url="https://access.redhat.com/security/cve/CVE-2024-0100"/>
+        <advisory>
+          <severity>Low</severity>
+          <issued date="2024-01-10"/>
+          <updated date="2024-01-10"/>
+        </advisory>
+        <description>A non-patch definition that should be skipped.</description>
+      </metadata>
+    </definition>
+  </definitions>
+</oval_definitions>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — Settings</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:220px;--topbar-h:52px;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;display:flex;height:100vh;overflow:hidden}
+#sidebar{width:var(--sidebar-w);background:#0d1117;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s ease}
+#sidebar.collapsed{width:52px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;min-height:52px}
+.sb-logo-icon{width:28px;height:28px;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sb-logo-text{font-weight:600;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden}
+.sb-logo-sub{font-size:10px;color:var(--muted);white-space:nowrap}
+#sidebar.collapsed .sb-logo-text,#sidebar.collapsed .sb-logo-sub{display:none}
+.sb-group{margin-top:4px}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
+#sidebar.collapsed .sb-group-label{padding:8px 0;justify-content:center;font-size:8px;letter-spacing:0}
+.sb-group-label:hover{color:var(--text)}
+.sb-group-label .arrow{transition:.2s;font-size:9px;flex-shrink:0}
+.sb-group-label.collapsed .arrow{transform:rotate(-90deg)}
+#sidebar.collapsed .sb-group-label .arrow{display:none}
+.sb-group-items{overflow:hidden;transition:max-height .2s ease}
+.sb-item{padding:6px 16px 6px 24px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;overflow:hidden;text-decoration:none}
+#sidebar.collapsed .sb-item{padding:8px 0;justify-content:center;gap:0}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:14px;height:14px;flex-shrink:0}
+#sidebar.collapsed .sb-item-text{display:none}
+.sb-badge{margin-left:auto;background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+.sb-badge.amber{background:#f59e0b20;color:#f59e0b}
+#sidebar.collapsed .sb-badge{display:none}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.tb-menu-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);background:transparent;border:none;transition:.15s}
+.tb-menu-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-menu-btn svg{width:16px;height:16px}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-breadcrumb a{color:var(--muted);text-decoration:none;transition:.15s}
+.tb-breadcrumb a:hover{color:var(--text)}
+.tb-breadcrumb span:last-child{color:var(--text);font-weight:500}
+.tb-sep{color:#374151}
+.tb-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb-icon-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:16px;height:16px}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--danger);border-radius:50%;border:1.5px solid #0d1117}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;color:#fff;flex-shrink:0;margin-left:4px}
+#page{flex:1;overflow-y:auto;padding:20px}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.page-header{display:flex;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.ph-bc{font-size:11px;color:var(--muted);margin-bottom:4px}
+.ph-title{font-size:20px;font-weight:700;color:var(--text)}
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d;border-color:#374151}
+.btn-ghost{background:transparent;color:var(--muted);border-color:transparent}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.btn-danger{background:#ef444415;color:var(--danger);border-color:#ef444430}
+.btn-danger:hover{background:#ef444425}
+.btn-sm{padding:4px 10px;font-size:11px}
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.badge-success{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-muted{background:#ffffff10;color:var(--muted);border:1px solid var(--border)}
+
+/* SETTINGS GRID */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.settings-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px}
+.settings-card.full-width{grid-column:1/-1}
+.sc-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.sc-desc{font-size:11px;color:var(--muted);margin-bottom:18px}
+.sc-divider{height:1px;background:var(--border);margin:16px 0}
+
+/* FORM */
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;display:block}
+.form-input{background:#ffffff08;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);width:100%;outline:none;transition:.15s;font-family:inherit}
+.form-input:focus{border-color:var(--primary);background:#ffffff0d}
+.form-input option{background:#1e293b;color:var(--text)}
+.form-input::placeholder{color:var(--muted)}
+.form-input.masked{letter-spacing:2px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-actions{display:flex;gap:8px;margin-top:16px}
+
+/* LICENSE */
+.license-tier{display:inline-flex;align-items:center;gap:8px;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;margin-bottom:14px}
+.endpoint-usage{margin-bottom:16px}
+.eu-row{display:flex;justify-content:space-between;margin-bottom:6px}
+.eu-label{font-size:12px;color:var(--muted)}
+.eu-val{font-size:12px;font-weight:600;color:var(--text)}
+.progress-bar{height:8px;background:#ffffff10;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--primary),#60a5fa);transition:width 1s ease}
+.feature-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.feature-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1e293b40}
+.feature-row:last-child{border-bottom:none}
+.feature-name{font-size:12px;color:var(--text)}
+.feature-check{color:var(--success);font-size:14px}
+.feature-lock{color:var(--muted);font-size:12px}
+.expiry-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.expiry-date{font-size:13px;font-weight:600;color:var(--text)}
+.expiry-days{font-size:11px;color:var(--success)}
+
+/* IAM */
+.iam-provider{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0f172a;border:1px solid var(--border);border-radius:8px;margin-bottom:14px}
+.iam-provider-name{font-size:13px;font-weight:600;color:var(--text)}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-dot.online{background:var(--success);box-shadow:0 0 0 2px #10b98120}
+.status-dot.offline{background:#4b5563}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:7px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em}
+.data-table td{padding:8px 10px;border-bottom:1px solid #1e293b40;font-size:12px}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#ffffff03}
+.arrow-icon{color:var(--muted);font-size:14px;padding:0 6px}
+
+/* INTEGRATIONS */
+.integ-group{margin-bottom:14px}
+.integ-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.integ-row{display:flex;gap:8px;align-items:center}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+#page{animation:fadeIn .2s ease}
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div>
+      <div class="sb-logo-text">PatchIQ</div>
+      <div class="sb-logo-sub">Patch Manager</div>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Overview <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="../patch-manager.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="sb-item-text">Dashboard</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Inventory <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="sb-item-text">Endpoints</span><span class="sb-badge blue">247</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg><span class="sb-item-text">Patches</span><span class="sb-badge">12</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="sb-item-text">CVEs</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Operations <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg><span class="sb-item-text">Policies</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 12L8 8m4 4l4-4"/></svg><span class="sb-item-text">Deployments</span><span class="sb-badge amber">3</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="sb-item-text">Workflows</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Reports <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="compliance.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg><span class="sb-item-text">Compliance</span></a>
+      <a class="sb-item" href="audit.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="sb-item-text">Audit</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Configuration <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item active" href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 115.64 19.07M19.07 4.93L15.5 8.5M4.93 19.07L8.5 15.5"/></svg><span class="sb-item-text">Settings</span></a>
+      <a class="sb-item" href="roles.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span class="sb-item-text">Roles</span></a>
+      <a class="sb-item" href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg><span class="sb-item-text">Notifications</span></a>
+    </div>
+  </div>
+</nav>
+
+<div id="main">
+  <div id="topbar">
+    <button class="tb-menu-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-breadcrumb">
+      <a href="../patch-manager.html">Home</a><span class="tb-sep">›</span>
+      <span>Configuration</span><span class="tb-sep">›</span>
+      <span>Settings</span>
+    </div>
+    <div class="tb-icons">
+      <button class="tb-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg><span class="notif-dot"></span></button>
+      <button class="tb-icon-btn" onclick="toggleDark()">
+        <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <div class="tb-avatar">JD</div>
+    </div>
+  </div>
+
+  <div id="page">
+    <div class="page-header">
+      <div>
+        <div class="ph-bc">Home / Configuration / Settings</div>
+        <div class="ph-title">Settings</div>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+
+      <!-- General Settings -->
+      <div class="settings-card full-width">
+        <div class="sc-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 115.64 19.07M19.07 4.93L15.5 8.5M4.93 19.07L8.5 15.5"/></svg>
+          General Settings
+        </div>
+        <div class="sc-desc">Basic organization settings and default configurations</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Organization Name</label>
+            <input class="form-input" type="text" value="Acme Corp">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Timezone</label>
+            <select class="form-input">
+              <option selected>UTC (Coordinated Universal Time)</option>
+              <option>America/New_York (UTC-5)</option>
+              <option>America/Los_Angeles (UTC-8)</option>
+              <option>Europe/London (UTC+0)</option>
+              <option>Europe/Berlin (UTC+1)</option>
+              <option>Asia/Tokyo (UTC+9)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date Format</label>
+            <select class="form-input">
+              <option selected>YYYY-MM-DD (ISO 8601)</option>
+              <option>MM/DD/YYYY (US)</option>
+              <option>DD/MM/YYYY (EU)</option>
+              <option>DD MMM YYYY (Verbose)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Default Scan Interval</label>
+            <select class="form-input">
+              <option>1 hour</option>
+              <option>2 hours</option>
+              <option>4 hours</option>
+              <option selected>6 hours</option>
+              <option>12 hours</option>
+              <option>24 hours</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save Changes
+          </button>
+          <button class="btn btn-ghost btn-sm">Discard</button>
+        </div>
+      </div>
+
+      <!-- License -->
+      <div class="settings-card">
+        <div class="sc-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          License
+        </div>
+        <div class="sc-desc">Subscription tier and usage information</div>
+        <div class="license-tier">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Enterprise
+        </div>
+        <div class="endpoint-usage">
+          <div class="eu-row">
+            <span class="eu-label">Endpoint Usage</span>
+            <span class="eu-val">247 / 500</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:49%"></div></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">49% of license capacity used · 253 slots remaining</div>
+        </div>
+        <div class="sc-divider"></div>
+        <div class="feature-list">
+          <div class="feature-row"><span class="feature-name">Endpoint Management</span><span class="feature-check">✓</span></div>
+          <div class="feature-row"><span class="feature-name">Patch Deployment</span><span class="feature-check">✓</span></div>
+          <div class="feature-row"><span class="feature-name">Workflow Engine</span><span class="feature-check">✓</span></div>
+          <div class="feature-row"><span class="feature-name">Compliance Frameworks</span><span class="feature-check">✓</span></div>
+          <div class="feature-row"><span class="feature-name">Multi-Wave Deployments</span><span class="feature-check">✓</span></div>
+          <div class="feature-row"><span class="feature-name">API Access</span><span class="feature-check">✓</span></div>
+          <div class="feature-row"><span class="feature-name">RBAC</span><span class="feature-check">✓</span></div>
+          <div class="feature-row"><span class="feature-name">SSO Integration</span><span class="feature-check">✓</span></div>
+        </div>
+        <div class="sc-divider"></div>
+        <div class="expiry-row">
+          <div>
+            <div class="expiry-date">Expires Dec 31, 2026</div>
+            <div class="expiry-days">296 days remaining</div>
+          </div>
+          <button class="btn btn-outline btn-sm">Manage License</button>
+        </div>
+      </div>
+
+      <!-- IAM / Identity -->
+      <div class="settings-card">
+        <div class="sc-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          IAM / Identity Provider
+        </div>
+        <div class="sc-desc">Single sign-on and role mapping configuration</div>
+        <div class="iam-provider">
+          <div style="width:32px;height:32px;border-radius:6px;background:linear-gradient(135deg,#6366f1,#4338ca);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0">Z</div>
+          <div style="flex:1">
+            <div class="iam-provider-name">Zitadel</div>
+            <div style="font-size:11px;color:var(--muted)">OIDC Identity Provider</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px">
+            <div class="status-dot online"></div>
+            <span style="color:var(--success)">Connected</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">SSO URL</label>
+          <input class="form-input" type="url" value="https://auth.acme.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Client ID</label>
+          <div style="display:flex;gap:6px">
+            <input class="form-input masked" type="text" value="patchiq-pm-••••••••" id="client-id-input" readonly style="flex:1">
+            <button class="btn btn-ghost btn-sm" onclick="toggleClientId()">Reveal</button>
+          </div>
+        </div>
+        <div class="sc-divider"></div>
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Role Mapping</div>
+        <table class="data-table" style="margin-bottom:14px">
+          <thead><tr><th>Zitadel Role</th><th></th><th>PatchIQ Role</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-family:monospace;font-size:11px">admin</td>
+              <td class="arrow-icon">→</td>
+              <td>
+                <select class="form-input" style="padding:3px 6px;font-size:11px">
+                  <option selected>Administrator</option>
+                  <option>Operator</option>
+                  <option>Analyst</option>
+                </select>
+              </td>
+              <td><span class="badge badge-success">Active</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:monospace;font-size:11px">operator</td>
+              <td class="arrow-icon">→</td>
+              <td>
+                <select class="form-input" style="padding:3px 6px;font-size:11px">
+                  <option>Administrator</option>
+                  <option selected>Operator</option>
+                  <option>Analyst</option>
+                </select>
+              </td>
+              <td><span class="badge badge-success">Active</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:monospace;font-size:11px">viewer</td>
+              <td class="arrow-icon">→</td>
+              <td>
+                <select class="form-input" style="padding:3px 6px;font-size:11px">
+                  <option>Operator</option>
+                  <option>Analyst</option>
+                  <option selected>Read Only</option>
+                </select>
+              </td>
+              <td><span class="badge badge-success">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="form-actions">
+          <button class="btn btn-outline btn-sm" onclick="showTestResult()">Test Connection</button>
+          <button class="btn btn-primary btn-sm">Save</button>
+        </div>
+        <div id="test-result" style="display:none;margin-top:10px;padding:8px 12px;background:#10b98115;border:1px solid #10b98130;border-radius:6px;font-size:11px;color:#34d399">
+          ✓ Connection successful — Zitadel responded in 42ms. OIDC discovery document valid.
+        </div>
+      </div>
+
+      <!-- Integrations -->
+      <div class="settings-card">
+        <div class="sc-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Integrations
+        </div>
+        <div class="sc-desc">External service connections and webhook configuration</div>
+
+        <div class="integ-group">
+          <div class="integ-label">Webhook</div>
+          <div class="integ-row">
+            <input class="form-input" type="url" value="https://hooks.acme.com/patchiq/events" style="flex:1">
+            <button class="btn btn-ghost btn-sm">Test</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">Last tested: Mar 10, 2026 · Status: 200 OK</div>
+        </div>
+
+        <div class="integ-group" style="margin-top:14px">
+          <div class="integ-label">Slack Webhook</div>
+          <div class="integ-row">
+            <input class="form-input" type="url" value="https://hooks.example.com/services/PLACEHOLDER" style="flex:1">
+            <button class="btn btn-ghost btn-sm">Test</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">Connected to <strong style="color:var(--text)">#patchiq-alerts</strong> in Acme Corp workspace</div>
+        </div>
+
+        <div class="sc-divider"></div>
+        <div class="integ-label">SMTP Configuration</div>
+        <div class="form-row" style="margin-bottom:10px">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">SMTP Host</label>
+            <input class="form-input" type="text" value="smtp.acme.com">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Port</label>
+            <input class="form-input" type="number" value="587">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">From Address</label>
+          <input class="form-input" type="email" value="noreply@patchiq.acme.com">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">SMTP Username</label>
+            <input class="form-input" type="text" value="smtp-patchiq@acme.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">SMTP Password</label>
+            <input class="form-input" type="password" value="••••••••••••">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-sm">Save Integrations</button>
+          <button class="btn btn-ghost btn-sm">Send Test Email</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('collapsed'); }
+function toggleGroup(el){
+  el.classList.toggle('collapsed');
+  el.nextElementSibling.style.maxHeight = el.classList.contains('collapsed') ? '0' : '200px';
+}
+document.querySelectorAll('.sb-group-items').forEach(g=>g.style.maxHeight='200px');
+
+function toggleDark(){
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', document.documentElement.classList.contains('dark')?'dark':'light');
+}
+if(localStorage.getItem('theme')==='light') document.documentElement.classList.remove('dark');
+
+function toggleClientId(){
+  const input = document.getElementById('client-id-input');
+  if(input.classList.contains('masked')){
+    input.classList.remove('masked');
+    input.value = 'patchiq-pm-c4f9a2b1e8d3';
+    event.target.textContent = 'Hide';
+  } else {
+    input.classList.add('masked');
+    input.value = 'patchiq-pm-••••••••';
+    event.target.textContent = 'Reveal';
+  }
+}
+
+function showTestResult(){
+  const r = document.getElementById('test-result');
+  r.style.display = 'block';
+  setTimeout(()=>r.style.display='none', 4000);
+}
+
+setTimeout(()=>{
+  document.querySelector('.progress-fill').style.width='49%';
+},300);
+</script>
+</body>
+</html>

@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Dashboard</title>
+
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #09090b;
+      --surface: #18181b;
+      --border: #27272a;
+      --border-hover: #3f3f46;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --brand: #3b82f6;
+      --brand-subtle: rgba(59,130,246,0.10);
+      --brand-glow: rgba(59,130,246,0.18);
+
+      --critical: #ef4444;
+      --critical-bg: rgba(239,68,68,0.10);
+      --high: #f97316;
+      --high-bg: rgba(249,115,22,0.10);
+      --medium: #eab308;
+      --medium-bg: rgba(234,179,8,0.10);
+      --low: #3b82f6;
+      --low-bg: rgba(59,130,246,0.10);
+      --good: #22c55e;
+      --good-bg: rgba(34,197,94,0.10);
+
+      --sidebar-w: 240px;
+      --topbar-h: 48px;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    html {
+      font-family: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+      font-feature-settings: 'cv01','cv02','cv03','ss01';
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Noise overlay */
+    html::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.022;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+    /* Layout shell */
+    .shell {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      z-index: 10;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 16px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.3), 0 2px 6px rgba(59,130,246,0.25);
+    }
+
+    .logo-icon svg {
+      width: 16px;
+      height: 16px;
+      fill: white;
+    }
+
+    .logo-wordmark {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text-primary);
+    }
+
+    .logo-wordmark span {
+      color: var(--brand);
+    }
+
+    .nav-section {
+      padding: 20px 10px 4px;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 8px;
+      margin-bottom: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 13.5px;
+      font-weight: 450;
+      transition: all 0.12s ease;
+      position: relative;
+      margin-bottom: 1px;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .nav-item:hover {
+      background: #27272a;
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: var(--brand-subtle);
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 2px;
+      height: 18px;
+      background: var(--brand);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-item-icon {
+      width: 16px;
+      height: 16px;
+      opacity: 0.75;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-item.active .nav-item-icon { opacity: 1; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .sidebar-user:hover { background: #27272a; }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name { font-size: 12.5px; font-weight: 500; color: var(--text-primary); }
+    .sidebar-user-role { font-size: 11px; color: var(--text-muted); }
+
+    /* ─── MAIN ─── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── TOPBAR ─── */
+    .topbar {
+      height: var(--topbar-h);
+      min-height: var(--topbar-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .breadcrumb-current {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .topbar-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      transition: all 0.12s;
+      position: relative;
+    }
+    .topbar-btn:hover { background: #27272a; color: var(--text-primary); }
+
+    .notif-dot {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 7px;
+      height: 7px;
+      background: var(--critical);
+      border-radius: 50%;
+      border: 1.5px solid var(--surface);
+    }
+
+    .topbar-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: 1.5px solid transparent;
+      transition: border-color 0.12s;
+    }
+    .topbar-avatar:hover { border-color: var(--brand); }
+
+    .topbar-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    /* Search bar */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #09090b;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 5px 10px;
+      width: 220px;
+      cursor: text;
+      transition: border-color 0.12s;
+    }
+    .search-bar:hover { border-color: var(--border-hover); }
+    .search-bar svg { color: var(--text-muted); flex-shrink: 0; }
+    .search-bar span { font-size: 12.5px; color: var(--text-muted); flex: 1; }
+    .search-kbd {
+      font-family: 'GeistMono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      background: var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    /* ─── CONTENT ─── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-primary);
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .page-header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.12s;
+      font-family: inherit;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: #27272a; color: var(--text-primary); border-color: var(--border-hover); }
+
+    .btn-primary {
+      background: var(--brand);
+      color: white;
+    }
+    .btn-primary:hover { background: #2563eb; }
+
+    .time-badge {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+    }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.08), 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    .card-elevated {
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.15px;
+    }
+
+    .card-subtitle {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .card-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 99px;
+      border: 1px solid;
+    }
+
+    .card-body {
+      padding: 16px;
+    }
+
+    /* ─── ROW 1: STAT CARDS ─── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+      cursor: default;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.10), 0 6px 20px rgba(0,0,0,0.35);
+      transform: translateY(-1px);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+    }
+
+    .stat-card.stat-blue::before { background: linear-gradient(90deg, transparent, #3b82f6, transparent); }
+    .stat-card.stat-red::before  { background: linear-gradient(90deg, transparent, #ef4444, transparent); }
+    .stat-card.stat-green::before{ background: linear-gradient(90deg, transparent, #22c55e, transparent); }
+    .stat-card.stat-purple::before{ background: linear-gradient(90deg, transparent, #a855f7, transparent); }
+    .stat-card.stat-amber::before{ background: linear-gradient(90deg, transparent, #eab308, transparent); }
+
+    .stat-label {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 750;
+      letter-spacing: -1.5px;
+      line-height: 1;
+      color: var(--text-primary);
+      font-family: 'Geist', 'Inter', sans-serif;
+      margin-bottom: 8px;
+    }
+
+    .stat-value.red { color: var(--critical); }
+    .stat-value.green { color: var(--good); }
+    .stat-value.amber { color: var(--medium); }
+
+    .stat-trend {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11.5px;
+    }
+
+    .trend-up { color: var(--good); }
+    .trend-down { color: var(--critical); }
+    .trend-neutral { color: var(--text-muted); }
+
+    .stat-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* Progress bar for compliance */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #27272a;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 6px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #22c55e, #3b82f6);
+    }
+
+    /* Pulse dot */
+    .pulse-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--brand);
+      position: relative;
+    }
+    .pulse-dot::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: var(--brand);
+      opacity: 0.3;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.6); opacity: 0; }
+    }
+
+    /* Sparkline */
+    .sparkline {
+      width: 60px;
+      height: 20px;
+    }
+
+    /* ─── ROW 2: HERO WIDGETS ─── */
+    .hero-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 12px;
+    }
+
+    /* Dot grid / mosaic */
+    .dot-grid-container {
+      padding: 16px;
+    }
+
+    .dot-grid-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .dot-grid {
+      display: grid;
+      grid-template-columns: repeat(32, 1fr);
+      gap: 3px;
+      margin-bottom: 14px;
+    }
+
+    .dot {
+      aspect-ratio: 1;
+      border-radius: 2px;
+      transition: transform 0.1s, opacity 0.1s;
+    }
+    .dot:hover { transform: scale(1.4); opacity: 1 !important; }
+
+    .dot.patched  { background: #22c55e; opacity: 0.8; }
+    .dot.pending  { background: #eab308; opacity: 0.85; }
+    .dot.critical { background: #ef4444; opacity: 0.9; }
+    .dot.offline  { background: #3f3f46; opacity: 0.7; }
+
+    .dot-legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    .dot-grid-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+
+    .dot-stat {
+      text-align: center;
+    }
+
+    .dot-stat-val {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .dot-stat-label {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Compliance rings */
+    .rings-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 16px;
+      gap: 8px;
+    }
+
+    .ring-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ring-svg-wrap {
+      position: relative;
+      width: 110px;
+      height: 110px;
+    }
+
+    .ring-svg-wrap svg {
+      width: 110px;
+      height: 110px;
+      transform: rotate(-90deg);
+    }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-percent {
+      font-size: 22px;
+      font-weight: 750;
+      letter-spacing: -1px;
+      line-height: 1;
+      color: var(--text-primary);
+    }
+
+    .ring-label-small {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .ring-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .ring-controls {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .compliance-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* ─── ROW 3: OPERATIONAL ─── */
+    .ops-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    /* Deployment pipeline */
+    .pipeline-stages {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      position: relative;
+    }
+
+    .stage::after {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      width: 100%;
+      height: 1.5px;
+      background: var(--border);
+    }
+
+    .stage:last-child::after { display: none; }
+    .stage.done::after { background: var(--good); }
+    .stage.active::after { background: linear-gradient(90deg, var(--brand), var(--border)); }
+
+    .stage-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      font-size: 9px;
+      font-weight: 700;
+      transition: all 0.15s;
+    }
+
+    .stage.done .stage-dot {
+      background: var(--good);
+      border-color: var(--good);
+      color: white;
+    }
+
+    .stage.active .stage-dot {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: white;
+      box-shadow: 0 0 0 4px rgba(59,130,246,0.2);
+    }
+
+    .stage-label {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .stage.done .stage-label { color: var(--good); }
+    .stage.active .stage-label { color: var(--brand); font-weight: 600; }
+
+    .deploy-list {
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .deploy-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .deploy-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .deploy-name {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .deploy-progress-bar {
+      width: 100%;
+      height: 3px;
+      background: #27272a;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .deploy-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    .deploy-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+
+    /* Patch velocity chart */
+    .velocity-chart {
+      padding: 14px 16px;
+      position: relative;
+    }
+
+    .chart-area {
+      width: 100%;
+      height: 120px;
+      position: relative;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .chart-x-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      padding: 0 2px;
+    }
+
+    .chart-x-label {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      font-family: 'GeistMono', monospace;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      color: var(--text-secondary);
+    }
+
+    .chart-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* SLA status */
+    .sla-list {
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sla-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sla-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sla-name {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .sla-deadline-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'GeistMono', monospace;
+    }
+
+    .sla-bar-track {
+      width: 100%;
+      height: 6px;
+      background: #27272a;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .sla-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+
+    .sla-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+
+    .sla-countdown {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'GeistMono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ─── ROW 4: BOTTOM ─── */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Activity feed */
+    .activity-list {
+      padding: 4px 16px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid #1f1f22;
+      position: relative;
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-icon-wrap {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    .activity-content { flex: 1; min-width: 0; }
+
+    .activity-text {
+      font-size: 12.5px;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .activity-text strong { font-weight: 600; }
+
+    .activity-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .activity-avatar {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 700;
+      color: white;
+    }
+
+    /* CVE table */
+    .cve-list {
+      padding: 4px 0 12px;
+    }
+
+    .cve-item {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #1f1f22;
+      transition: background 0.1s;
+      cursor: default;
+    }
+
+    .cve-item:last-child { border-bottom: none; }
+    .cve-item:hover { background: rgba(255,255,255,0.02); }
+
+    .cve-id {
+      font-family: 'GeistMono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .cve-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cvss-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-family: 'GeistMono', monospace;
+      white-space: nowrap;
+    }
+
+    .severity-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .endpoints-count {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: 'GeistMono', monospace;
+      white-space: nowrap;
+    }
+
+    .remediation-bar {
+      width: 60px;
+      height: 4px;
+      background: #27272a;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .remediation-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--good);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .badge-critical { background: var(--critical-bg); color: var(--critical); }
+    .badge-high { background: var(--high-bg); color: var(--high); }
+    .badge-medium { background: var(--medium-bg); color: var(--medium); }
+    .badge-low { background: var(--low-bg); color: var(--low); }
+    .badge-good { background: var(--good-bg); color: var(--good); }
+    .badge-neutral { background: #27272a; color: var(--text-secondary); }
+
+    /* Card gradient header */
+    .card-gradient-header {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(59,130,246,0.06) 0%, transparent 60%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Status indicator */
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-online { background: var(--good); }
+    .status-warning { background: var(--medium); }
+    .status-critical { background: var(--critical); }
+
+    /* Number mono */
+    .mono {
+      font-family: 'GeistMono', monospace;
+    }
+
+    /* Responsive */
+    @media (max-width: 1400px) {
+      .stat-grid { grid-template-columns: repeat(5, 1fr); }
+      .stat-value { font-size: 26px; }
+    }
+
+    @media (max-width: 1200px) {
+      .stat-grid { grid-template-columns: repeat(3, 1fr); }
+      .hero-row { grid-template-columns: 1fr; }
+      .ops-row { grid-template-columns: 1fr 1fr; }
+      .bottom-row { grid-template-columns: 1fr; }
+    }
+
+    /* Live indicator */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--good);
+      background: var(--good-bg);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 99px;
+      padding: 2px 8px;
+    }
+
+    .live-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--good);
+      animation: pulse-green 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* Thin separator */
+    .sep { height: 1px; background: var(--border); margin: 0; }
+
+    /* Overflow handle */
+    .card-scroll { overflow-y: auto; max-height: 320px; }
+
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <!-- Shield SVG -->
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 1.5L3 4.5v5c0 4.1 3 7.9 7 8.5 4-0.6 7-4.4 7-8.5v-5L10 1.5z"/>
+        </svg>
+      </div>
+      <span class="logo-wordmark">Patch<span>IQ</span></span>
+    </div>
+
+    <nav style="flex:1; overflow-y:auto; padding-bottom: 8px;">
+
+      <div class="nav-section">
+        <div class="nav-section-label">Overview</div>
+        <a class="nav-item active" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+          </span>
+          Dashboard
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Assets</div>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="3" width="14" height="3" rx="1"/><rect x="1" y="8" width="14" height="3" rx="1"/><rect x="1" y="13" width="14" height="1.5" rx="0.75" opacity="0.5"/></svg>
+          </span>
+          Endpoints
+          <span style="margin-left:auto; font-size:10.5px; background:#27272a; color:var(--text-muted); border-radius:99px; padding:1px 7px; font-family:'GeistMono',monospace; font-weight:600;">1,247</span>
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4h4v4H2zM10 4h4v4h-4zM2 10h4v4H2z" opacity="0.6"/><path d="M10 10h4v4h-4z"/></svg>
+          </span>
+          Tags
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Security</div>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5 5 0 100 10A5 5 0 008 1zM8 3a3 3 0 110 6A3 3 0 018 3z" opacity="0.7"/><path d="M13 12l2 2-1 1-2-2 1-1z"/></svg>
+          </span>
+          Patches
+          <span style="margin-left:auto;" class="badge badge-critical" style="font-size:9px;padding:1px 5px;">23</span>
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 4v5c0 4 3.1 7.7 7 8.3 3.9-.6 7-4.3 7-8.3V4L8 1zm0 2.2l5 2.2V9c0 2.9-2.1 5.6-5 6.1C5.1 14.6 3 11.9 3 9V5.4l5-2.2z"/></svg>
+          </span>
+          CVEs
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Operations</div>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v2H2zM2 6h8v2H2zM2 10h10v2H2z" opacity="0.7"/></svg>
+          </span>
+          Policies
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM8 3a5 5 0 110 10A5 5 0 018 3zm-.5 2v4.3l3 1.8.8-1.3-2.3-1.4V5H7.5z"/></svg>
+          </span>
+          Deployments
+          <span style="margin-left:auto; display:flex; align-items:center; gap:3px; font-size:10.5px; color:var(--brand);">
+            <span class="pulse-dot" style="width:5px;height:5px;"></span>
+            7
+          </span>
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M1 8a7 7 0 1014 0A7 7 0 001 8zm2 0a5 5 0 1110 0A5 5 0 013 8zm4-3h2v2H7zM7 9h2v4H7z" opacity="0.7"/></svg>
+          </span>
+          Workflows
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Compliance</div>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2h8a1 1 0 011 1v11l-3-2-3 2V3a1 1 0 011-1z" opacity="0.8"/></svg>
+          </span>
+          Compliance
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v1.5H2zM2 6h10v1.5H2zM2 9h12v1.5H2zM2 12h8v1.5H2z" opacity="0.7"/></svg>
+          </span>
+          Audit
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">System</div>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a2.5 2.5 0 012.5 2.5V5h.5A1.5 1.5 0 0113 6.5v6A1.5 1.5 0 0111.5 14h-7A1.5 1.5 0 013 12.5v-6A1.5 1.5 0 014.5 5H5V3.5A2.5 2.5 0 018 1zm0 1.5A1 1 0 007 3.5V5h2V3.5A1 1 0 008 2.5z" opacity="0.7"/></svg>
+          </span>
+          Notifications
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-item-icon">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2a3 3 0 100 6 3 3 0 000-6z" opacity="0.7"/></svg>
+          </span>
+          Settings
+        </a>
+      </div>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar">HK</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Heramb K.</div>
+          <div class="sidebar-user-role">Administrator</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--text-muted)"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="main">
+
+    <!-- ─── TOPBAR ─── -->
+    <div class="topbar">
+      <div class="breadcrumb">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style="opacity:.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+        <span style="opacity:.4;">/</span>
+        <span class="breadcrumb-current">Dashboard</span>
+      </div>
+
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        Live
+      </div>
+
+      <div style="margin-left:8px;" class="search-bar">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M7 2a5 5 0 100 10A5 5 0 007 2zM0 7a7 7 0 1112.6 4.2l3.1 3.1-1.4 1.4-3.1-3.1A7 7 0 010 7z"/></svg>
+        <span>Search endpoints, CVEs...</span>
+        <span class="search-kbd">⌘K</span>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="topbar-btn" title="Dark mode">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM8 3a5 5 0 110 10A5 5 0 018 3z" opacity=".5"/><path d="M5.5 2.7A5 5 0 0013.3 10.5 7 7 0 115.5 2.7z"/></svg>
+        </button>
+        <button class="topbar-btn" title="Notifications" style="position:relative;">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a1 1 0 011 1v.3A5 5 0 0113 7v3l1.5 2H1.5L3 10V7a5 5 0 014-4.7V2a1 1 0 011-1zM6.5 13.5a1.5 1.5 0 003 0H6.5z"/></svg>
+          <span class="notif-dot"></span>
+        </button>
+        <div class="topbar-divider"></div>
+        <div class="topbar-avatar">HK</div>
+      </div>
+    </div>
+
+    <!-- ─── CONTENT ─── -->
+    <div class="content">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle">Monday, 23 March 2026 — Tenant: Acme Corp</p>
+        </div>
+        <div class="page-header-actions">
+          <span class="time-badge">Last updated 2 min ago</span>
+          <button class="btn btn-ghost">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1v2a5 5 0 110 10V15a7 7 0 100-14z"/></svg>
+            Refresh
+          </button>
+          <button class="btn btn-primary">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM7 4h2v4h3l-4 4-4-4h3V4z"/></svg>
+            Deploy Patches
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ ROW 1: STAT CARDS ══ -->
+      <div class="stat-grid">
+
+        <!-- Total Endpoints -->
+        <div class="stat-card stat-blue">
+          <div class="stat-label">Total Endpoints</div>
+          <div class="stat-value mono">1,247</div>
+          <div class="stat-trend trend-up">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l4 4H7v6H5V5H2z"/></svg>
+            +12 this week
+          </div>
+          <div class="stat-desc" style="margin-top:4px;">managed devices</div>
+        </div>
+
+        <!-- Critical Patches -->
+        <div class="stat-card stat-red">
+          <div class="stat-label">Critical Patches</div>
+          <div class="stat-value mono red">23</div>
+          <div class="stat-trend" style="color:var(--critical); gap:5px;">
+            <span style="font-size:14px;">🔥</span>
+            require immediate action
+          </div>
+          <div class="stat-desc" style="margin-top:4px; color:var(--critical); opacity:0.7;">SLA: 72h remaining</div>
+        </div>
+
+        <!-- Compliance Score -->
+        <div class="stat-card stat-green">
+          <div class="stat-label">Compliance Score</div>
+          <div class="stat-value mono green">94.2%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:94.2%;"></div>
+          </div>
+          <div class="stat-trend trend-up">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l4 4H7v6H5V5H2z"/></svg>
+            +1.8% from last audit
+          </div>
+        </div>
+
+        <!-- Active Deployments -->
+        <div class="stat-card stat-purple">
+          <div class="stat-label">Active Deployments</div>
+          <div style="display:flex; align-items:baseline; gap:10px;">
+            <div class="stat-value mono">7</div>
+            <span class="pulse-dot"></span>
+          </div>
+          <div class="stat-trend" style="color:var(--brand);">
+            3 completing in &lt;1h
+          </div>
+          <div class="stat-desc" style="margin-top:4px;">in progress</div>
+        </div>
+
+        <!-- Mean Patch Time -->
+        <div class="stat-card stat-amber">
+          <div class="stat-label">Mean Patch Time</div>
+          <div class="stat-value mono" style="color:var(--medium);">4.2h</div>
+          <div style="margin: 6px 0 4px;">
+            <svg class="sparkline" viewBox="0 0 60 20">
+              <defs>
+                <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#eab308" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#eab308" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,14 L6,12 L12,15 L18,10 L24,13 L30,8 L36,11 L42,7 L48,9 L54,6 L60,8" fill="none" stroke="#eab308" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M0,14 L6,12 L12,15 L18,10 L24,13 L30,8 L36,11 L42,7 L48,9 L54,6 L60,8 L60,20 L0,20z" fill="url(#sparkGrad)"/>
+            </svg>
+          </div>
+          <div class="stat-desc">avg time to remediate</div>
+        </div>
+
+      </div>
+
+      <!-- ══ ROW 2: HERO WIDGETS ══ -->
+      <div class="hero-row">
+
+        <!-- Risk Landscape -->
+        <div class="card card-elevated">
+          <div class="card-gradient-header">
+            <div>
+              <div class="card-title">Risk Landscape</div>
+              <div class="card-subtitle">1,247 endpoints — real-time patch coverage</div>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span class="badge badge-critical">23 critical</span>
+              <button class="btn btn-ghost" style="padding:4px 10px; font-size:11.5px;">Filter</button>
+            </div>
+          </div>
+          <div class="dot-grid-container">
+            <div class="dot-grid" id="dotGrid"></div>
+            <div class="dot-legend">
+              <div class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span> Patched (897)</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#eab308;"></span> Pending (187)</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Critical (98)</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#3f3f46;"></span> Offline (65)</div>
+            </div>
+          </div>
+          <div class="dot-grid-stats">
+            <div class="dot-stat">
+              <div class="dot-stat-val" style="color:var(--good);">71.9%</div>
+              <div class="dot-stat-label">Fully Patched</div>
+            </div>
+            <div class="dot-stat">
+              <div class="dot-stat-val" style="color:var(--medium);">15.0%</div>
+              <div class="dot-stat-label">Pending</div>
+            </div>
+            <div class="dot-stat">
+              <div class="dot-stat-val" style="color:var(--critical);">7.9%</div>
+              <div class="dot-stat-label">Critical Risk</div>
+            </div>
+            <div class="dot-stat">
+              <div class="dot-stat-val" style="color:var(--text-muted);">5.2%</div>
+              <div class="dot-stat-label">Offline</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compliance Overview -->
+        <div class="card card-elevated">
+          <div class="card-gradient-header">
+            <div>
+              <div class="card-title">Compliance Overview</div>
+              <div class="card-subtitle">Framework adherence scores</div>
+            </div>
+            <span class="badge badge-good">3 Active</span>
+          </div>
+
+          <div class="rings-container">
+
+            <!-- CIS -->
+            <div class="ring-item">
+              <div class="ring-svg-wrap">
+                <svg viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="#27272a" stroke-width="9"/>
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="#22c55e" stroke-width="9"
+                    stroke-linecap="round"
+                    stroke-dasharray="289"
+                    stroke-dashoffset="22"
+                    style="transition: stroke-dashoffset 1s ease;"/>
+                </svg>
+                <div class="ring-center">
+                  <div class="ring-percent">92%</div>
+                  <div class="ring-label-small">score</div>
+                </div>
+              </div>
+              <div class="ring-name">CIS v8</div>
+              <div class="ring-controls">110 / 120 controls</div>
+              <span class="compliance-badge badge-good" style="margin-top:2px; font-size:10px; background:var(--good-bg); color:var(--good);">Passing</span>
+            </div>
+
+            <!-- NIST -->
+            <div class="ring-item">
+              <div class="ring-svg-wrap">
+                <svg viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="#27272a" stroke-width="9"/>
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="#3b82f6" stroke-width="9"
+                    stroke-linecap="round"
+                    stroke-dasharray="289"
+                    stroke-dashoffset="32"
+                    style="transition: stroke-dashoffset 1s ease;"/>
+                </svg>
+                <div class="ring-center">
+                  <div class="ring-percent">89%</div>
+                  <div class="ring-label-small">score</div>
+                </div>
+              </div>
+              <div class="ring-name">NIST CSF</div>
+              <div class="ring-controls">98 / 110 controls</div>
+              <span class="compliance-badge badge-low" style="margin-top:2px; font-size:10px; background:var(--low-bg); color:var(--low);">Review</span>
+            </div>
+
+            <!-- PCI-DSS -->
+            <div class="ring-item">
+              <div class="ring-svg-wrap">
+                <svg viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="#27272a" stroke-width="9"/>
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="#a855f7" stroke-width="9"
+                    stroke-linecap="round"
+                    stroke-dasharray="289"
+                    stroke-dashoffset="52"
+                    style="transition: stroke-dashoffset 1s ease;"/>
+                </svg>
+                <div class="ring-center">
+                  <div class="ring-percent">82%</div>
+                  <div class="ring-label-small">score</div>
+                </div>
+              </div>
+              <div class="ring-name">PCI-DSS 4</div>
+              <div class="ring-controls">74 / 90 controls</div>
+              <span class="compliance-badge badge-medium" style="margin-top:2px; font-size:10px; background:var(--medium-bg); color:var(--medium);">Action Req.</span>
+            </div>
+
+          </div>
+
+          <div style="padding:0 16px 14px; display:flex; flex-direction:column; gap:8px;">
+            <div style="height:1px; background:var(--border); margin-bottom:4px;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:11.5px; color:var(--text-muted);">Next audit scheduled</span>
+              <span class="mono" style="font-size:11.5px; color:var(--text-secondary);">Apr 01, 2026</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:11.5px; color:var(--text-muted);">Open findings</span>
+              <span class="badge badge-medium">14 items</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ ROW 3: OPERATIONAL WIDGETS ══ -->
+      <div class="ops-row">
+
+        <!-- Deployment Pipeline -->
+        <div class="card card-elevated">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Deployment Pipeline</div>
+              <div class="card-subtitle">7 active deployments</div>
+            </div>
+            <span class="badge badge-low">View All</span>
+          </div>
+
+          <div class="pipeline-stages">
+            <div class="stage done">
+              <div class="stage-dot">✓</div>
+              <div class="stage-label">Created</div>
+            </div>
+            <div class="stage done">
+              <div class="stage-dot">✓</div>
+              <div class="stage-label">Queued</div>
+            </div>
+            <div class="stage active">
+              <div class="stage-dot">→</div>
+              <div class="stage-label">Active</div>
+            </div>
+            <div class="stage">
+              <div class="stage-dot"></div>
+              <div class="stage-label">Verifying</div>
+            </div>
+            <div class="stage">
+              <div class="stage-dot"></div>
+              <div class="stage-label">Complete</div>
+            </div>
+          </div>
+
+          <div class="deploy-list">
+
+            <div class="deploy-item">
+              <div class="deploy-item-header">
+                <span class="deploy-name">Q1 Security Rollout</span>
+                <span class="badge badge-low" style="font-size:10px;">Wave 2/3</span>
+              </div>
+              <div class="deploy-progress-bar">
+                <div class="deploy-progress-fill" style="width:66%; background:var(--brand);"></div>
+              </div>
+              <div class="deploy-meta">
+                <span>847 / 1,247 endpoints</span>
+                <span class="mono">ETA 42min</span>
+              </div>
+            </div>
+
+            <div class="deploy-item">
+              <div class="deploy-item-header">
+                <span class="deploy-name">Windows Defender Update</span>
+                <span class="badge badge-good" style="font-size:10px;">Complete</span>
+              </div>
+              <div class="deploy-progress-bar">
+                <div class="deploy-progress-fill" style="width:100%; background:var(--good);"></div>
+              </div>
+              <div class="deploy-meta">
+                <span>312 / 312 endpoints</span>
+                <span class="mono" style="color:var(--good);">Done</span>
+              </div>
+            </div>
+
+            <div class="deploy-item">
+              <div class="deploy-item-header">
+                <span class="deploy-name">OpenSSL Critical Patch</span>
+                <span class="badge badge-critical" style="font-size:10px;">Urgent</span>
+              </div>
+              <div class="deploy-progress-bar">
+                <div class="deploy-progress-fill" style="width:28%; background:var(--critical);"></div>
+              </div>
+              <div class="deploy-meta">
+                <span>64 / 230 endpoints</span>
+                <span class="mono">ETA 2h 10min</span>
+              </div>
+            </div>
+
+            <div class="deploy-item">
+              <div class="deploy-item-header">
+                <span class="deploy-name">Kernel 6.8.5 Rollout</span>
+                <span class="badge badge-neutral" style="font-size:10px;">Scheduled</span>
+              </div>
+              <div class="deploy-progress-bar">
+                <div class="deploy-progress-fill" style="width:0%; background:var(--text-muted);"></div>
+              </div>
+              <div class="deploy-meta">
+                <span>0 / 890 endpoints</span>
+                <span class="mono" style="color:var(--text-muted);">Starts 18:00</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Patch Velocity -->
+        <div class="card card-elevated">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Patch Velocity</div>
+              <div class="card-subtitle">Patches applied — last 30 days</div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-ghost" style="padding:3px 9px; font-size:11px;">7d</button>
+              <button class="btn btn-ghost" style="padding:3px 9px; font-size:11px; background:#27272a; color:var(--text-primary);">30d</button>
+              <button class="btn btn-ghost" style="padding:3px 9px; font-size:11px;">90d</button>
+            </div>
+          </div>
+
+          <div class="velocity-chart">
+            <div class="chart-area">
+              <svg class="chart-svg" viewBox="0 0 320 120" preserveAspectRatio="none">
+                <defs>
+                  <!-- Gradients for each severity -->
+                  <linearGradient id="gCrit" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ef4444" stop-opacity="0.5"/>
+                    <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="gHigh" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f97316" stop-opacity="0.5"/>
+                    <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="gMed" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#eab308" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#eab308" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="gLow" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+                  </linearGradient>
+                  <!-- Grid line pattern -->
+                </defs>
+
+                <!-- Grid lines -->
+                <line x1="0" y1="30" x2="320" y2="30" stroke="#27272a" stroke-width="0.5"/>
+                <line x1="0" y1="60" x2="320" y2="60" stroke="#27272a" stroke-width="0.5"/>
+                <line x1="0" y1="90" x2="320" y2="90" stroke="#27272a" stroke-width="0.5"/>
+
+                <!-- Y-axis labels -->
+                <text x="4" y="28" font-size="7" fill="#52525b" font-family="GeistMono, monospace">120</text>
+                <text x="4" y="58" font-size="7" fill="#52525b" font-family="GeistMono, monospace">80</text>
+                <text x="4" y="88" font-size="7" fill="#52525b" font-family="GeistMono, monospace">40</text>
+
+                <!-- Low (blue) - base layer -->
+                <path d="M20,90 C30,85 40,80 60,75 C80,70 90,78 110,72 C130,66 140,80 160,74 C180,68 190,70 210,65 C230,60 240,68 260,62 C280,56 290,58 300,54 L300,120 L20,120z"
+                  fill="url(#gLow)" />
+                <path d="M20,90 C30,85 40,80 60,75 C80,70 90,78 110,72 C130,66 140,80 160,74 C180,68 190,70 210,65 C230,60 240,68 260,62 C280,56 290,58 300,54"
+                  fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- Medium (amber) -->
+                <path d="M20,78 C30,72 40,68 60,63 C80,58 90,66 110,60 C130,54 140,66 160,60 C180,54 190,58 210,52 C230,46 240,54 260,48 C280,42 290,44 300,40 L300,90 C290,58 280,56 260,62 C240,68 230,60 210,65 C190,70 180,68 160,74 C140,80 130,66 110,72 C90,78 80,70 60,75 C40,80 30,85 20,90z"
+                  fill="url(#gMed)" />
+                <path d="M20,78 C30,72 40,68 60,63 C80,58 90,66 110,60 C130,54 140,66 160,60 C180,54 190,58 210,52 C230,46 240,54 260,48 C280,42 290,44 300,40"
+                  fill="none" stroke="#eab308" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- High (orange) -->
+                <path d="M20,62 C30,56 40,52 60,46 C80,40 90,50 110,44 C130,38 140,52 160,46 C180,40 190,42 210,36 C230,30 240,38 260,32 C280,26 290,28 300,24 L300,40 C290,44 280,42 260,48 C240,54 230,46 210,52 C190,58 180,54 160,60 C140,66 130,54 110,60 C90,66 80,58 60,63 C40,68 30,72 20,78z"
+                  fill="url(#gHigh)" />
+                <path d="M20,62 C30,56 40,52 60,46 C80,40 90,50 110,44 C130,38 140,52 160,46 C180,40 190,42 210,36 C230,30 240,38 260,32 C280,26 290,28 300,24"
+                  fill="none" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+
+                <!-- Critical (red) - top layer -->
+                <path d="M20,48 C30,42 40,38 60,32 C80,26 90,36 110,30 C130,24 140,36 160,30 C180,24 190,26 210,20 C230,14 240,22 260,16 C280,10 290,12 300,9 L300,24 C290,28 280,26 260,32 C240,38 230,30 210,36 C190,42 180,40 160,46 C140,52 130,38 110,44 C90,50 80,40 60,46 C40,52 30,56 20,62z"
+                  fill="url(#gCrit)" />
+                <path d="M20,48 C30,42 40,38 60,32 C80,26 90,36 110,30 C130,24 140,36 160,30 C180,24 190,26 210,20 C230,14 240,22 260,16 C280,10 290,12 300,9"
+                  fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/>
+
+              </svg>
+            </div>
+
+            <div class="chart-x-labels">
+              <span class="chart-x-label">Mar 1</span>
+              <span class="chart-x-label">Mar 8</span>
+              <span class="chart-x-label">Mar 15</span>
+              <span class="chart-x-label">Mar 22</span>
+              <span class="chart-x-label">Today</span>
+            </div>
+
+            <div class="chart-legend">
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--critical);"></span> Critical (156)</div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--high);"></span> High (342)</div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--medium);"></span> Medium (891)</div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--low);"></span> Low (1,204)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLA Status -->
+        <div class="card card-elevated">
+          <div class="card-header">
+            <div>
+              <div class="card-title">SLA Status</div>
+              <div class="card-subtitle">Active SLA obligations</div>
+            </div>
+            <span class="badge badge-medium">1 at risk</span>
+          </div>
+
+          <div class="sla-list">
+
+            <!-- Critical Patches SLA -->
+            <div class="sla-item">
+              <div class="sla-header">
+                <div>
+                  <div class="sla-name">Critical Patches</div>
+                  <div style="font-size:10.5px; color:var(--text-muted); margin-top:1px;">72h SLA window</div>
+                </div>
+                <div class="sla-countdown" style="color:var(--good);">
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1a5 5 0 100 10A5 5 0 006 1zm0 2a3 3 0 110 6A3 3 0 016 3zm-.5 1v3.2l2 1.2.5-.9-1.5-.9V4H5.5z"/></svg>
+                  18h remaining
+                </div>
+              </div>
+              <div class="sla-bar-track">
+                <div class="sla-bar-fill" style="width:75%; background:var(--good);"></div>
+              </div>
+              <div class="sla-meta">
+                <span>18 of 23 patches remediated</span>
+                <span style="color:var(--good);">On track</span>
+              </div>
+            </div>
+
+            <!-- High Patches SLA -->
+            <div class="sla-item">
+              <div class="sla-header">
+                <div>
+                  <div class="sla-name">High Severity Patches</div>
+                  <div style="font-size:10.5px; color:var(--text-muted); margin-top:1px;">7 day SLA window</div>
+                </div>
+                <div class="sla-countdown" style="color:var(--medium);">
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1a5 5 0 100 10A5 5 0 006 1zm0 2a3 3 0 110 6A3 3 0 016 3zm-.5 1v3.2l2 1.2.5-.9-1.5-.9V4H5.5z"/></svg>
+                  2d 4h left
+                </div>
+              </div>
+              <div class="sla-bar-track">
+                <div class="sla-bar-fill" style="width:32%; background:var(--medium);"></div>
+              </div>
+              <div class="sla-meta">
+                <span>41 of 128 patches remediated</span>
+                <span style="color:var(--medium);">At risk</span>
+              </div>
+            </div>
+
+            <!-- Security Scans SLA -->
+            <div class="sla-item">
+              <div class="sla-header">
+                <div>
+                  <div class="sla-name">Security Scans</div>
+                  <div style="font-size:10.5px; color:var(--text-muted); margin-top:1px;">24h scan cadence</div>
+                </div>
+                <div class="sla-countdown" style="color:var(--good);">
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1a5 5 0 100 10A5 5 0 006 1zm0 2a3 3 0 110 6A3 3 0 016 3zm-.5 1v3.2l2 1.2.5-.9-1.5-.9V4H5.5z"/></svg>
+                  6h 12m left
+                </div>
+              </div>
+              <div class="sla-bar-track">
+                <div class="sla-bar-fill" style="width:74%; background:var(--good);"></div>
+              </div>
+              <div class="sla-meta">
+                <span>924 / 1,247 endpoints scanned</span>
+                <span style="color:var(--good);">On track</span>
+              </div>
+            </div>
+
+            <!-- HIPAA SLA -->
+            <div class="sla-item">
+              <div class="sla-header">
+                <div>
+                  <div class="sla-name">HIPAA Patch Obligation</div>
+                  <div style="font-size:10.5px; color:var(--text-muted); margin-top:1px;">30 day window</div>
+                </div>
+                <div class="sla-countdown" style="color:var(--brand);">
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1a5 5 0 100 10A5 5 0 006 1zm0 2a3 3 0 110 6A3 3 0 016 3zm-.5 1v3.2l2 1.2.5-.9-1.5-.9V4H5.5z"/></svg>
+                  8d remaining
+                </div>
+              </div>
+              <div class="sla-bar-track">
+                <div class="sla-bar-fill" style="width:90%; background:var(--brand);"></div>
+              </div>
+              <div class="sla-meta">
+                <span>All 67 controls evaluated</span>
+                <span style="color:var(--brand);">Compliant</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ ROW 4: BOTTOM WIDGETS ══ -->
+      <div class="bottom-row">
+
+        <!-- Recent Activity -->
+        <div class="card card-elevated">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Recent Activity</div>
+              <div class="card-subtitle">System events and user actions</div>
+            </div>
+            <button class="btn btn-ghost" style="padding:4px 10px; font-size:11.5px;">View audit log</button>
+          </div>
+
+          <div class="activity-list">
+
+            <div class="activity-item">
+              <div class="activity-icon-wrap" style="background:var(--good-bg);">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="var(--good)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm3.5 5.5l-4 4-2-2 1-1 1 1 3-3 1 1z"/></svg>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Windows Defender Update</strong> deployment completed successfully</div>
+                <div class="activity-meta">
+                  <div class="activity-avatar" style="background:linear-gradient(135deg,#1d4ed8,#7c3aed);">HK</div>
+                  <span>Heramb K. · 2 min ago</span>
+                  <span class="badge badge-good" style="font-size:9.5px; padding:1px 5px;">312 endpoints</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon-wrap" style="background:var(--critical-bg);">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="var(--critical)"><path d="M8 1L1 14h14L8 1zm0 3l4.5 8h-9L8 4zm-.75 3v2.5h1.5V7h-1.5zm0 3.5v1.5h1.5v-1.5h-1.5z"/></svg>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text">New CVE <span class="mono" style="font-size:11.5px; color:var(--critical);">CVE-2026-1832</span> detected — CVSS 9.8</div>
+                <div class="activity-meta">
+                  <div class="activity-avatar" style="background:#ef4444;">SY</div>
+                  <span>System · 8 min ago</span>
+                  <span class="badge badge-critical" style="font-size:9.5px; padding:1px 5px;">47 affected</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon-wrap" style="background:var(--brand-subtle);">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="var(--brand)"><path d="M2 2h12v2H2zM2 6h8v2H2zM2 10h10v2H2z"/></svg>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Critical Systems</strong> policy updated — SLA tightened to 48h</div>
+                <div class="activity-meta">
+                  <div class="activity-avatar" style="background:linear-gradient(135deg,#059669,#0284c7);">SK</div>
+                  <span>Sandy K. · 23 min ago</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon-wrap" style="background:var(--good-bg);">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="var(--good)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm-1 2v4h4V7h-2V5H7z" opacity=".8"/></svg>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text">Scheduled scan completed — <strong>1,183 endpoints</strong> inventoried</div>
+                <div class="activity-meta">
+                  <div class="activity-avatar" style="background:#64748b;">AU</div>
+                  <span>Automation · 41 min ago</span>
+                  <span class="badge badge-neutral" style="font-size:9.5px; padding:1px 5px;">64 new patches</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon-wrap" style="background:var(--high-bg);">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="var(--high)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM7 4h2v5H7zM7 10.5h2v1.5H7z"/></svg>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Q1 Security Rollout</strong> wave 2 started — 847 targets</div>
+                <div class="activity-meta">
+                  <div class="activity-avatar" style="background:linear-gradient(135deg,#1d4ed8,#7c3aed);">HK</div>
+                  <span>Heramb K. · 1h 12min ago</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon-wrap" style="background:rgba(168,85,247,0.1);">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="#a855f7"><path d="M4 2h8a1 1 0 011 1v11l-3-2-3 2V3a1 1 0 011-1z" opacity=".8"/></svg>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text">Compliance evaluation run — CIS score increased to <strong>92%</strong></div>
+                <div class="activity-meta">
+                  <div class="activity-avatar" style="background:#64748b;">AU</div>
+                  <span>Automation · 3h ago</span>
+                  <span class="badge" style="background:rgba(168,85,247,0.1); color:#a855f7; font-size:9.5px; padding:1px 5px;">+1.8%</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Top Vulnerabilities -->
+        <div class="card card-elevated">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Top Vulnerabilities</div>
+              <div class="card-subtitle">Highest-impact unpatched CVEs</div>
+            </div>
+            <button class="btn btn-ghost" style="padding:4px 10px; font-size:11.5px;">View all CVEs</button>
+          </div>
+
+          <div class="cve-list">
+
+            <div style="display:grid; grid-template-columns:1fr auto auto auto 70px; gap:10px; padding:6px 16px 8px; border-bottom:1px solid var(--border);">
+              <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted);">CVE</span>
+              <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted);">CVSS</span>
+              <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted);">Severity</span>
+              <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted);">Endpoints</span>
+              <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted);">Remediation</span>
+            </div>
+
+            <!-- CVE 1 -->
+            <div class="cve-item">
+              <div>
+                <div class="cve-id">CVE-2026-1832</div>
+                <div class="cve-title">OpenSSL RCE via heap overflow</div>
+              </div>
+              <span class="cvss-badge" style="background:var(--critical-bg); color:var(--critical);">9.8</span>
+              <span class="severity-badge badge-critical">Critical</span>
+              <span class="endpoints-count">47 hosts</span>
+              <div>
+                <div class="remediation-bar">
+                  <div class="remediation-fill" style="width:12%; background:var(--critical);"></div>
+                </div>
+                <span style="font-size:9.5px; color:var(--text-muted);">12%</span>
+              </div>
+            </div>
+
+            <!-- CVE 2 -->
+            <div class="cve-item">
+              <div>
+                <div class="cve-id">CVE-2025-44228</div>
+                <div class="cve-title">Log4Shell variant — JNDI injection</div>
+              </div>
+              <span class="cvss-badge" style="background:var(--critical-bg); color:var(--critical);">9.5</span>
+              <span class="severity-badge badge-critical">Critical</span>
+              <span class="endpoints-count">31 hosts</span>
+              <div>
+                <div class="remediation-bar">
+                  <div class="remediation-fill" style="width:55%; background:var(--medium);"></div>
+                </div>
+                <span style="font-size:9.5px; color:var(--text-muted);">55%</span>
+              </div>
+            </div>
+
+            <!-- CVE 3 -->
+            <div class="cve-item">
+              <div>
+                <div class="cve-id">CVE-2026-0891</div>
+                <div class="cve-title">Linux kernel privilege escalation</div>
+              </div>
+              <span class="cvss-badge" style="background:var(--high-bg); color:var(--high);">8.7</span>
+              <span class="severity-badge badge-high">High</span>
+              <span class="endpoints-count">124 hosts</span>
+              <div>
+                <div class="remediation-bar">
+                  <div class="remediation-fill" style="width:38%;"></div>
+                </div>
+                <span style="font-size:9.5px; color:var(--text-muted);">38%</span>
+              </div>
+            </div>
+
+            <!-- CVE 4 -->
+            <div class="cve-item">
+              <div>
+                <div class="cve-id">CVE-2025-38102</div>
+                <div class="cve-title">nginx SSRF — request smuggling</div>
+              </div>
+              <span class="cvss-badge" style="background:var(--high-bg); color:var(--high);">7.9</span>
+              <span class="severity-badge badge-high">High</span>
+              <span class="endpoints-count">88 hosts</span>
+              <div>
+                <div class="remediation-bar">
+                  <div class="remediation-fill" style="width:71%;"></div>
+                </div>
+                <span style="font-size:9.5px; color:var(--text-muted);">71%</span>
+              </div>
+            </div>
+
+            <!-- CVE 5 -->
+            <div class="cve-item">
+              <div>
+                <div class="cve-id">CVE-2026-1205</div>
+                <div class="cve-title">glibc buffer overflow in getpw*</div>
+              </div>
+              <span class="cvss-badge" style="background:var(--medium-bg); color:var(--medium);">6.5</span>
+              <span class="severity-badge badge-medium">Medium</span>
+              <span class="endpoints-count">213 hosts</span>
+              <div>
+                <div class="remediation-bar">
+                  <div class="remediation-fill" style="width:83%;"></div>
+                </div>
+                <span style="font-size:9.5px; color:var(--text-muted);">83%</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom padding -->
+      <div style="height: 8px;"></div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+  // Generate the dot grid — 32 columns × 10 rows = 320 dots
+  (function() {
+    const grid = document.getElementById('dotGrid');
+    if (!grid) return;
+
+    // Distribution: ~72% patched, ~15% pending, ~8% critical, ~5% offline
+    const states = [];
+    const total = 320;
+    const counts = {
+      patched: Math.round(total * 0.719),
+      pending: Math.round(total * 0.150),
+      critical: Math.round(total * 0.079),
+      offline: 0
+    };
+    counts.offline = total - counts.patched - counts.pending - counts.critical;
+
+    for (let i = 0; i < counts.patched; i++)  states.push('patched');
+    for (let i = 0; i < counts.pending; i++)  states.push('pending');
+    for (let i = 0; i < counts.critical; i++) states.push('critical');
+    for (let i = 0; i < counts.offline; i++)  states.push('offline');
+
+    // Shuffle with a deterministic seed for reproducibility
+    for (let i = states.length - 1; i > 0; i--) {
+      const j = ((i * 1103515245 + 12345) & 0x7fffffff) % (i + 1);
+      [states[i], states[j]] = [states[j], states[i]];
+    }
+
+    // Build dots in batches to avoid reflows
+    const fragment = document.createDocumentFragment();
+    states.forEach((state, idx) => {
+      const dot = document.createElement('div');
+      dot.className = `dot ${state}`;
+      dot.title = `Endpoint ${idx + 1}: ${state.charAt(0).toUpperCase() + state.slice(1)}`;
+      fragment.appendChild(dot);
+    });
+    grid.appendChild(fragment);
+  })();
+</script>
+
+</body>
+</html>

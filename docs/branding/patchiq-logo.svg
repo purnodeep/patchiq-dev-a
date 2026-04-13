@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="front-a" x1="10%" y1="0%" x2="100%" y2="90%">
+      <stop offset="0%" stop-color="#4a4a4a"/>
+      <stop offset="100%" stop-color="#141414"/>
+    </linearGradient>
+    <linearGradient id="front-b" x1="0%" y1="10%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#424242"/>
+      <stop offset="100%" stop-color="#101010"/>
+    </linearGradient>
+    <linearGradient id="bevel-top" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3a3a3a"/>
+      <stop offset="40%" stop-color="#888888"/>
+      <stop offset="100%" stop-color="#555555"/>
+    </linearGradient>
+    <linearGradient id="bevel-right" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5a5a5a"/>
+      <stop offset="100%" stop-color="#1e1e1e"/>
+    </linearGradient>
+    <linearGradient id="bevel-left" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a2a2a"/>
+      <stop offset="100%" stop-color="#060606"/>
+    </linearGradient>
+    <linearGradient id="bevel-inner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1e1e"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="bevel-end" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#303030"/>
+      <stop offset="100%" stop-color="#0e0e0e"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(256, 256)">
+    <!--
+      Two interlocking C-bracket shapes on a pointy-top hex grid.
+
+      Outer hex (circumradius 160): T=(0,-160), TR=(138,-80), BR=(138,80),
+        B=(0,160), BL=(-138,80), TL=(-138,-80)
+      Inner hex (wall 48px, circumradius 104): Ti=(0,-104), TRi=(90,-52),
+        BRi=(90,52), Bi=(0,104), BLi=(-90,52), TLi=(-90,-52)
+      Bevel depth 11px going upper-left (-8,-8).
+
+      Bracket A (top, opens lower-left):
+        Front polygon: TL(-138,-80) -> cap-end(-138,-10) -> inner-cap(-90,-10) ->
+          TLi(-90,-52) -> Ti(0,-104) -> TRi(90,-52) -> arm-end-inner(90,55) ->
+          arm-end-outer(138,55) -> TR(138,-80) -> T(0,-160) -> TL
+      Bracket B (bottom, opens upper-right, mirror of A):
+        Front polygon: BR(138,80) -> cap-end(138,10) -> inner-cap(90,10) ->
+          BRi(90,52) -> Bi(0,104) -> BLi(-90,52) -> arm-end-inner(-90,-55) ->
+          arm-end-outer(-138,-55) -> BL(-138,80) -> B(0,160) -> BR
+
+      Crossing overlaps: A cap (x=-138..-90, y=-80..-10) overlaps B arm (x=-138..-90, y=-55..80)
+        Overlap zone: y=-55..-10, B is drawn IN FRONT here.
+      Right: A arm (x=90..138, y=-80..55) overlaps B cap (x=90..138, y=10..80)
+        A drawn last so A is already in front here.
+    -->
+
+    <!-- BRACKET B (drawn first, behind on right) -->
+    <path d="
+      M  138, 80
+      L  138, 10
+      L   90, 10
+      L   90, 52
+      L    0,104
+      L  -90, 52
+      L  -90,-55
+      L -138,-55
+      L -138, 80
+      L    0,160
+      Z
+    " fill="url(#front-b)"/>
+
+    <!-- B bevel: bottom-right diagonal (bright top face) -->
+    <path d="M 138,80  L 146,72  L 8,152  L 0,160  Z" fill="url(#bevel-top)"/>
+
+    <!-- B bevel: bottom-left diagonal -->
+    <path d="M 0,160  L -8,152  L -146,72  L -138,80  Z" fill="url(#bevel-right)"/>
+
+    <!-- B bevel: left arm outer face -->
+    <path d="M -138,80  L -146,72  L -146,-63  L -138,-55  Z" fill="url(#bevel-left)"/>
+
+    <!-- B bevel: left cap top-end face -->
+    <path d="M -138,-55  L -146,-63  L -98,-63  L -90,-55  Z" fill="url(#bevel-left)"/>
+
+    <!-- B bevel: right arm top-end face -->
+    <path d="M 138,10  L 146,2  L 98,2  L 90,10  Z" fill="url(#bevel-end)"/>
+
+    <!-- B bevel: right arm outer face -->
+    <path d="M 138,80  L 146,72  L 146,2  L 138,10  Z" fill="url(#bevel-right)"/>
+
+    <!-- B bevel: inner right arm -->
+    <path d="M 90,10  L 98,2  L 98,44  L 90,52  Z" fill="url(#bevel-inner)"/>
+
+    <!-- B bevel: inner bottom-right diagonal -->
+    <path d="M 90,52  L 98,44  L 8,96  L 0,104  Z" fill="url(#bevel-inner)"/>
+
+    <!-- B bevel: inner bottom-left diagonal -->
+    <path d="M 0,104  L -8,96  L -98,44  L -90,52  Z" fill="url(#bevel-inner)"/>
+
+    <!-- B bevel: inner left arm -->
+    <path d="M -90,52  L -98,44  L -98,-63  L -90,-55  Z" fill="url(#bevel-inner)"/>
+
+    <!-- BRACKET A (drawn second, in front on right) -->
+    <path d="
+      M -138,-80
+      L -138,-10
+      L  -90,-10
+      L  -90,-52
+      L    0,-104
+      L   90,-52
+      L   90, 55
+      L  138, 55
+      L  138,-80
+      L    0,-160
+      Z
+    " fill="url(#front-a)"/>
+
+    <!-- A bevel: top-left diagonal (bright) -->
+    <path d="M -138,-80  L -146,-88  L -8,-168  L 0,-160  Z" fill="url(#bevel-top)"/>
+
+    <!-- A bevel: top-right diagonal (very bright) -->
+    <path d="M 0,-160  L 8,-168  L 146,-88  L 138,-80  Z" fill="url(#bevel-top)"/>
+
+    <!-- A bevel: right arm outer face -->
+    <path d="M 138,-80  L 146,-88  L 146,47  L 138,55  Z" fill="url(#bevel-right)"/>
+
+    <!-- A bevel: right arm bottom-end face -->
+    <path d="M 138,55  L 146,47  L 98,47  L 90,55  Z" fill="url(#bevel-end)"/>
+
+    <!-- A bevel: left arm outer face -->
+    <path d="M -138,-80  L -146,-88  L -146,-18  L -138,-10  Z" fill="url(#bevel-left)"/>
+
+    <!-- A bevel: left cap bottom-end face -->
+    <path d="M -138,-10  L -146,-18  L -98,-18  L -90,-10  Z" fill="url(#bevel-left)"/>
+
+    <!-- A bevel: inner top-left diagonal -->
+    <path d="M -90,-52  L -98,-60  L -8,-112  L 0,-104  Z" fill="url(#bevel-inner)"/>
+
+    <!-- A bevel: inner top-right diagonal -->
+    <path d="M 0,-104  L 8,-112  L 98,-60  L 90,-52  Z" fill="url(#bevel-inner)"/>
+
+    <!-- A bevel: inner right arm face -->
+    <path d="M 90,-52  L 98,-60  L 98,47  L 90,55  Z" fill="url(#bevel-inner)"/>
+
+    <!-- A bevel: inner left face -->
+    <path d="M -90,-52  L -98,-60  L -98,-18  L -90,-10  Z" fill="url(#bevel-inner)"/>
+
+    <!-- IMPOSSIBLE CROSSING OVERDRAW: B's left arm IN FRONT of A's left cap -->
+    <!-- Zone: x=[-138,-90], y=[-55,-10] -->
+    <path d="
+      M -138,-55
+      L -138,-10
+      L  -90,-10
+      L  -90,-55
+      Z
+    " fill="url(#front-b)"/>
+
+    <!-- B left arm outer face overdraw -->
+    <path d="M -138,-55  L -146,-63  L -146,-18  L -138,-10  Z" fill="url(#bevel-left)"/>
+
+    <!-- B inner face of left arm overdraw -->
+    <path d="M -90,-55  L -98,-63  L -98,-18  L -90,-10  Z" fill="url(#bevel-inner)"/>
+
+    <!-- B left cap top-end at y=-55 overdraw -->
+    <path d="M -138,-55  L -146,-63  L -98,-63  L -90,-55  Z" fill="url(#bevel-left)"/>
+
+    <!-- B bottom of crossing at y=-10 (smooth join) -->
+    <path d="M -138,-10  L -146,-18  L -98,-18  L -90,-10  Z" fill="url(#bevel-left)"/>
+
+    <!-- EDGE HIGHLIGHTS -->
+    <line x1="-146" y1="-88" x2="-8" y2="-168" stroke="#b0b0b0" stroke-width="1.5" opacity="0.7"/>
+    <line x1="-8" y1="-168" x2="8" y2="-168" stroke="#d0d0d0" stroke-width="2" opacity="0.7"/>
+    <line x1="8" y1="-168" x2="146" y2="-88" stroke="#b0b0b0" stroke-width="1.5" opacity="0.8"/>
+    <line x1="146" y1="72" x2="8" y2="152" stroke="#666" stroke-width="1.2" opacity="0.4"/>
+    <line x1="-8" y1="152" x2="-146" y2="72" stroke="#555" stroke-width="1.2" opacity="0.4"/>
+
+  </g>
+</svg>

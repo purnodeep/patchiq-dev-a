@@ -1,0 +1,54 @@
+{
+  "resultsPerPage": 1,
+  "startIndex": 0,
+  "totalResults": 2,
+  "format": "NVD_CVE",
+  "version": "2.0",
+  "vulnerabilities": [
+    {
+      "cve": {
+        "id": "CVE-2024-21762",
+        "published": "2024-02-09T00:00:00.000",
+        "lastModified": "2024-02-12T00:00:00.000",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "FortiOS out-of-bounds write vulnerability in HTTP/2 handler allows remote code execution"
+          }
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {
+              "source": "nvd@nist.gov",
+              "type": "Primary",
+              "cvssData": {
+                "version": "3.1",
+                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                "baseScore": 9.8,
+                "baseSeverity": "CRITICAL"
+              }
+            }
+          ]
+        },
+        "configurations": [
+          {
+            "nodes": [
+              {
+                "operator": "OR",
+                "negate": false,
+                "cpeMatch": [
+                  {
+                    "vulnerable": true,
+                    "criteria": "cpe:2.3:o:fortinet:fortios:*:*:*:*:*:*:*:*",
+                    "versionEndExcluding": "7.4.3"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "references": [{ "url": "https://fortiguard.fortinet.com/psirt/FG-IR-24-015" }]
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "project_name": "PatchIQ",
+  "tech_stack": "Go 1.25 (chi, pgx, sqlc, gRPC) + React 19 + TypeScript 5.7 + Tailwind CSS 4.2 + Vite 6.2 + pnpm workspaces",
+  "default_base_url": "http://localhost:3001",
+  "perspectives": {
+    "essential": ["ux-designer", "qa-engineer", "enterprise-buyer"],
+    "optional": ["product-manager", "end-user"],
+    "inactive": ["accessibility-expert", "sales-engineer", "cto-architect"]
+  },
+  "default_model": "sonnet",
+  "orchestrator_model": "opus",
+  "severity_levels": ["critical", "major", "minor", "nitpick"],
+  "pass_threshold": "unanimous",
+  "detected_context": {
+    "design_system": "Precision Clarity — dark-first, 95% grayscale, 3 signal colors (healthy/critical/warning), user-configurable accent",
+    "color_tokens": {
+      "accent": "var(--accent) — user-configurable, 8 presets: forest/amethyst/ocean/arctic/ruby/ember/twilight/mint",
+      "accent_subtle": "var(--accent-subtle) — accent at 8% opacity for backgrounds",
+      "accent_border": "var(--accent-border) — accent at 30% opacity for borders",
+      "signal_healthy": "#22c55e (immutable, never changes with accent)",
+      "signal_critical": "#ef4444 (immutable, never changes with accent)",
+      "signal_warning": "#f59e0b (immutable, never changes with accent)",
+      "bg_page": "var(--bg-page) — #000000 dark / #f5f5f5 light",
+      "bg_card": "var(--bg-card) — #111113 dark / #ffffff light",
+      "bg_elevated": "var(--bg-elevated) — dropdowns, panels",
+      "text_emphasis": "var(--text-emphasis) — titles, values",
+      "text_primary": "var(--text-primary) — body text",
+      "text_secondary": "var(--text-secondary) — subtitles",
+      "text_muted": "var(--text-muted) — labels, placeholders"
+    },
+    "spacing_scale": "4px / 8px / 12px / 16px / 20px / 24px / 32px / 48px (xs-3xl)",
+    "typography": {
+      "sans": "Geist Variable — prose, labels, descriptions",
+      "mono": "GeistMono Variable — data, numbers, IDs, table headers, section labels",
+      "radius": "4px / 6px / 8px / 12px (sm-xl)"
+    },
+    "page_patterns": {
+      "listing": "PageHeader + FilterBar (search + filters + table/grid toggle) + optional StatChips + DataTable/GridView",
+      "detail": "Header + SummaryBar (3-5 metrics) + UnderlineTabs + TabContent",
+      "form": "Right slide panel (560px) with live preview on main page",
+      "dashboard": "4-col stat rows + mixed fractional grid widgets"
+    },
+    "table_anatomy": "expand chevron (left) + data columns + status + kebab menu (right). Selection mode: checkboxes hidden until activated. Every column sortable. Filter bar + search + view toggle on top.",
+    "component_library": "@patchiq/ui (32 components: 10 custom + 22 shadcn/ui primitives, Radix UI base)",
+    "apps": [
+      {
+        "name": "web (Patch Manager)",
+        "port": 3001,
+        "routes": 31,
+        "description": "Primary admin UI — dashboards, endpoints, patches, CVEs, deployments, workflows, compliance, audit"
+      },
+      {
+        "name": "web-hub (Hub Manager)",
+        "port": 3002,
+        "routes": 11,
+        "description": "SaaS hub — catalog, feeds, licenses, clients"
+      },
+      {
+        "name": "web-agent (Agent)",
+        "port": 3003,
+        "routes": 9,
+        "description": "Local agent UI — status, patches, hardware, software, history"
+      }
+    ]
+  }
+}

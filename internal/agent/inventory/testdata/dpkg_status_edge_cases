@@ -1,0 +1,21 @@
+Package: no-version-pkg
+Status: install ok installed
+Architecture: amd64
+Description: Package with missing Version field
+
+Package: no-arch-pkg
+Status: install ok installed
+Version: 1.0.0
+Description: Package with missing Architecture field
+
+Package: half-installed
+Status: install reinstreq half-installed
+Architecture: amd64
+Version: 2.0.0
+Description: Package in broken state
+
+Package: valid-after-broken
+Status: install ok installed
+Architecture: arm64
+Version: 3.0.0
+Description: Valid package after a broken one

@@ -1,0 +1,311 @@
+syntax = "proto3";
+
+package patchiq.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Severity levels for patches and CVEs.
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_NONE = 1;
+  SEVERITY_LOW = 2;
+  SEVERITY_MEDIUM = 3;
+  SEVERITY_HIGH = 4;
+  SEVERITY_CRITICAL = 5;
+}
+
+// OsFamily enumerates the supported operating system families.
+enum OsFamily {
+  OS_FAMILY_UNSPECIFIED = 0;
+  OS_FAMILY_WINDOWS = 1;
+  OS_FAMILY_LINUX = 2;
+  OS_FAMILY_MACOS = 3;
+}
+
+// Command types that the server can dispatch to agents.
+enum CommandType {
+  COMMAND_TYPE_UNSPECIFIED = 0;
+  // Payload: serialized InstallPatchPayload.
+  COMMAND_TYPE_INSTALL_PATCH = 1;
+  // Payload: empty (no payload required).
+  COMMAND_TYPE_RUN_SCAN = 2;
+  // Payload: serialized AgentConfig.
+  COMMAND_TYPE_UPDATE_CONFIG = 3;
+  // Payload: empty (no payload required).
+  COMMAND_TYPE_REBOOT = 4;
+  // Payload: serialized RunScriptPayload.
+  COMMAND_TYPE_RUN_SCRIPT = 5;
+  // Payload: serialized RollbackPatchPayload.
+  COMMAND_TYPE_ROLLBACK_PATCH = 6;
+}
+
+// Status of a command execution on an agent.
+enum CommandStatus {
+  COMMAND_STATUS_UNSPECIFIED = 0;
+  COMMAND_STATUS_PENDING = 1;
+  COMMAND_STATUS_RUNNING = 2;
+  COMMAND_STATUS_SUCCEEDED = 3;
+  COMMAND_STATUS_FAILED = 4;
+  COMMAND_STATUS_CANCELLED = 5;
+}
+
+// RebootMode controls how the agent handles a reboot command.
+enum RebootMode {
+  REBOOT_MODE_UNSPECIFIED = 0;
+  REBOOT_MODE_IMMEDIATE = 1;
+  REBOOT_MODE_GRACEFUL = 2;
+  REBOOT_MODE_DEFERRED = 3;
+}
+
+// ScriptType identifies the interpreter for a run_script command.
+enum ScriptType {
+  SCRIPT_TYPE_UNSPECIFIED = 0;
+  SCRIPT_TYPE_SHELL = 1;
+  SCRIPT_TYPE_POWERSHELL = 2;
+  SCRIPT_TYPE_PYTHON = 3;
+}
+
+// ScanType controls the scope of an inventory scan.
+enum ScanType {
+  SCAN_TYPE_UNSPECIFIED = 0;
+  SCAN_TYPE_FULL = 1;
+  SCAN_TYPE_QUICK = 2;
+  SCAN_TYPE_TARGETED = 3;
+}
+
+// AgentInfo identifies an agent and its capabilities.
+// It carries agent identity and protocol metadata only — OS info is in EndpointInfo.
+message AgentInfo {
+  string agent_id = 1;
+  string agent_version = 2;
+  uint32 protocol_version = 3;
+  repeated string capabilities = 4;
+}
+
+// EndpointInfo describes the endpoint machine an agent runs on.
+message EndpointInfo {
+  string hostname = 1;
+  repeated string ip_addresses = 2;
+  OsFamily os_family = 3;
+  string os_version = 4;
+  string domain = 5;
+  map<string, string> tags = 6;
+  // Detailed OS version string (e.g. "macOS 14.2.1 (23C71)", "Ubuntu 22.04.3 LTS").
+  string os_version_detail = 7;
+  // Hardware model identifier (e.g. "MacBookPro18,3", "Dell PowerEdge R740").
+  string hardware_model = 8;
+  // CPU type or chip name (e.g. "Apple M1 Pro", "Intel Xeon E5-2680").
+  string cpu_type = 9;
+  // Total physical memory in bytes.
+  uint64 memory_bytes = 10;
+}
+
+// PatchInfo describes a patch from the catalog.
+message PatchInfo {
+  string patch_id = 1;
+  string title = 2;
+  string kb_article = 3;
+  Severity severity = 4;
+  google.protobuf.Timestamp release_date = 5;
+  repeated string supersedes = 6;
+}
+
+// CVEInfo describes a known vulnerability.
+message CVEInfo {
+  string cve_id = 1;
+  Severity severity = 2;
+  double cvss_score = 3;
+  string description = 4;
+  repeated string affected_products = 5;
+}
+
+// CommandRequest is a command sent from server to agent.
+// Payload encoding is determined by type; see CommandType for per-value payload details.
+message CommandRequest {
+  string command_id = 1;
+  CommandType type = 2;
+  bytes payload = 3;
+  // 0 = default priority. Higher values = higher priority.
+  uint32 priority = 4;
+  // Optional. If set and in the past, the agent should reject the command.
+  google.protobuf.Timestamp deadline = 5;
+  // The agent this command is addressed to. Agents MUST reject commands where
+  // agent_id does not match their own identity to prevent cross-agent misrouting.
+  string agent_id = 6;
+}
+
+// CommandResponse is an agent's result for a command.
+// This is the serialized payload type for OutboxMessage when
+// type == OUTBOX_MESSAGE_TYPE_COMMAND_RESULT.
+message CommandResponse {
+  string command_id = 1;
+  CommandStatus status = 2;
+  bytes output = 3;
+  string error_message = 4;
+  google.protobuf.Timestamp completed_at = 5;
+}
+
+// InstallPatchPayload is the command payload for COMMAND_TYPE_INSTALL_PATCH.
+message InstallPatchPayload {
+  repeated PatchTarget packages = 1;
+  bool dry_run = 2;
+  // Optional shell script to execute before installation. Runs via "sh -c".
+  // If this script fails (non-zero exit), installation is skipped.
+  string pre_script = 3;
+  // Optional shell script to execute after installation. Runs via "sh -c".
+  // Runs regardless of install outcome (for cleanup).
+  string post_script = 4;
+  // Relative URL to Server's binary repo (e.g. "/repo/files/windows/patch.msi").
+  // Used by Windows/macOS agents to download the binary before install.
+  string download_url = 5;
+  // SHA256 checksum of the binary for integrity verification.
+  string checksum_sha256 = 6;
+  // Silent installation arguments (e.g. "/S", "/quiet /norestart" for Windows EXE installers).
+  // Per-package silent flags are passed from server to agent for unattended installation.
+  string silent_args = 7;
+  // Trigger a graceful reboot after installation if any package requires it.
+  bool auto_reboot = 8;
+  // Grace period in seconds before reboot (default: 60). Only used when auto_reboot is true.
+  int32 reboot_delay_seconds = 9;
+}
+
+// PatchTarget identifies a single package to install at a specific version.
+message PatchTarget {
+  string name = 1; // Package name (e.g. "curl", "openssl").
+  string version = 2; // Target version (e.g. "7.88.1-10+deb12u5" for APT, "8.0.1-1.el9" for YUM).
+  // Package manager source (e.g. "apt", "rpm", "softwareupdate", "homebrew").
+  // If empty, the agent uses its default installer.
+  string source = 3;
+}
+
+// InstallResultDetail captures the outcome of a single package installation.
+message InstallResultDetail {
+  string package_name = 1;
+  string version = 2;
+  bool succeeded = 3;
+  int32 exit_code = 4;
+  string stdout = 5;
+  string stderr = 6;
+  bool reboot_required = 7;
+}
+
+// InstallPatchOutput is the structured output stored in CommandResponse.output.
+message InstallPatchOutput {
+  repeated InstallResultDetail results = 1;
+  string pre_script_output = 2;
+  string post_script_output = 3;
+  bool dry_run = 4;
+}
+
+// RollbackPatchPayload is the command payload for COMMAND_TYPE_ROLLBACK_PATCH.
+// It instructs the agent to revert packages installed by a previous deployment.
+message RollbackPatchPayload {
+  string deployment_id = 1;
+  string original_command_id = 2;
+  repeated PatchTarget revert_to = 3;
+  bool force_uninstall = 4;
+}
+
+// RebootPayload is the command payload for COMMAND_TYPE_REBOOT.
+// It controls the reboot behavior including grace period and post-reboot actions.
+message RebootPayload {
+  RebootMode mode = 1;
+  int32 grace_period_seconds = 2;
+  string message = 3;
+  bool post_reboot_scan = 4;
+}
+
+// RunScriptPayload is the command payload for COMMAND_TYPE_RUN_SCRIPT.
+// It specifies the script to execute, its interpreter, and execution constraints.
+message RunScriptPayload {
+  string script_id = 1;
+  string inline_script = 2;
+  ScriptType script_type = 3;
+  int32 timeout_seconds = 4;
+  int32 max_output_bytes = 5;
+  map<string, string> env = 6;
+  bool capture_exit_code = 7;
+}
+
+// RunScriptOutput is the structured output stored in CommandResponse.output
+// for COMMAND_TYPE_RUN_SCRIPT results.
+message RunScriptOutput {
+  string stdout = 1;
+  string stderr = 2;
+  int32 exit_code = 3;
+  bool timed_out = 4;
+}
+
+// UpdateConfigPayload is the command payload for COMMAND_TYPE_UPDATE_CONFIG.
+// It carries key-value settings to apply on the agent.
+message UpdateConfigPayload {
+  map<string, string> settings = 1;
+  bool restart_required = 2;
+}
+
+// RunScanPayload is the command payload for COMMAND_TYPE_RUN_SCAN.
+// It controls the scope and categories of an inventory scan.
+message RunScanPayload {
+  ScanType scan_type = 1;
+  repeated string check_categories = 2;
+}
+
+// InventoryCollectionError records a failure from a specific inventory collector.
+message InventoryCollectionError {
+  // Name of the collector that failed (e.g., "patches", "cves", "endpoint_info").
+  string collector = 1;
+  string error_message = 2;
+}
+
+// PackageInfo describes an installed OS package collected by the agent.
+message PackageInfo {
+  string name = 1;
+  string version = 2;
+  string architecture = 3;
+  // Package manager source: "apt", "rpm", "wua", "wua_installed", "hotfix", "registry", "windows_feature", "softwareupdate", or "homebrew".
+  string source = 4;
+  // Package manager status (e.g. "install ok installed" for dpkg).
+  string status = 5;
+  // RPM release field (e.g. "1.el9"). Empty for APT packages.
+  string release = 6;
+  // Windows KB article ID (e.g. "KB5034441"). Set by WUA and hotfix collectors.
+  string kb_article = 7;
+  // MSRC severity rating (e.g. "Critical", "Important"). Set by WUA collector.
+  string severity = 8;
+  // Install date as string. Set by registry and hotfix collectors.
+  string install_date = 9;
+  // Comma-separated categories (e.g. "Security Updates, Windows 11"). Set by WUA collector.
+  string category = 10;
+  // Software publisher (e.g. "Microsoft Corporation"). Set by registry collector.
+  string publisher = 11;
+}
+
+// InventoryReport is a full snapshot of an endpoint's state.
+message InventoryReport {
+  string agent_id = 1;
+  uint32 protocol_version = 2;
+  EndpointInfo endpoint_info = 3;
+  repeated PatchInfo installed_patches = 4;
+  repeated CVEInfo detected_cves = 5;
+  google.protobuf.Timestamp collected_at = 6;
+  // Errors from individual collectors. A non-empty list means the report is
+  // partial — the server must not interpret missing data as a clean endpoint.
+  repeated InventoryCollectionError collection_errors = 7;
+  repeated PackageInfo installed_packages = 8;
+}
+
+// AgentConfig holds configuration pushed to agents during enrollment or via heartbeat.
+message AgentConfig {
+  uint32 heartbeat_interval_seconds = 1;
+  uint32 inventory_interval_seconds = 2;
+  uint32 max_retry_attempts = 3;
+}
+
+// UpdateInfo describes an available agent update.
+message UpdateInfo {
+  string version = 1;
+  string download_url = 2;
+  // SHA-256 checksum of the update binary. Algorithm is explicit for security validation.
+  string sha256_checksum = 3;
+  bool mandatory = 4;
+}

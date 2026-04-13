@@ -1,0 +1,16 @@
+{
+  "name": "omniprod",
+  "description": "OmniProd — multi-perspective product quality system",
+  "owner": {
+    "name": "Skenzeriq",
+    "email": "heramb@skenzeriq.com"
+  },
+  "plugins": [
+    {
+      "name": "omniprod",
+      "source": "./omniprod",
+      "description": "Multi-perspective product quality review system using Chrome DevTools MCP",
+      "category": "testing"
+    }
+  ]
+}

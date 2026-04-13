@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — Workflows</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:260px;--topbar-h:56px;
+}
+.light{--bg:#f8fafc;--card:#ffffff;--card2:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#94a3b8;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;display:flex;height:100vh;overflow:hidden;transition:background .2s,color .2s}
+#sidebar{width:var(--sidebar-w);background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s}
+#sidebar.collapsed{width:64px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-icon{width:28px;height:28px;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sb-logo-text{font-weight:600;font-size:13px;color:var(--text);white-space:nowrap}
+.sb-logo-sub{font-size:10px;color:var(--muted);white-space:nowrap}
+.sb-group{margin-top:4px}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
+.sb-group-label .arrow{transition:.2s;font-size:9px}
+.sb-group-label.collapsed .arrow{transform:rotate(-90deg)}
+.sb-group-items{overflow:hidden;transition:max-height .2s ease}
+.sb-item{padding:6px 16px 6px 24px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;text-decoration:none}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:14px;height:14px;flex-shrink:0}
+.sb-item-label{white-space:nowrap}
+.sb-badge{margin-left:auto;background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+#sidebar.collapsed .sb-logo-text,#sidebar.collapsed .sb-logo-sub,#sidebar.collapsed .sb-group-label span:first-child,#sidebar.collapsed .sb-item-label,#sidebar.collapsed .sb-badge{opacity:0;pointer-events:none}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.tb-collapse-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;background:transparent;border:none;flex-shrink:0}
+.tb-collapse-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-breadcrumb span:last-child{color:var(--text);font-weight:500}
+.tb-sep{color:#374151}
+.tb-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb-icon-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:16px;height:16px}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--danger);border-radius:50%;border:1.5px solid var(--card)}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;color:#fff;flex-shrink:0;border:none}
+#page{flex:1;overflow-y:auto;padding:0}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.view{padding:20px;animation:fadeIn .2s ease}
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px;text-decoration:none;background:transparent}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d;border-color:#374151}
+.btn-ghost{color:var(--muted)}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{background:#ef444415;color:var(--danger);border-color:#ef444430}
+.page-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.ph-bc{font-size:11px;color:var(--muted);margin-bottom:4px}
+.ph-title{font-size:20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.ph-count{font-size:14px;font-weight:400;color:var(--muted)}
+.ph-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+/* Badges */
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.badge-green{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-blue{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630}
+.badge-gray{background:#ffffff10;color:var(--muted);border:1px solid var(--border)}
+.badge-amber{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+/* Workflow Card Grid */
+.wf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.wf-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.wf-card:hover{border-color:#374151;transform:translateY(-2px);box-shadow:0 8px 30px #00000040}
+.wf-card.selected{border-color:var(--primary);box-shadow:0 0 0 2px #3b82f620}
+.wf-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--wf-color,var(--primary));opacity:.8}
+.wf-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.wf-card-name{font-size:13px;font-weight:600;color:var(--text)}
+.wf-card-meta{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--muted)}
+/* Mini pipeline viz in card */
+.mini-pipeline{display:flex;align-items:center;gap:0;margin:10px 0;overflow:hidden}
+.mini-node{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;border:1px solid transparent}
+.mini-edge{flex:1;height:1px;background:var(--border);min-width:8px;max-width:24px}
+.wf-card-stats{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.wf-stat{display:flex;align-items:center;gap:4px}
+/* Editor section */
+#editor-section{display:none;border-top:1px solid var(--border);padding-top:20px}
+#editor-section.open{display:block;animation:fadeIn .25s ease}
+.editor-layout{display:grid;grid-template-columns:1fr 280px;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;min-height:500px}
+.canvas-area{background:var(--card2);position:relative;overflow:hidden}
+.canvas-bg{position:absolute;inset:0;background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:20px 20px;opacity:.4}
+.canvas-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+/* Node styles */
+.wf-node{position:absolute;display:flex;flex-direction:column;align-items:center;cursor:grab;user-select:none}
+.wf-node:active{cursor:grabbing}
+.node-box{border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:8px;border:2px solid transparent;transition:.15s;white-space:nowrap;font-size:12px;font-weight:500;min-width:120px;justify-content:center}
+.node-box:hover{transform:translateY(-1px)}
+.node-box.selected{box-shadow:0 0 0 3px rgba(59,130,246,.4)}
+.node-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.node-label{font-size:11px;font-weight:600}
+/* Node type colors */
+.node-trigger{background:#7c3aed20;border-color:#7c3aed60;color:#a78bfa}
+.node-trigger.selected{box-shadow:0 0 0 3px #7c3aed30}
+.node-filter{background:#1d4ed820;border-color:#3b82f660;color:#60a5fa}
+.node-approval{background:#92400e20;border-color:#f59e0b60;color:#fbbf24}
+.node-deploy{background:#14532d20;border-color:#10b98160;color:#34d399}
+.node-notify{background:#134e4a20;border-color:#14b8a660;color:#2dd4bf}
+.node-complete{background:#1e293b;border-color:#374151;color:#94a3b8}
+/* Right panel */
+.config-panel{background:var(--card);border-left:1px solid var(--border);padding:16px;overflow-y:auto}
+.config-panel-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.config-field{margin-bottom:12px}
+.config-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.config-val{font-size:12px;color:var(--text);font-weight:500;background:#ffffff08;border:1px solid var(--border);border-radius:4px;padding:5px 8px}
+/* Bottom drawer */
+.bottom-drawer{border-top:1px solid var(--border)}
+.drawer-header{padding:10px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--card2)}
+.drawer-header:hover{background:#ffffff05}
+.drawer-title{font-size:12px;font-weight:600;color:var(--text)}
+.drawer-body{padding:0 16px 12px;background:var(--card2)}
+/* Tables */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:6px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border)}
+.data-table td{padding:7px 10px;border-bottom:1px solid #1e293b60;font-size:11px;vertical-align:middle}
+.data-table tr:hover td{background:#ffffff04}
+.data-table tr:last-child td{border-bottom:none}
+/* Exp rows */
+.exp-row{display:none}
+.exp-row.open{display:table-row}
+.exp-row td{padding:0!important}
+.exp-content{padding:10px;background:#080c16;font-size:11px}
+.expand-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:4px;transition:.15s;font-size:11px}
+.expand-btn:hover{color:var(--text)}
+/* Editor header */
+.editor-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.editor-wf-name{font-size:15px;font-weight:700;color:var(--text)}
+/* Template modal */
+.modal-overlay{position:fixed;inset:0;background:#00000080;z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;width:600px;max-width:90vw;max-height:80vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:16px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.template-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:.2s}
+.template-card:hover{border-color:var(--primary);transform:translateY(-1px)}
+.template-card-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px}
+.template-card-desc{font-size:11px;color:var(--muted)}
+.modal-close{position:absolute;top:16px;right:16px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px}
+.modal-close:hover{color:var(--text)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse-run{0%,100%{opacity:1}50%{opacity:.6}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div><div class="sb-logo-text">PatchIQ</div><div class="sb-logo-sub">Patch Manager</div></div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Overview</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="../patch-manager.html" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="sb-item-label">Dashboard</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Inventory</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="sb-item-label">Endpoints</span><span class="sb-badge blue">247</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><span class="sb-item-label">Patches</span><span class="sb-badge">12</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="sb-item-label">CVEs</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Operations</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="policies.html" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="sb-item-label">Policies</span></a>
+      <a href="deployments.html" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg><span class="sb-item-label">Deployments</span><span class="sb-badge blue">3</span></a>
+      <a href="workflows.html" class="sb-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="sb-item-label">Workflows</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Reports</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="sb-item-label">Compliance</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="sb-item-label">Audit</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Configuration</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="sb-item-label">Settings</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span class="sb-item-label">Roles</span></a>
+    </div>
+  </div>
+</nav>
+
+<div id="main">
+  <div id="topbar">
+    <button class="tb-collapse-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-breadcrumb">
+      <span>Home</span><span class="tb-sep">/</span><span>Operations</span><span class="tb-sep">/</span><span>Workflows</span>
+    </div>
+    <div class="tb-icons">
+      <button class="tb-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+      <button class="tb-icon-btn" onclick="toggleTheme()"><svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+      <button class="tb-avatar">HS</button>
+    </div>
+  </div>
+
+  <div id="page">
+    <div class="view">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <div class="ph-bc">Home / Operations / Workflows</div>
+          <div class="ph-title">Workflows <span class="ph-count">5</span></div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-outline btn-sm" onclick="openTemplateModal()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            Browse Templates
+          </button>
+          <button class="btn btn-primary" onclick="alert('Create Workflow wizard would open')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Create Workflow
+          </button>
+        </div>
+      </div>
+
+      <!-- Card Grid -->
+      <div class="wf-grid" id="wf-grid"></div>
+
+      <!-- Editor Section -->
+      <div id="editor-section">
+        <div class="editor-header">
+          <button class="btn btn-ghost btn-sm" onclick="closeEditor()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back
+          </button>
+          <div class="editor-wf-name" id="editor-wf-name"></div>
+          <span class="badge badge-green" id="editor-wf-status"></span>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-sm btn-outline" onclick="alert('Running workflow...')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run Now
+            </button>
+            <button class="btn btn-sm btn-ghost" onclick="alert('Edit mode...')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-layout">
+          <!-- Canvas -->
+          <div class="canvas-area" id="canvas-area" style="min-height:420px">
+            <div class="canvas-bg"></div>
+            <svg class="canvas-svg" id="canvas-edges" style="pointer-events:none;position:absolute;inset:0;width:100%;height:100%"></svg>
+            <div id="canvas-nodes" style="position:absolute;inset:0"></div>
+          </div>
+          <!-- Right Panel -->
+          <div class="config-panel">
+            <div class="config-panel-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              <span id="panel-node-name">Node Configuration</span>
+            </div>
+            <div id="panel-fields">
+              <div style="color:var(--muted);font-size:11px">Click a node to inspect its configuration.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Drawer -->
+        <div class="bottom-drawer" style="border:1px solid var(--border);border-top:none;border-bottom-left-radius:10px;border-bottom-right-radius:10px;overflow:hidden">
+          <div class="drawer-header" onclick="toggleDrawer()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            <div class="drawer-title">Execution History</div>
+            <svg id="drawer-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;transition:.2s"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="drawer-body" id="drawer-body" style="max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0">
+            <div style="padding:0 0 12px">
+              <table class="data-table" style="width:100%">
+                <thead><tr><th></th><th>Date</th><th>Status</th><th>Duration</th><th>Nodes Executed</th><th>Triggered By</th></tr></thead>
+                <tbody id="exec-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Template Modal -->
+<div class="modal-overlay" id="template-modal">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeTemplateModal()">×</button>
+    <div class="modal-title">Workflow Templates</div>
+    <div class="modal-grid">
+      <div class="template-card" onclick="alert('Creating workflow from template: Basic Deploy')">
+        <div style="font-size:18px;margin-bottom:8px">🚀</div>
+        <div class="template-card-name">Basic Deploy</div>
+        <div class="template-card-desc">Trigger → Filter → Deploy → Notify. Simple one-wave deployment with notification.</div>
+      </div>
+      <div class="template-card" onclick="alert('Creating workflow from template: Scan & Deploy')">
+        <div style="font-size:18px;margin-bottom:8px">🔍</div>
+        <div class="template-card-name">Scan & Deploy</div>
+        <div class="template-card-desc">Trigger → Evaluate Policy → Filter → Deploy → Notify on completion or failure.</div>
+      </div>
+      <div class="template-card" onclick="alert('Creating workflow from template: Approval Flow')">
+        <div style="font-size:18px;margin-bottom:8px">✅</div>
+        <div class="template-card-name">Approval Flow</div>
+        <div class="template-card-desc">Trigger → Filter → Await Approval → Deploy → Notify. Requires human gate.</div>
+      </div>
+      <div class="template-card" onclick="alert('Creating workflow from template: Compliance Pipeline')">
+        <div style="font-size:18px;margin-bottom:8px">📋</div>
+        <div class="template-card-name">Compliance Pipeline</div>
+        <div class="template-card-desc">Evaluate all policies → Generate report → Notify compliance team → Schedule remediation.</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;display:flex;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeTemplateModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// THEME / SIDEBAR
+(function(){const t=localStorage.getItem('piq-theme');if(t==='light')document.body.classList.add('light')})();
+function toggleTheme(){document.body.classList.toggle('light');localStorage.setItem('piq-theme',document.body.classList.contains('light')?'light':'dark');}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+function toggleGroup(el){
+  el.classList.toggle('collapsed');
+  const items=el.nextElementSibling;
+  items.style.maxHeight=el.classList.contains('collapsed')?'0':items.scrollHeight+'px';
+}
+document.querySelectorAll('.sb-group-items').forEach(el=>{el.style.maxHeight=el.scrollHeight+'px'});
+
+// WORKFLOW DATA
+const triggerIcons = {
+  schedule:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,
+  event:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  manual:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+};
+
+const workflows = [
+  {
+    id:'wf-1',name:'Auto-Deploy Critical',status:'Active',trigger:'schedule',color:'#10b981',
+    nodes:[
+      {type:'trigger',label:'Schedule Trigger'},
+      {type:'filter',label:'Severity Filter'},
+      {type:'deploy',label:'Wave Deploy'},
+      {type:'notify',label:'Notify Slack'},
+      {type:'complete',label:'Complete'},
+    ],
+    execs:12, lastRun:'2h ago', lastOk:true, version:'v4',
+    nodeConfigs:{
+      'Schedule Trigger':{Cron:'0 2 * * 2','Timezone':'UTC','Enabled':'Yes'},
+      'Severity Filter':{'Min Severity':'Critical','OS Filter':'Windows','Age ≥':'7 days'},
+      'Wave Deploy':{'Policy':'Auto-Deploy Critical','Waves':'3','Canary':'10%'},
+      'Notify Slack':{'Channel':'#ops-alerts','On Success':'Yes','On Failure':'Yes'},
+      'Complete':{'Archive Logs':'Yes','Cleanup':'7 days'},
+    }
+  },
+  {
+    id:'wf-2',name:'Weekly Security Scan',status:'Active',trigger:'schedule',color:'#3b82f6',
+    nodes:[
+      {type:'trigger',label:'Schedule Trigger'},
+      {type:'filter',label:'All Patches Filter'},
+      {type:'notify',label:'Generate Report'},
+      {type:'complete',label:'Complete'},
+    ],
+    execs:8, lastRun:'7d ago', lastOk:true, version:'v2',
+    nodeConfigs:{
+      'Schedule Trigger':{Cron:'0 1 * * 0','Timezone':'UTC','Enabled':'Yes'},
+      'All Patches Filter':{'Min Severity':'Low','OS Filter':'All','Mode':'Advisory'},
+      'Generate Report':{'Format':'HTML+JSON','Recipients':'team@acme.com'},
+      'Complete':{'Notify':'Yes'},
+    }
+  },
+  {
+    id:'wf-3',name:'Emergency Patch Flow',status:'Active',trigger:'event',color:'#ef4444',
+    nodes:[
+      {type:'trigger',label:'CVE Alert Trigger'},
+      {type:'filter',label:'Critical Filter'},
+      {type:'approval',label:'Approval Gate'},
+      {type:'deploy',label:'Emergency Deploy'},
+      {type:'notify',label:'Incident Notify'},
+      {type:'complete',label:'Complete'},
+    ],
+    execs:3, lastRun:'14d ago', lastOk:true, version:'v3',
+    nodeConfigs:{
+      'CVE Alert Trigger':{'Source':'NVD Feed','CVSS ≥':'9.0','Auto-start':'Yes'},
+      'Critical Filter':{'Severity':'Critical only','Max Age':'24h'},
+      'Approval Gate':{'Approvers':'ops-lead@acme.com','Timeout':'2h','On Timeout':'Deny'},
+      'Emergency Deploy':{'Waves':'1','Skip Canary':'Yes','Max Concurrency':'100%'},
+      'Incident Notify':{'PagerDuty':'Yes','Slack':'#incidents','Email':'security@acme.com'},
+      'Complete':{'Postmortem':'Required'},
+    }
+  },
+  {
+    id:'wf-4',name:'Compliance Check',status:'Active',trigger:'schedule',color:'#8b5cf6',
+    nodes:[
+      {type:'trigger',label:'Schedule Trigger'},
+      {type:'filter',label:'Policy Evaluator'},
+      {type:'notify',label:'Compliance Report'},
+    ],
+    execs:22, lastRun:'1d ago', lastOk:true, version:'v1',
+    nodeConfigs:{
+      'Schedule Trigger':{Cron:'0 0 * * 5','Timezone':'UTC'},
+      'Policy Evaluator':{'Policies':'All','Include Advisories':'Yes'},
+      'Compliance Report':{'Recipients':'compliance@acme.com','Format':'PDF'},
+    }
+  },
+  {
+    id:'wf-5',name:'New Endpoint Onboard',status:'Draft',trigger:'event',color:'#f59e0b',
+    nodes:[
+      {type:'trigger',label:'Enrollment Trigger'},
+      {type:'filter',label:'Baseline Filter'},
+      {type:'deploy',label:'Baseline Deploy'},
+      {type:'notify',label:'Welcome Notify'},
+      {type:'complete',label:'Complete'},
+    ],
+    execs:0, lastRun:'Never', lastOk:null, version:'v1',
+    nodeConfigs:{
+      'Enrollment Trigger':{'Event':'agent.enrolled','Delay':'5m'},
+      'Baseline Filter':{'Policy':'New Endpoint Onboarding','Auto':'Yes'},
+      'Baseline Deploy':{'Waves':'1','Timeout':'30m'},
+      'Welcome Notify':{'Email':'it-ops@acme.com','Template':'onboard-success'},
+      'Complete':{'Tag Endpoint':'onboarded'},
+    }
+  },
+];
+
+const nodeColors = {
+  trigger:{bg:'#7c3aed20',border:'#7c3aed60',text:'#a78bfa',cls:'node-trigger'},
+  filter:{bg:'#1d4ed820',border:'#3b82f660',text:'#60a5fa',cls:'node-filter'},
+  approval:{bg:'#92400e20',border:'#f59e0b60',text:'#fbbf24',cls:'node-approval'},
+  deploy:{bg:'#14532d20',border:'#10b98160',text:'#34d399',cls:'node-deploy'},
+  notify:{bg:'#134e4a20',border:'#14b8a660',text:'#2dd4bf',cls:'node-notify'},
+  complete:{bg:'#1e293b',border:'#374151',text:'#94a3b8',cls:'node-complete'},
+};
+const nodeIconSVGs = {
+  trigger:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  filter:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>`,
+  approval:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,
+  deploy:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4.5 16.5c-1.5 1.26-2 5-1 5s2-2.5 3.5-3.5"/><path d="M3 12c0 1 .5 2 2.5 2s2.5-1 2.5-2l3-9c0-1.5-.5-2-1.5-2s-1.5.5-1.5 2"/><path d="M15 12c0 1-.5 2-2.5 2s-2.5-1-2.5-2l-1-6c0-1.5.5-2 1.5-2s1.5.5 1.5 2"/></svg>`,
+  notify:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+  complete:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+};
+
+// Render mini pipeline in card
+function miniPipelineSVG(nodes){
+  return nodes.map((n,i)=>{
+    const nc = nodeColors[n.type];
+    return `
+      <div class="mini-node" style="background:${nc.bg};border-color:${nc.border};color:${nc.text}" title="${n.label}">
+        ${nodeIconSVGs[n.type]}
+      </div>
+      ${i<nodes.length-1?'<div class="mini-edge"></div>':''}
+    `;
+  }).join('');
+}
+
+// Render card grid
+function renderCards(){
+  const grid = document.getElementById('wf-grid');
+  grid.innerHTML = workflows.map((w,i)=>`
+    <div class="wf-card" id="card-${w.id}" style="--wf-color:${w.color}" onclick="selectWorkflow('${w.id}',this)">
+      <div class="wf-card-top">
+        <div>
+          <div class="wf-card-name">${w.name}</div>
+          <div class="wf-card-meta">
+            ${w.trigger==='schedule'?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Schedule`:
+              w.trigger==='event'?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Event`:
+              `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Manual`}
+            · ${w.nodes.length} nodes
+          </div>
+        </div>
+        <span class="badge ${w.status==='Active'?'badge-green':w.status==='Draft'?'badge-amber':'badge-gray'}">${w.status}</span>
+      </div>
+      <div class="mini-pipeline">${miniPipelineSVG(w.nodes)}</div>
+      <div class="wf-card-stats">
+        <span class="wf-stat">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          ${w.execs} executions
+        </span>
+        <span class="wf-stat">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Last: ${w.lastRun} ${w.lastOk===true?'<span style="color:#10b981">✓</span>':w.lastOk===false?'<span style="color:#ef4444">✗</span>':''}
+        </span>
+        <span class="wf-stat" style="margin-left:auto;color:var(--muted)">${w.version}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// SELECTED WORKFLOW
+let selectedWf = null;
+let selectedNode = null;
+let drawerOpen = false;
+
+function selectWorkflow(id, cardEl){
+  // Deselect old
+  document.querySelectorAll('.wf-card').forEach(c=>c.classList.remove('selected'));
+  cardEl.classList.add('selected');
+  selectedWf = workflows.find(w=>w.id===id);
+  openEditor(selectedWf);
+}
+
+function closeEditor(){
+  document.getElementById('editor-section').classList.remove('open');
+  document.querySelectorAll('.wf-card').forEach(c=>c.classList.remove('selected'));
+  selectedWf = null;
+}
+
+function openEditor(wf){
+  const sec = document.getElementById('editor-section');
+  sec.classList.add('open');
+  document.getElementById('editor-wf-name').textContent = wf.name;
+  const statusEl = document.getElementById('editor-wf-status');
+  statusEl.textContent = wf.status;
+  statusEl.className = 'badge '+(wf.status==='Active'?'badge-green':wf.status==='Draft'?'badge-amber':'badge-gray');
+  renderCanvas(wf);
+  renderExecHistory(wf);
+  // Reset panel
+  document.getElementById('panel-node-name').textContent = 'Node Configuration';
+  document.getElementById('panel-fields').innerHTML = '<div style="color:var(--muted);font-size:11px">Click a node to inspect its configuration.</div>';
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderCanvas(wf){
+  const nodesEl = document.getElementById('canvas-nodes');
+  const edgesEl = document.getElementById('canvas-edges');
+  nodesEl.innerHTML = '';
+  edgesEl.innerHTML = '';
+
+  const n = wf.nodes.length;
+  const canvasW = document.getElementById('canvas-area').clientWidth || 600;
+  const canvasH = 420;
+  const nodeW = 130;
+  const nodeH = 46;
+  const startX = 40;
+  const stepX = Math.min((canvasW - startX - nodeW - 40) / Math.max(n-1,1), 170);
+  const y = canvasH/2 - nodeH/2;
+
+  const positions = [];
+
+  wf.nodes.forEach((node,i)=>{
+    const x = startX + i * stepX;
+    const nc = nodeColors[node.type];
+    positions.push({x, y, w:nodeW, h:nodeH});
+    const el = document.createElement('div');
+    el.className = 'wf-node';
+    el.style.left = x+'px';
+    el.style.top = y+'px';
+    el.style.position = 'absolute';
+    el.innerHTML = `
+      <div class="node-box ${nc.cls}" id="node-box-${i}" onclick="selectNode(${i},'${node.label}',event)" style="color:${nc.text}">
+        <div class="node-icon">${nodeIconSVGs[node.type]}</div>
+        <div class="node-label">${node.label}</div>
+      </div>
+    `;
+    nodesEl.appendChild(el);
+  });
+
+  // Draw edges after DOM update
+  requestAnimationFrame(()=>{
+    edgesEl.innerHTML = '';
+    for(let i=0;i<positions.length-1;i++){
+      const a=positions[i], b=positions[i+1];
+      const x1=a.x+a.w, y1=a.y+a.h/2;
+      const x2=b.x, y2=b.y+b.h/2;
+      const cx=(x1+x2)/2;
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',`M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke','#334155');
+      path.setAttribute('stroke-width','1.5');
+      path.setAttribute('marker-end','url(#arrowhead)');
+      edgesEl.appendChild(path);
+    }
+    // Arrowhead marker
+    const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+    defs.innerHTML=`<marker id="arrowhead" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#334155"/></marker>`;
+    edgesEl.insertBefore(defs,edgesEl.firstChild);
+  });
+}
+
+function selectNode(i, label, e){
+  e.stopPropagation();
+  // Deselect all
+  document.querySelectorAll('.node-box').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('node-box-'+i).classList.add('selected');
+  // Show config
+  document.getElementById('panel-node-name').textContent = label;
+  const config = selectedWf.nodeConfigs[label] || {};
+  document.getElementById('panel-fields').innerHTML = Object.entries(config).map(([k,v])=>`
+    <div class="config-field">
+      <div class="config-label">${k}</div>
+      <div class="config-val">${v}</div>
+    </div>
+  `).join('') || '<div style="color:var(--muted);font-size:11px">No configuration for this node.</div>';
+}
+
+function renderExecHistory(wf){
+  const data = [
+    {date:'Mar 10, 2026 02:00',status:'success',dur:'3m 42s',nodes:wf.nodes.length,by:'schedule'},
+    {date:'Mar 3, 2026 02:00',status:'success',dur:'3m 28s',nodes:wf.nodes.length,by:'schedule'},
+    {date:'Feb 24, 2026 02:00',status:'failed',dur:'1m 12s',nodes:2,by:'schedule'},
+    {date:'Feb 17, 2026 02:00',status:'success',dur:'4m 01s',nodes:wf.nodes.length,by:'admin@acme.com'},
+    {date:'Feb 10, 2026 02:00',status:'success',dur:'3m 55s',nodes:wf.nodes.length,by:'schedule'},
+  ];
+  document.getElementById('exec-tbody').innerHTML = data.map((d,i)=>`
+    <tr>
+      <td><button class="expand-btn" onclick="toggleExec(${i},this)">▶</button></td>
+      <td style="color:var(--muted)">${d.date}</td>
+      <td><span style="color:${d.status==='success'?'#10b981':'#ef4444'}">${d.status==='success'?'✓ Success':'✗ Failed'}</span></td>
+      <td style="color:var(--muted)">${d.dur}</td>
+      <td>${d.nodes} / ${wf.nodes.length}</td>
+      <td style="color:var(--muted)">${d.by}</td>
+    </tr>
+    <tr class="exp-row" id="exec-exp-${i}">
+      <td colspan="6">
+        <div class="exp-content" style="padding:10px">
+          <div style="color:var(--muted);font-size:11px;margin-bottom:6px">Per-node results:</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            ${wf.nodes.slice(0,d.nodes).map(n=>`
+              <div style="display:flex;align-items:center;gap:8px;font-size:11px">
+                <span style="color:#10b981">✓</span>
+                <span style="color:var(--text)">${n.label}</span>
+                <span style="color:var(--muted);margin-left:auto">${Math.floor(Math.random()*60+10)}s</span>
+              </div>
+            `).join('')}
+            ${d.status==='failed'?`<div style="display:flex;align-items:center;gap:8px;font-size:11px"><span style="color:#ef4444">✗</span><span style="color:#ef4444">${wf.nodes[d.nodes]?.label||'Step'} — timeout after 60s</span></div>`:''}
+          </div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function toggleExec(i,btn){
+  const row=document.getElementById('exec-exp-'+i);
+  const open=row.classList.toggle('open');
+  btn.textContent=open?'▼':'▶';
+}
+
+function toggleDrawer(){
+  drawerOpen=!drawerOpen;
+  const body=document.getElementById('drawer-body');
+  const arrow=document.getElementById('drawer-arrow');
+  if(drawerOpen){
+    body.style.maxHeight='300px';
+    body.style.padding='0 0 12px';
+    arrow.style.transform='rotate(180deg)';
+  } else {
+    body.style.maxHeight='0';
+    body.style.padding='0';
+    arrow.style.transform='';
+  }
+}
+
+function openTemplateModal(){
+  document.getElementById('template-modal').classList.add('open');
+}
+function closeTemplateModal(){
+  document.getElementById('template-modal').classList.remove('open');
+}
+document.getElementById('template-modal').addEventListener('click',function(e){
+  if(e.target===this) closeTemplateModal();
+});
+
+renderCards();
+</script>
+</body>
+</html>

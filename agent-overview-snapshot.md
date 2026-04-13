@@ -1,0 +1,328 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - img [ref=e9]
+        - generic [ref=e12]: PatchIQ
+      - generic [ref=e13]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: Overview
+          - list [ref=e18]:
+            - listitem [ref=e19]:
+              - link "Dashboard" [ref=e20] [cursor=pointer]:
+                - /url: /
+                - img [ref=e21]
+                - generic [ref=e26]: Dashboard
+        - generic [ref=e28]:
+          - generic [ref=e29]: Assets
+          - list [ref=e31]:
+            - listitem [ref=e32]:
+              - link "Endpoints" [ref=e33] [cursor=pointer]:
+                - /url: /endpoints
+                - img [ref=e34]
+                - generic [ref=e36]: Endpoints
+            - listitem [ref=e37]:
+              - link "Tags" [ref=e38] [cursor=pointer]:
+                - /url: /tags
+                - img [ref=e39]
+                - generic [ref=e42]: Tags
+        - generic [ref=e44]:
+          - generic [ref=e45]: Security
+          - list [ref=e47]:
+            - listitem [ref=e48]:
+              - link "Patches" [ref=e49] [cursor=pointer]:
+                - /url: /patches
+                - img [ref=e50]
+                - generic [ref=e54]: Patches
+            - listitem [ref=e55]:
+              - link "CVEs" [ref=e56] [cursor=pointer]:
+                - /url: /cves
+                - img [ref=e57]
+                - generic [ref=e59]: CVEs
+            - listitem [ref=e60]:
+              - link "Policies" [ref=e61] [cursor=pointer]:
+                - /url: /policies
+                - img [ref=e62]
+                - generic [ref=e65]: Policies
+        - generic [ref=e67]:
+          - generic [ref=e68]: Operations
+          - list [ref=e70]:
+            - listitem [ref=e71]:
+              - link "Deployments" [ref=e72] [cursor=pointer]:
+                - /url: /deployments
+                - img [ref=e73]
+                - generic [ref=e78]: Deployments
+            - listitem [ref=e79]:
+              - link "Workflows" [ref=e80] [cursor=pointer]:
+                - /url: /workflows
+                - img [ref=e81]
+                - generic [ref=e85]: Workflows
+        - generic [ref=e87]:
+          - generic [ref=e88]: Compliance & Audit
+          - list [ref=e90]:
+            - listitem [ref=e91]:
+              - link "Compliance" [ref=e92] [cursor=pointer]:
+                - /url: /compliance
+                - img [ref=e93]
+                - generic [ref=e96]: Compliance
+            - listitem [ref=e97]:
+              - link "Audit" [ref=e98] [cursor=pointer]:
+                - /url: /audit
+                - img [ref=e99]
+                - generic [ref=e104]: Audit
+        - generic [ref=e106]:
+          - generic [ref=e107]: Administration
+          - list [ref=e109]:
+            - listitem [ref=e110]:
+              - link "Notifications" [ref=e111] [cursor=pointer]:
+                - /url: /notifications
+                - img [ref=e112]
+                - generic [ref=e115]: Notifications
+            - listitem [ref=e116]:
+              - link "Settings" [ref=e117] [cursor=pointer]:
+                - /url: /settings
+                - img [ref=e118]
+                - generic [ref=e121]: Settings
+            - listitem [ref=e122]:
+              - link "Roles" [ref=e123] [cursor=pointer]:
+                - /url: /admin/roles
+                - img [ref=e124]
+                - generic [ref=e126]: Roles
+            - listitem [ref=e127]:
+              - link "User Roles" [ref=e128] [cursor=pointer]:
+                - /url: /admin/users/roles
+                - img [ref=e129]
+                - generic [ref=e141]: User Roles
+    - main [ref=e142]:
+      - generic [ref=e143]:
+        - button "Toggle Sidebar" [ref=e144]:
+          - img
+          - generic [ref=e145]: Toggle Sidebar
+        - generic [ref=e146]: PatchIQ
+        - generic [ref=e147]:
+          - button "Toggle dark mode" [ref=e148]:
+            - img
+          - generic [ref=e149]:
+            - generic [ref=e150]: DU
+            - generic [ref=e151]: Dev User
+      - generic [ref=e153]:
+        - generic [ref=e155]:
+          - navigation [ref=e156]:
+            - generic [ref=e158]: Dashboard
+          - heading "Dashboard" [level=1] [ref=e160]
+        - generic [ref=e161]:
+          - generic [ref=e163] [cursor=pointer]:
+            - generic [ref=e164]:
+              - img [ref=e166]
+              - paragraph [ref=e168]: "1"
+              - paragraph [ref=e169]: Endpoints Online
+              - paragraph [ref=e170]: ↑ 1/1
+            - img "1 of 1" [ref=e172]:
+              - generic [ref=e175]: "1"
+          - generic [ref=e177] [cursor=pointer]:
+            - generic [ref=e178]:
+              - img [ref=e180]
+              - paragraph [ref=e182]: "1238"
+              - paragraph [ref=e183]: Critical Patches
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - generic [ref=e187]: C
+                - generic [ref=e189]: "1238"
+              - generic [ref=e190]:
+                - generic [ref=e191]: H
+                - generic [ref=e193]: "703"
+              - generic [ref=e194]:
+                - generic [ref=e195]: M
+                - generic [ref=e197]: "749"
+              - generic [ref=e198]:
+                - generic [ref=e199]: L
+                - generic [ref=e201]: "59"
+          - generic [ref=e203] [cursor=pointer]:
+            - generic [ref=e204]:
+              - img [ref=e206]
+              - paragraph [ref=e209]: 0%
+              - paragraph [ref=e210]: Compliance Rate
+            - 'img "Gauge: 0%" [ref=e212]':
+              - generic [ref=e215]: 0%
+          - generic [ref=e218] [cursor=pointer]:
+            - img [ref=e220]
+            - paragraph [ref=e225]: "0"
+            - paragraph [ref=e226]: Active Deployments
+        - generic [ref=e227]:
+          - generic [ref=e230] [cursor=pointer]:
+            - img [ref=e232]
+            - paragraph [ref=e235]: "0"
+            - paragraph [ref=e236]: Overdue SLA
+          - generic [ref=e238] [cursor=pointer]:
+            - generic [ref=e239]:
+              - img [ref=e241]
+              - paragraph [ref=e245]: "0"
+              - paragraph [ref=e246]: Failed Deployments
+            - img "Sparkline chart" [ref=e248]
+          - generic [ref=e253] [cursor=pointer]:
+            - img [ref=e255]
+            - paragraph [ref=e259]: "0"
+            - paragraph [ref=e260]: Workflows Running
+          - generic [ref=e262] [cursor=pointer]:
+            - generic [ref=e263]:
+              - img [ref=e265]
+              - paragraph [ref=e270]: Sync'd
+              - paragraph [ref=e271]: Hub Sync Status
+            - generic [ref=e273]:
+              - generic [ref=e276]: 2h ago
+              - generic [ref=e277]: http://localhost:8082
+        - generic [ref=e278]:
+          - generic [ref=e279]:
+            - generic [ref=e280]:
+              - generic [ref=e281]: Active Blast Radius
+              - paragraph [ref=e282]: Endpoints affected by selected CVE
+            - img [ref=e284]:
+              - generic [ref=e287]: CVE-2024-42013
+              - generic [ref=e288]: CVSS 7.8
+              - generic [ref=e289]: 1 affected
+              - generic [ref=e290] [cursor=pointer]:
+                - generic [ref=e292]: linux
+                - generic [ref=e293]: 1 hosts
+          - generic [ref=e294]:
+            - generic [ref=e296]:
+              - generic [ref=e297]:
+                - generic [ref=e298]: Risk Delta Projection
+                - paragraph [ref=e299]: Next 30 days • 3 scenarios
+              - generic [ref=e300]:
+                - generic [ref=e301]: Deploy All
+                - generic [ref=e302]: Trajectory
+                - generic [ref=e303]: Do Nothing
+            - application [ref=e307]:
+              - generic [ref=e322]:
+                - generic [ref=e323]:
+                  - generic [ref=e325]: 3/23
+                  - generic [ref=e327]: 3/30
+                  - generic [ref=e329]: 4/6
+                  - generic [ref=e331]: 4/13
+                  - generic [ref=e333]: 4/20
+                - generic [ref=e334]:
+                  - generic [ref=e336]: "0"
+                  - generic [ref=e338]: "25"
+                  - generic [ref=e340]: "50"
+                  - generic [ref=e342]: "75"
+                  - generic [ref=e344]: "100"
+        - generic [ref=e345]:
+          - generic [ref=e346]:
+            - generic [ref=e348]: SLA Bridge
+            - img [ref=e350]:
+              - generic [ref=e351]:
+                - generic [ref=e353]: "1941"
+                - generic [ref=e354]: Starting Gap
+              - generic [ref=e355]:
+                - generic [ref=e357]: "0"
+                - generic [ref=e358]: Deployed
+              - generic [ref=e359]:
+                - generic [ref=e361]: "+9"
+                - generic [ref=e362]: New CVEs
+              - generic [ref=e363]:
+                - generic [ref=e365]: "1950"
+                - generic [ref=e366]: Projected
+          - generic [ref=e367]:
+            - generic [ref=e369]:
+              - generic [ref=e370]: Deployment Activity
+              - generic [ref=e371]: LIVE
+            - paragraph [ref=e374]: No recent activity
+          - generic [ref=e375]:
+            - generic [ref=e376]:
+              - generic [ref=e377]: Risk Heatmap
+              - paragraph [ref=e378]: Top 30 endpoints by CVE exposure
+            - 'generic "garage Risk: 15% • CVEs: 9" [ref=e381] [cursor=pointer]': garage
+        - generic [ref=e382]:
+          - generic [ref=e383]:
+            - generic [ref=e385]: Compliance Frameworks
+            - generic [ref=e387]:
+              - img "Compliance framework gauges" [ref=e388]:
+                - generic [ref=e398]: 0%
+                - generic [ref=e399]: overall
+              - generic [ref=e400]:
+                - generic [ref=e401]:
+                  - generic [ref=e404]: CIS Controls v8
+                  - generic [ref=e405]: 100%
+                - generic [ref=e406]:
+                  - generic [ref=e409]: HIPAA Security Rule
+                  - generic [ref=e410]: 100%
+                - generic [ref=e411]:
+                  - generic [ref=e414]: NIST 800-53 Rev. 5
+                  - generic [ref=e415]: 100%
+          - generic [ref=e416]:
+            - generic [ref=e418]: Agent Rollout
+            - img "Agent Rollout Flow" [ref=e420]:
+              - generic [ref=e421]:
+                - generic [ref=e422]: Total
+                - 'generic "Total: 1" [ref=e424]'
+                - generic [ref=e425]: "1"
+                - generic [ref=e426]: 100%
+                - generic [ref=e427]: −0 not installed
+              - generic [ref=e428]:
+                - generic [ref=e429]: Installed
+                - 'generic "Installed: 1" [ref=e431]'
+                - generic [ref=e432]: "1"
+                - generic [ref=e433]: 100%
+                - generic [ref=e434]: −0 not enrolled
+              - generic [ref=e435]:
+                - generic [ref=e436]: Enrolled
+                - 'generic "Enrolled: 1" [ref=e438]'
+                - generic [ref=e439]: "1"
+                - generic [ref=e440]: 100%
+                - generic [ref=e441]: −0 not healthy
+              - generic [ref=e442]:
+                - generic [ref=e443]: Healthy
+                - 'generic "Healthy: 1" [ref=e445]'
+                - generic [ref=e446]: "1"
+                - generic [ref=e447]: 100%
+                - generic [ref=e448]: −0 not scanning
+              - generic [ref=e449]:
+                - generic [ref=e450]: Scanning
+                - 'generic "Scanning: 1" [ref=e452]'
+                - generic [ref=e453]: "1"
+                - generic [ref=e454]: 100%
+          - generic [ref=e455]:
+            - generic [ref=e456]:
+              - generic [ref=e457]: SLA Countdown
+              - paragraph [ref=e458]: Patch deployment deadlines
+            - paragraph [ref=e460]: No active SLA deadlines.
+        - generic [ref=e461]:
+          - generic [ref=e462]:
+            - generic [ref=e463]:
+              - generic [ref=e464]: Workflow Executions
+              - link "View All →" [ref=e465] [cursor=pointer]:
+                - /url: /workflows
+            - paragraph [ref=e467]: No recent workflow executions.
+          - generic [ref=e468]:
+            - generic [ref=e470]:
+              - generic [ref=e471]:
+                - generic [ref=e472]: Patches Over Time
+                - paragraph [ref=e473]: Last 90 days • severity stacked
+              - generic [ref=e474]:
+                - generic [ref=e475]: Critical
+                - generic [ref=e477]: High
+                - generic [ref=e479]: Medium
+            - application [ref=e484]:
+              - generic [ref=e504]:
+                - generic [ref=e505]:
+                  - generic [ref=e507]: W01
+                  - generic [ref=e509]: W02
+                  - generic [ref=e511]: W03
+                  - generic [ref=e513]: W04
+                  - generic [ref=e515]: W05
+                  - generic [ref=e517]: W06
+                  - generic [ref=e519]: W07
+                  - generic [ref=e521]: W08
+                  - generic [ref=e523]: W09
+                  - generic [ref=e525]: W10
+                  - generic [ref=e527]: W11
+                  - generic [ref=e529]: W12
+                  - generic [ref=e531]: W13
+                - generic [ref=e532]:
+                  - generic [ref=e534]: "0"
+                  - generic [ref=e536]: "50"
+                  - generic [ref=e538]: "100"
+                  - generic [ref=e540]: "150"
+                  - generic [ref=e542]: "200"
+    - region "Notifications alt+T"
+  - generic [ref=e543]: "0"

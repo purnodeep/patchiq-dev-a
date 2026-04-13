@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — Deployment Detail</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:260px;--topbar-h:56px;
+}
+.light{--bg:#f8fafc;--card:#ffffff;--card2:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#94a3b8;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;display:flex;height:100vh;overflow:hidden;transition:background .2s,color .2s}
+#sidebar{width:var(--sidebar-w);background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s}
+#sidebar.collapsed{width:64px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-icon{width:28px;height:28px;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sb-logo-text{font-weight:600;font-size:13px;color:var(--text);white-space:nowrap}
+.sb-logo-sub{font-size:10px;color:var(--muted);white-space:nowrap}
+.sb-group{margin-top:4px}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
+.sb-group-label .arrow{transition:.2s;font-size:9px}
+.sb-group-label.collapsed .arrow{transform:rotate(-90deg)}
+.sb-group-items{overflow:hidden;transition:max-height .2s ease}
+.sb-item{padding:6px 16px 6px 24px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;text-decoration:none}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:14px;height:14px;flex-shrink:0}
+.sb-item-label{white-space:nowrap}
+.sb-badge{margin-left:auto;background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+#sidebar.collapsed .sb-logo-text,#sidebar.collapsed .sb-logo-sub,#sidebar.collapsed .sb-group-label span:first-child,#sidebar.collapsed .sb-item-label,#sidebar.collapsed .sb-badge{opacity:0;pointer-events:none}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.tb-collapse-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;background:transparent;border:none;flex-shrink:0}
+.tb-collapse-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-breadcrumb span:last-child{color:var(--text);font-weight:500}
+.tb-sep{color:#374151}
+.tb-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb-icon-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:16px;height:16px}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--danger);border-radius:50%;border:1.5px solid var(--card)}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;color:#fff;flex-shrink:0;border:none}
+#page{flex:1;overflow-y:auto;padding:0}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.view{padding:20px;animation:fadeIn .2s ease}
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px;text-decoration:none;background:transparent}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d;border-color:#374151}
+.btn-ghost{color:var(--muted)}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{background:#ef444415;color:var(--danger);border-color:#ef444430}
+/* Identity Header */
+.identity-header{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:14px}
+.ih-top-row{display:flex;align-items:flex-start;gap:20px;margin-bottom:14px}
+.status-orb-large{width:14px;height:14px;border-radius:50%;background:#10b981;flex-shrink:0;margin-top:4px;animation:pulse-large 1.5s infinite}
+@keyframes pulse-large{0%,100%{box-shadow:0 0 0 0 #10b98160}50%{box-shadow:0 0 0 8px #10b98100}}
+.ih-id{font-family:monospace;font-size:14px;color:var(--muted);margin-bottom:6px}
+.ih-title{font-size:22px;font-weight:700;color:var(--text)}
+.ih-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:8px}
+.ih-meta-item{display:flex;align-items:center;gap:5px}
+.ih-actions{display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border)}
+/* Context Ring */
+.context-ring{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+.ctx-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;transition:.2s;cursor:default}
+.ctx-card:hover{border-color:#374151;transform:translateY(-1px)}
+.ctx-val{font-size:20px;font-weight:700;color:var(--text)}
+.ctx-label{font-size:10px;color:var(--muted);margin-top:2px}
+.ctx-sub{font-size:10px;margin-top:3px}
+/* Progress ring */
+.prog-ring-wrap{position:relative;width:48px;height:48px;margin:6px auto 0}
+.prog-ring-wrap svg{transform:rotate(-90deg)}
+/* Tabs */
+.tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{padding:8px 14px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;background:transparent;border-top:none;border-left:none;border-right:none}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeIn .2s ease}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px}
+.card-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+/* Badges */
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.badge-green{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-blue{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630}
+.badge-gray{background:#ffffff10;color:var(--muted);border:1px solid var(--border)}
+.badge-red{background:#ef444420;color:#ef4444;border:1px solid #ef444430}
+.badge-amber{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+.badge-critical{background:#ef444420;color:#ef4444;border:1px solid #ef444430}
+.badge-high{background:#f9731620;color:#f97316;border:1px solid #f9731630}
+.badge-medium{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+/* Tables */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border)}
+.data-table td{padding:8px 12px;border-bottom:1px solid #1e293b60;font-size:12px;vertical-align:middle}
+.data-table tr:hover td{background:#ffffff04}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr.failed-ep td{background:#ef444408}
+/* Progress bar */
+.prog-bar{height:6px;background:#ffffff10;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.prog-fill.green{background:#10b981}
+.prog-fill.blue{background:#3b82f6}
+/* Wave cards */
+.wave-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.wave-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:.2s}
+.wave-card:hover{border-color:#374151}
+.wave-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.wave-card-name{font-size:13px;font-weight:600;color:var(--text)}
+.wave-card-count{font-size:11px;color:var(--muted)}
+/* Overview pipeline viz */
+.dep-pipeline{margin:16px 0}
+.lane{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.lane-label{font-size:11px;color:var(--muted);width:70px;flex-shrink:0;text-align:right}
+.lane-bar{flex:1;height:24px;border-radius:6px;overflow:hidden;position:relative}
+.lane-fill{height:100%;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:600;color:#fff;border-radius:6px}
+.center-pct{text-align:center;font-size:48px;font-weight:800;color:var(--primary);margin:8px 0}
+.center-pct-label{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px}
+/* Timeline */
+.timeline{display:flex;flex-direction:column}
+.tl-item{display:flex;gap:12px;padding:8px 0;position:relative}
+.tl-item::before{content:'';position:absolute;left:11px;top:24px;bottom:0;width:1px;background:#1e293b}
+.tl-item:last-child::before{display:none}
+.tl-dot-wrap{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1}
+.tl-dot-green{background:#10b98120;border:2px solid #10b981}
+.tl-dot-blue{background:#3b82f620;border:2px solid #3b82f6}
+.tl-dot-red{background:#ef444420;border:2px solid #ef4444}
+.tl-dot-gray{background:#ffffff10;border:2px solid #374151}
+.tl-dot-inner{width:6px;height:6px;border-radius:50%}
+.tl-dot-inner.green{background:#10b981}
+.tl-dot-inner.blue{background:#3b82f6;animation:dot-pulse 1.5s infinite}
+.tl-dot-inner.red{background:#ef4444}
+.tl-dot-inner.gray{background:#374151}
+@keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.tl-body{flex:1}
+.tl-main{font-size:12px;color:var(--text)}
+.tl-time{font-size:10px;color:var(--muted);margin-top:2px}
+.tl-expand{font-size:10px;color:var(--primary);cursor:pointer;margin-top:3px}
+/* Stdout block */
+.stdout-block{background:#0a0e1a;border:1px solid #1e293b;border-radius:4px;padding:8px;font-family:monospace;font-size:11px;color:#10b981;white-space:pre-wrap;margin-top:4px;max-height:80px;overflow-y:auto}
+.stderr-block{background:#0a0e1a;border:1px solid #ef444430;border-radius:4px;padding:8px;font-family:monospace;font-size:11px;color:#ef4444;white-space:pre-wrap;margin-top:4px}
+/* Exp rows */
+.exp-row{display:none}
+.exp-row.open{display:table-row}
+.exp-row td{padding:0!important;border-bottom:1px solid var(--border)!important}
+.exp-content{padding:12px;background:#080c16}
+.expand-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:4px;transition:.15s;font-size:11px}
+.expand-btn:hover{color:var(--text)}
+.link{color:var(--primary);text-decoration:none}
+.link:hover{text-decoration:underline}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes progress-anim{from{width:0}to{width:var(--w)}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div><div class="sb-logo-text">PatchIQ</div><div class="sb-logo-sub">Patch Manager</div></div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Overview</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="../patch-manager.html" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="sb-item-label">Dashboard</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Inventory</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="sb-item-label">Endpoints</span><span class="sb-badge blue">247</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><span class="sb-item-label">Patches</span><span class="sb-badge">12</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="sb-item-label">CVEs</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Operations</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="policies.html" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="sb-item-label">Policies</span></a>
+      <a href="deployments.html" class="sb-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg><span class="sb-item-label">Deployments</span><span class="sb-badge blue">3</span></a>
+      <a href="workflows.html" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="sb-item-label">Workflows</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Reports</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/></svg><span class="sb-item-label">Compliance</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="sb-item-label">Audit</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Configuration</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="sb-item-label">Settings</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span class="sb-item-label">Roles</span></a>
+    </div>
+  </div>
+</nav>
+
+<div id="main">
+  <div id="topbar">
+    <button class="tb-collapse-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-breadcrumb">
+      <span>Home</span><span class="tb-sep">/</span>
+      <span><a href="deployments.html" style="color:var(--muted);text-decoration:none">Deployments</a></span><span class="tb-sep">/</span>
+      <span>dep-a1b2c3</span>
+    </div>
+    <div class="tb-icons">
+      <button class="tb-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+      <button class="tb-icon-btn" onclick="toggleTheme()"><svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+      <button class="tb-avatar">HS</button>
+    </div>
+  </div>
+
+  <div id="page">
+    <div class="view">
+
+      <!-- Identity Header -->
+      <div class="identity-header">
+        <div class="ih-top-row">
+          <div class="status-orb-large"></div>
+          <div style="flex:1">
+            <div class="ih-id">dep-a1b2c3</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="ih-title" style="color:#10b981">In Progress</div>
+              <span class="badge badge-blue">Wave 2/3</span>
+            </div>
+            <div class="ih-meta">
+              <span class="ih-meta-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                <a href="policy-detail.html" style="color:var(--primary);text-decoration:none">Auto-Deploy Critical Patches</a>
+              </span>
+              <span class="ih-meta-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Policy (automatic)
+              </span>
+              <span class="ih-meta-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Started 10 minutes ago
+              </span>
+              <span class="ih-meta-item" style="color:var(--warn)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                ETA ~8 minutes remaining
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="ih-actions">
+          <button class="btn btn-danger btn-sm" onclick="alert('Cancel deployment?')">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Cancel
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="alert('Retrying failed...')">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Retry Failed (2)
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="alert('Rollback deployment?')">Rollback</button>
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="alert('Exporting report...')">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Context Ring -->
+      <div class="context-ring">
+        <div class="ctx-card">
+          <div class="ctx-val">45</div>
+          <div class="ctx-label">Total Targets</div>
+          <div class="ctx-sub" style="color:var(--muted)">3 groups</div>
+        </div>
+        <div class="ctx-card">
+          <div style="display:flex;justify-content:center">
+            <div class="prog-ring-wrap">
+              <svg width="48" height="48" viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="18" fill="none" stroke="#1e293b" stroke-width="5"/>
+                <circle cx="24" cy="24" r="18" fill="none" stroke="#3b82f6" stroke-width="5" stroke-dasharray="113" stroke-dashoffset="42" stroke-linecap="round"/>
+              </svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--primary)">32</div>
+            </div>
+          </div>
+          <div class="ctx-label">Completed</div>
+        </div>
+        <div class="ctx-card">
+          <div class="ctx-val" style="color:#10b981">30</div>
+          <div class="ctx-label">Succeeded</div>
+          <div class="ctx-sub" style="color:#10b981">✓ 67%</div>
+        </div>
+        <div class="ctx-card" style="cursor:pointer;border-color:#ef444430" onclick="switchTab('endpoints',document.querySelector('[data-tab=endpoints]'))">
+          <div class="ctx-val" style="color:#ef4444">2</div>
+          <div class="ctx-label">Failed</div>
+          <div class="ctx-sub" style="color:#ef4444">→ click</div>
+        </div>
+        <div class="ctx-card">
+          <div class="ctx-val" style="color:#3b82f6">13</div>
+          <div class="ctx-label">Pending</div>
+          <div class="ctx-sub" style="color:#3b82f6">Wave 3</div>
+        </div>
+        <div class="ctx-card">
+          <div style="display:flex;justify-content:center;gap:4px;margin-bottom:4px">
+            <div style="width:8px;height:8px;border-radius:50%;background:#10b981;margin-top:8px"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-top:8px;animation:dot-pulse 1.5s infinite"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:#374151;margin-top:8px"></div>
+          </div>
+          <div class="ctx-val" style="font-size:16px">2 / 3</div>
+          <div class="ctx-label">Current Wave</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview',this)">Overview</button>
+        <button class="tab-btn" data-tab="waves" onclick="switchTab('waves',this)">Waves</button>
+        <button class="tab-btn" data-tab="endpoints" onclick="switchTab('endpoints',this)">Endpoint Results</button>
+        <button class="tab-btn" data-tab="patches" onclick="switchTab('patches',this)">Patches Deployed</button>
+        <button class="tab-btn" data-tab="timeline" onclick="switchTab('timeline',this)">Timeline</button>
+      </div>
+
+      <!-- Tab: Overview -->
+      <div class="tab-panel active" id="tab-overview">
+        <div class="card">
+          <div class="card-title">Deployment Progress — Multi-Wave</div>
+          <div style="text-align:center;margin:8px 0 4px">
+            <div class="center-pct" id="overall-pct">71%</div>
+            <div class="center-pct-label">32 / 45 endpoints processed</div>
+          </div>
+          <div class="dep-pipeline">
+            <div class="lane">
+              <div class="lane-label">Wave 1</div>
+              <div class="lane-bar" style="background:#10b98130">
+                <div class="lane-fill" style="width:100%;background:linear-gradient(90deg,#10b981,#059669)">15/15 ✓ Complete · 4m 12s</div>
+              </div>
+              <span class="badge badge-green" style="margin-left:8px;flex-shrink:0">100%</span>
+            </div>
+            <div class="lane">
+              <div class="lane-label">Wave 2</div>
+              <div class="lane-bar" style="background:#ffffff08">
+                <div class="lane-fill" style="width:73.3%;background:linear-gradient(90deg,#3b82f6,#2563eb);animation:wave2-pulse 1s ease infinite alternate">17/15 → In Progress</div>
+              </div>
+              <span class="badge badge-blue" style="margin-left:8px;flex-shrink:0">73%</span>
+            </div>
+            <div class="lane">
+              <div class="lane-label">Wave 3</div>
+              <div class="lane-bar" style="background:#ffffff08">
+                <div class="lane-fill" style="width:0%;background:#374151">0/15 Waiting...</div>
+              </div>
+              <span class="badge badge-gray" style="margin-left:8px;flex-shrink:0">0%</span>
+            </div>
+          </div>
+          <style>@keyframes wave2-pulse{from{opacity:.8}to{opacity:1}}</style>
+          <!-- Endpoint dots row -->
+          <div class="card-title" style="margin-top:8px">Endpoint Status Map</div>
+          <div id="dot-map" style="display:flex;flex-wrap:wrap;gap:4px;padding:8px"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Waves -->
+      <div class="tab-panel" id="tab-waves">
+        <div class="wave-cards">
+          <div class="wave-card">
+            <div class="wave-card-header">
+              <div>
+                <div class="wave-card-name">Wave 1 — Canary</div>
+                <div class="wave-card-count">15 endpoints · 10% of fleet</div>
+              </div>
+              <span class="badge badge-green">100%</span>
+            </div>
+            <div class="prog-bar" style="margin-bottom:8px"><div class="prog-fill green" style="width:100%"></div></div>
+            <div style="font-size:11px;color:var(--success)">✓ Completed in 4m 12s</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">14 succeeded · 1 failed (retried successfully)</div>
+          </div>
+          <div class="wave-card" style="border-color:#3b82f640">
+            <div class="wave-card-header">
+              <div>
+                <div class="wave-card-name">Wave 2 — Rolling</div>
+                <div class="wave-card-count">15 endpoints · 60% of fleet</div>
+              </div>
+              <span class="badge badge-blue">73%</span>
+            </div>
+            <div class="prog-bar" style="margin-bottom:8px"><div class="prog-fill blue" style="width:73%;animation:prog-pulse .8s ease infinite"></div></div>
+            <div style="font-size:11px;color:#3b82f6;animation:dot-pulse 1.5s infinite">⟳ In Progress — 11/15 complete</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">10 succeeded · 2 failed · 1 in-progress · 2 pending</div>
+          </div>
+          <div class="wave-card">
+            <div class="wave-card-header">
+              <div>
+                <div class="wave-card-name">Wave 3 — Remainder</div>
+                <div class="wave-card-count">15 endpoints · remaining fleet</div>
+              </div>
+              <span class="badge badge-gray">0%</span>
+            </div>
+            <div class="prog-bar" style="margin-bottom:8px"><div class="prog-fill" style="width:0%"></div></div>
+            <div style="font-size:11px;color:var(--muted)">◷ Waiting for Wave 2 completion</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">Starts automatically when Wave 2 ≥ 95% success</div>
+          </div>
+        </div>
+        <!-- Wave 2 endpoint detail -->
+        <div class="card">
+          <div class="card-title">Wave 2 — Endpoint Detail</div>
+          <table class="data-table">
+            <thead><tr><th>Hostname</th><th>Status</th><th>Started</th><th>Duration</th></tr></thead>
+            <tbody>
+              <tr><td>prod-web-01.acme.corp</td><td><span style="color:#10b981">✓ Succeeded</span></td><td>4m 18s ago</td><td>1m 22s</td></tr>
+              <tr><td>prod-web-02.acme.corp</td><td><span style="color:#10b981">✓ Succeeded</span></td><td>4m 15s ago</td><td>1m 31s</td></tr>
+              <tr><td>prod-app-01.acme.corp</td><td><span style="color:#10b981">✓ Succeeded</span></td><td>4m 10s ago</td><td>1m 44s</td></tr>
+              <tr><td>prod-app-02.acme.corp</td><td><span style="color:#10b981">✓ Succeeded</span></td><td>3m 58s ago</td><td>1m 28s</td></tr>
+              <tr><td>prod-lb-01.acme.corp</td><td><span style="color:#3b82f6;animation:dot-pulse 1.5s infinite">⟳ In Progress</span></td><td>2m 10s ago</td><td>—</td></tr>
+              <tr><td>prod-db-01.acme.corp</td><td><span style="color:#ef4444">✗ Failed (exit 1603)</span></td><td>3m 45s ago</td><td>1m 55s</td></tr>
+              <tr><td>prod-db-02.acme.corp</td><td><span style="color:#ef4444">✗ Failed (timeout)</span></td><td>3m 30s ago</td><td>3m 00s</td></tr>
+              <tr><td>web-tier-03.acme.corp</td><td><span style="color:#f59e0b">◷ Pending</span></td><td>—</td><td>—</td></tr>
+              <tr><td>web-tier-04.acme.corp</td><td><span style="color:#f59e0b">◷ Pending</span></td><td>—</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Endpoints -->
+      <div class="tab-panel" id="tab-endpoints">
+        <div class="card" style="padding:0">
+          <table class="data-table" style="min-width:700px">
+            <thead><tr><th></th><th>Hostname</th><th>Status</th><th>Exit Code</th><th>Start Time</th><th>Duration</th><th>Error</th></tr></thead>
+            <tbody id="ep-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Patches -->
+      <div class="tab-panel" id="tab-patches">
+        <div class="card">
+          <div class="card-title">Patches in This Deployment (4)</div>
+          <table class="data-table">
+            <thead><tr><th>Patch Name</th><th>Version</th><th>Severity</th><th>Success Rate</th></tr></thead>
+            <tbody>
+              <tr><td>KB5034441 — Windows Cumulative Update</td><td>10.0.19041.3803</td><td><span class="badge badge-critical">Critical</span></td><td><div style="display:flex;align-items:center;gap:8px"><div class="prog-bar" style="width:140px"><div class="prog-fill green" style="width:93%"></div></div><span style="font-size:11px;color:var(--muted)">42/45 (93%)</span></div></td></tr>
+              <tr><td>KB5033890 — Security Patch</td><td>10.0.19041.3570</td><td><span class="badge badge-critical">Critical</span></td><td><div style="display:flex;align-items:center;gap:8px"><div class="prog-bar" style="width:140px"><div class="prog-fill green" style="width:88%"></div></div><span style="font-size:11px;color:var(--muted)">40/45 (88%)</span></div></td></tr>
+              <tr><td>KB5033375 — Cumulative Update Win11</td><td>10.0.22621.3007</td><td><span class="badge badge-high">High</span></td><td><div style="display:flex;align-items:center;gap:8px"><div class="prog-bar" style="width:140px"><div class="prog-fill green" style="width:100%"></div></div><span style="font-size:11px;color:var(--muted)">31/31 (100%)</span></div></td></tr>
+              <tr><td>KB5032189 — Monthly Rollup</td><td>10.0.19041.3636</td><td><span class="badge badge-high">High</span></td><td><div style="display:flex;align-items:center;gap:8px"><div class="prog-bar" style="width:140px"><div class="prog-fill green" style="width:86%"></div></div><span style="font-size:11px;color:var(--muted)">12/14 (86%)</span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Timeline -->
+      <div class="tab-panel" id="tab-timeline">
+        <div class="card">
+          <div class="card-title">Deployment Event Timeline</div>
+          <div class="timeline" id="timeline-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// THEME
+(function(){const t=localStorage.getItem('piq-theme');if(t==='light')document.body.classList.add('light')})();
+function toggleTheme(){document.body.classList.toggle('light');localStorage.setItem('piq-theme',document.body.classList.contains('light')?'light':'dark');}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+function toggleGroup(el){
+  el.classList.toggle('collapsed');
+  const items=el.nextElementSibling;
+  items.style.maxHeight=el.classList.contains('collapsed')?'0':items.scrollHeight+'px';
+}
+document.querySelectorAll('.sb-group-items').forEach(el=>{el.style.maxHeight=el.scrollHeight+'px'});
+
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// DOT MAP
+const dotMap = document.getElementById('dot-map');
+const statuses = [
+  ...Array(15).fill('done'),
+  ...Array(10).fill('done'),
+  ...Array(2).fill('fail'),
+  'active',
+  ...Array(2).fill('pend'),
+  ...Array(15).fill('pend'),
+];
+statuses.forEach((s,i)=>{
+  const dot = document.createElement('div');
+  dot.title = 'prod-host-'+(i+1).toString().padStart(2,'0');
+  dot.style.cssText = `width:10px;height:10px;border-radius:50%;flex-shrink:0;cursor:pointer;`;
+  const colors = {done:'#10b981',fail:'#ef4444',active:'#3b82f6',pend:'#374151'};
+  dot.style.background = colors[s];
+  if(s==='active') dot.style.animation='dot-pulse 1.5s infinite';
+  dotMap.appendChild(dot);
+});
+
+// ENDPOINT TABLE
+const endpoints = [
+  {host:'prod-web-01.acme.corp',status:'succeeded',exit:0,start:'8m 12s ago',dur:'1m 22s',error:''},
+  {host:'prod-web-02.acme.corp',status:'succeeded',exit:0,start:'8m 08s ago',dur:'1m 31s',error:''},
+  {host:'prod-web-03.acme.corp',status:'succeeded',exit:0,start:'8m 01s ago',dur:'1m 18s',error:''},
+  {host:'prod-app-01.acme.corp',status:'succeeded',exit:0,start:'7m 55s ago',dur:'1m 44s',error:''},
+  {host:'prod-app-02.acme.corp',status:'succeeded',exit:0,start:'7m 48s ago',dur:'1m 28s',error:''},
+  {host:'prod-lb-01.acme.corp',status:'in-progress',exit:'—',start:'2m 10s ago',dur:'—',error:''},
+  {host:'prod-db-01.acme.corp',status:'failed',exit:1603,start:'4m 44s ago',dur:'1m 55s',error:'msiexec.exe: error 1603 — fatal error during installation'},
+  {host:'prod-db-02.acme.corp',status:'failed',exit:1618,start:'4m 30s ago',dur:'3m 00s',error:'error 1618: Another installation already in progress'},
+  {host:'web-tier-03.acme.corp',status:'pending',exit:'—',start:'—',dur:'—',error:''},
+  {host:'web-tier-04.acme.corp',status:'pending',exit:'—',start:'—',dur:'—',error:''},
+  {host:'web-tier-05.acme.corp',status:'pending',exit:'—',start:'—',dur:'—',error:''},
+  {host:'app-tier-01.acme.corp',status:'succeeded',exit:0,start:'6m 22s ago',dur:'1m 15s',error:''},
+  {host:'app-tier-02.acme.corp',status:'succeeded',exit:0,start:'6m 18s ago',dur:'1m 20s',error:''},
+  {host:'db-backup-01.acme.corp',status:'succeeded',exit:0,start:'5m 55s ago',dur:'2m 01s',error:''},
+  {host:'db-backup-02.acme.corp',status:'succeeded',exit:0,start:'5m 48s ago',dur:'1m 58s',error:''},
+  {host:'infra-mon-01.acme.corp',status:'pending',exit:'—',start:'—',dur:'—',error:''},
+  {host:'infra-mon-02.acme.corp',status:'pending',exit:'—',start:'—',dur:'—',error:''},
+  {host:'sec-scan-01.acme.corp',status:'pending',exit:'—',start:'—',dur:'—',error:''},
+  {host:'backup-srv-01.acme.corp',status:'pending',exit:'—',start:'—',dur:'—',error:''},
+  {host:'mgmt-server-01.acme.corp',status:'succeeded',exit:0,start:'5m 10s ago',dur:'1m 44s',error:''},
+];
+const statusStyle = {
+  succeeded:{color:'#10b981',label:'✓ Succeeded'},
+  failed:{color:'#ef4444',label:'✗ Failed'},
+  'in-progress':{color:'#3b82f6',label:'⟳ In Progress'},
+  pending:{color:'#f59e0b',label:'◷ Pending'},
+};
+document.getElementById('ep-tbody').innerHTML = endpoints.map((e,i)=>`
+  <tr class="${e.status==='failed'?'failed-ep':''}">
+    <td><button class="expand-btn" onclick="toggleEp(${i},this)">▶</button></td>
+    <td style="font-family:monospace;font-size:11px">${e.host}</td>
+    <td style="color:${statusStyle[e.status].color}">${statusStyle[e.status].label}</td>
+    <td style="font-family:monospace;font-size:11px;color:${e.exit===0?'#10b981':e.exit==='—'?'var(--muted)':'#ef4444'}">${e.exit}</td>
+    <td style="font-size:11px;color:var(--muted)">${e.start}</td>
+    <td style="font-size:11px;color:var(--muted)">${e.dur}</td>
+    <td style="font-size:11px;color:#ef4444;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.error}</td>
+  </tr>
+  <tr class="exp-row" id="ep-exp-${i}">
+    <td colspan="7">
+      <div class="exp-content">
+        ${e.status==='succeeded'?`
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">stdout:</div>
+          <div class="stdout-block">Installing KB5034441... SUCCESS
+Installing KB5033890... SUCCESS
+Installing KB5033375... SUCCESS
+All patches installed. Exit code: 0</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">Rollback status: <span style="color:#10b981">Not required</span></div>
+        `:''}
+        ${e.status==='failed'?`
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">stderr:</div>
+          <div class="stderr-block">${e.error}</div>
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <button class="btn btn-sm btn-primary" onclick="alert('Retrying '+this.closest('tr').previousElementSibling.querySelector('td:nth-child(2)').textContent)">Retry</button>
+            <button class="btn btn-sm btn-outline" onclick="alert('Viewing full log...')">View Full Log</button>
+          </div>
+        `:''}
+        ${e.status==='pending'?`<div style="font-size:11px;color:var(--muted)">Waiting for Wave 2 to complete. Estimated start: ~8 minutes.</div>`:''}
+        ${e.status==='in-progress'?`
+          <div style="font-size:11px;color:#3b82f6;margin-bottom:4px">Live output:</div>
+          <div class="stdout-block" style="color:#3b82f6">Downloading KB5034441 (248MB)... 67%
+[████████████░░░░░░░] Applying patch...</div>
+        `:''}
+      </div>
+    </td>
+  </tr>
+`).join('');
+
+function toggleEp(i,btn){
+  const row=document.getElementById('ep-exp-'+i);
+  const open=row.classList.toggle('open');
+  btn.textContent=open?'▼':'▶';
+}
+
+// TIMELINE
+const tlEvents = [
+  {type:'gray',text:'Deployment dep-a1b2c3 created',sub:'Policy: Auto-Deploy Critical Patches · 45 targets',time:'10m 00s ago'},
+  {type:'blue',text:'Wave 1 started (15 targets)',sub:'Canary wave — 10% of fleet',time:'9m 52s ago'},
+  {type:'green',text:'prod-web-01: KB5034441 installed successfully',sub:'exit code 0 · 1m 22s',time:'8m 30s ago'},
+  {type:'green',text:'prod-web-02: KB5034441 installed successfully',sub:'exit code 0 · 1m 31s',time:'8m 21s ago'},
+  {type:'green',text:'prod-web-03: KB5034441 installed successfully',sub:'exit code 0 · 1m 18s',time:'8m 12s ago'},
+  {type:'green',text:'prod-app-01: KB5034441 installed successfully',sub:'exit code 0 · 1m 44s',time:'7m 55s ago'},
+  {type:'red',text:'prod-db-01: KB5033890 FAILED — exit code 1603',sub:'msiexec fatal error · retried successfully 2m later',time:'7m 28s ago'},
+  {type:'green',text:'prod-app-02: KB5034441 installed successfully',sub:'exit code 0 · 1m 28s',time:'7m 20s ago'},
+  {type:'green',text:'Wave 1 completed (14/15 succeeded, 1 retry OK)',sub:'4m 12s total · proceeding to Wave 2',time:'5m 40s ago'},
+  {type:'blue',text:'Wave 2 started (15 targets)',sub:'Rolling wave — 60% of fleet',time:'5m 38s ago'},
+  {type:'green',text:'prod-lb-01: KB5034441 installed successfully',sub:'exit code 0 · 1m 15s',time:'4m 23s ago'},
+  {type:'green',text:'app-tier-01: All patches installed',sub:'exit code 0 · 1m 15s',time:'4m 07s ago'},
+  {type:'red',text:'prod-db-02: KB5033890 FAILED — exit code 1618',sub:'Another installer running · marked failed',time:'3m 30s ago'},
+  {type:'green',text:'db-backup-01: All patches installed',sub:'exit code 0 · 2m 01s',time:'3m 04s ago'},
+  {type:'green',text:'mgmt-server-01: All patches installed',sub:'exit code 0 · 1m 44s',time:'2m 26s ago'},
+  {type:'blue',text:'10/15 endpoints in Wave 2 complete',sub:'73% · 2 failed · 1 in-progress · 2 pending',time:'1m 45s ago'},
+];
+document.getElementById('timeline-list').innerHTML = tlEvents.map(e=>`
+  <div class="tl-item">
+    <div class="tl-dot-wrap tl-dot-${e.type}">
+      <div class="tl-dot-inner ${e.type}"></div>
+    </div>
+    <div class="tl-body">
+      <div class="tl-main">${e.text}</div>
+      <div class="tl-time">${e.sub} · ${e.time}</div>
+    </div>
+  </div>
+`).join('');
+
+// Anim keyframes needed
+document.head.insertAdjacentHTML('beforeend','<style>@keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>');
+</script>
+</body>
+</html>

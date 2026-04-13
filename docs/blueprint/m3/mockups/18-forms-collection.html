@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Form Patterns</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    /* ─── Design Tokens: Dark (default) ─────────────────────── */
+    :root {
+      --bg-page:          #000000;
+      --bg-card:          #111113;
+      --bg-card-elevated: #161618;
+      --bg-overlay:       rgba(0,0,0,0.7);
+      --border-subtle:    #222222;
+      --border-divider:   #1c1c1c;
+      --shadow-card:      0 1px 2px rgba(0,0,0,0.5);
+      --shadow-modal:     0 24px 64px rgba(0,0,0,0.7);
+
+      --text-emphasis:    #ffffff;
+      --text-primary:     #d4d4d4;
+      --text-secondary:   #a1a1a1;
+      --text-muted:       #737373;
+      --text-faint:       #525252;
+
+      --brand:            #10b981;
+      --brand-hover:      #0d9668;
+      --brand-subtle:     rgba(16,185,129,0.08);
+      --brand-border:     rgba(16,185,129,0.3);
+      --brand-accent:     #10b981;
+
+      --input-bg:         #111113;
+      --input-border:     #222222;
+      --input-focus:      #10b981;
+      --input-placeholder: #525252;
+
+      --btn-ghost-border: #333333;
+      --btn-ghost-text:   #737373;
+      --btn-ghost-hover:  #1c1c1c;
+
+      --signal-green:     #10b981;
+      --signal-amber:     #f59e0b;
+      --signal-red:       #ef4444;
+      --signal-blue:      #3b82f6;
+
+      --signal-green-subtle: rgba(16,185,129,0.1);
+      --signal-amber-subtle: rgba(245,158,11,0.1);
+      --signal-red-subtle:   rgba(239,68,68,0.1);
+      --signal-blue-subtle:  rgba(59,130,246,0.1);
+
+      --tier-selected-border: #10b981;
+      --tier-selected-bg:     rgba(16,185,129,0.06);
+
+      --mono-card-bg:     #0d0d0f;
+      --mono-card-border: #2a2a2a;
+
+      --flow-line:        #333333;
+      --flow-dot-active:  #10b981;
+      --flow-dot-inactive:#333333;
+
+      --tag-bar-bg:       #222222;
+      --tag-new-border:   rgba(16,185,129,0.4);
+
+      --toggle-off-bg:    #333333;
+      --toggle-on-bg:     #10b981;
+
+      --scrollbar-thumb:  #333333;
+    }
+
+    /* ─── Design Tokens: Light ──────────────────────────────── */
+    html.light {
+      --bg-page:          #f2f2f5;
+      --bg-card:          #ffffff;
+      --bg-card-elevated: #f8f8fa;
+      --bg-overlay:       rgba(0,0,0,0.4);
+      --border-subtle:    #e0e0e0;
+      --border-divider:   #ebebeb;
+      --shadow-card:      0 1px 3px rgba(0,0,0,0.08);
+      --shadow-modal:     0 24px 64px rgba(0,0,0,0.2);
+
+      --text-emphasis:    #0a0a0a;
+      --text-primary:     #1a1a1a;
+      --text-secondary:   #525252;
+      --text-muted:       #737373;
+      --text-faint:       #a1a1a1;
+
+      --brand:            #059669;
+      --brand-hover:      #047857;
+      --brand-subtle:     rgba(5,150,105,0.07);
+      --brand-border:     rgba(5,150,105,0.3);
+      --brand-accent:     #7c3aed;
+
+      --input-bg:         #ffffff;
+      --input-border:     #e0e0e0;
+      --input-focus:      #7c3aed;
+      --input-placeholder: #b0b0b0;
+
+      --btn-ghost-border: #d4d4d4;
+      --btn-ghost-text:   #737373;
+      --btn-ghost-hover:  #f5f5f5;
+
+      --signal-green:     #059669;
+      --signal-amber:     #d97706;
+      --signal-red:       #dc2626;
+      --signal-blue:      #2563eb;
+
+      --signal-green-subtle: rgba(5,150,105,0.1);
+      --signal-amber-subtle: rgba(217,119,6,0.1);
+      --signal-red-subtle:   rgba(220,38,38,0.1);
+      --signal-blue-subtle:  rgba(37,99,235,0.1);
+
+      --tier-selected-border: #7c3aed;
+      --tier-selected-bg:     rgba(124,58,237,0.06);
+
+      --mono-card-bg:     #f8f8fa;
+      --mono-card-border: #e0e0e0;
+
+      --flow-line:        #d4d4d4;
+      --flow-dot-active:  #059669;
+      --flow-dot-inactive:#d4d4d4;
+
+      --tag-bar-bg:       #e5e5e5;
+      --tag-new-border:   rgba(124,58,237,0.4);
+
+      --toggle-off-bg:    #d4d4d4;
+      --toggle-on-bg:     #059669;
+
+      --scrollbar-thumb:  #d4d4d4;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+    /* ─── Page Header ─────────────────────────────────────────── */
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-page);
+      border-bottom: 1px solid var(--border-divider);
+      padding: 0 40px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-mark {
+      width: 26px; height: 26px;
+      background: var(--brand);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #000;
+      font-family: 'GeistMono', monospace;
+      flex-shrink: 0;
+    }
+    .page-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .page-subtitle {
+      font-size: 11px;
+      color: var(--text-faint);
+      font-family: 'GeistMono', monospace;
+    }
+    .theme-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 10px;
+      background: transparent;
+      border: 1px solid var(--btn-ghost-border);
+      border-radius: 6px;
+      color: var(--btn-ghost-text);
+      font-size: 11px;
+      font-family: 'GeistMono', monospace;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .theme-btn:hover {
+      background: var(--btn-ghost-hover);
+      color: var(--text-primary);
+      border-color: var(--border-subtle);
+    }
+
+    /* ─── Main Layout ─────────────────────────────────────────── */
+    .main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 48px 40px 80px;
+    }
+
+    /* ─── Section ─────────────────────────────────────────────── */
+    .section {
+      margin-bottom: 64px;
+    }
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-divider);
+    }
+    .section-number {
+      width: 28px; height: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-family: 'GeistMono', monospace;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .section-meta {}
+    .section-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      margin-bottom: 2px;
+    }
+    .section-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'GeistMono', monospace;
+    }
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-faint);
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* ─── Card ────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      box-shadow: var(--shadow-card);
+    }
+
+    /* ─── Form Base ───────────────────────────────────────────── */
+    .field-group { margin-bottom: 16px; }
+    .field-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-family: 'GeistMono', monospace;
+      margin-bottom: 5px;
+    }
+    .field-label .optional {
+      font-weight: 400;
+      color: var(--text-faint);
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 10px;
+    }
+    .input {
+      width: 100%;
+      padding: 7px 10px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: 'Geist', sans-serif;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+    .input:focus { border-color: var(--input-focus); }
+    .input::placeholder { color: var(--input-placeholder); }
+    .input.mono { font-family: 'GeistMono', monospace; font-size: 12px; }
+    .input.error { border-color: var(--signal-red); }
+    .field-error {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--signal-red);
+      font-family: 'GeistMono', monospace;
+    }
+
+    textarea.input {
+      resize: vertical;
+      min-height: 68px;
+    }
+
+    select.input {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23737373' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+
+    /* ─── Buttons ─────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Geist', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .btn-brand {
+      background: var(--brand);
+      color: #000;
+      border-color: var(--brand);
+    }
+    .btn-brand:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--btn-ghost-text);
+      border-color: var(--btn-ghost-border);
+    }
+    .btn-ghost:hover { background: var(--btn-ghost-hover); color: var(--text-primary); }
+    .btn-outline-brand {
+      background: transparent;
+      color: var(--brand);
+      border-color: var(--brand-border);
+    }
+    .btn-outline-brand:hover { background: var(--brand-subtle); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-actions {
+      display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-divider);
+      margin-top: 16px;
+    }
+
+    /* ─── Divider ─────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border-divider);
+      margin: 16px 0;
+    }
+
+    /* ─── Viz Panel ───────────────────────────────────────────── */
+    .viz-panel {
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-divider);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 16px;
+    }
+    .viz-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      font-family: 'GeistMono', monospace;
+      margin-bottom: 10px;
+    }
+
+
+    /* ══════════════════════════════════════════════════════════ */
+    /* FORM 1 — Tag Creation Dialog                             */
+    /* ══════════════════════════════════════════════════════════ */
+
+    .dialog-backdrop {
+      background: var(--bg-page);
+      border-radius: 12px;
+      padding: 32px;
+      position: relative;
+      /* simulate backdrop */
+    }
+    .dialog-backdrop::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--bg-overlay);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+    .dialog-backdrop-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 32px 0;
+      /* fake dim */
+    }
+    /* Actual backdrop: show a blurred background area */
+    .dialog-stage {
+      background: var(--bg-page);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .dialog-stage::before {
+      content: 'BACKDROP';
+      position: absolute;
+      inset: 0;
+      background: var(--bg-overlay);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-faint);
+      font-family: 'GeistMono', monospace;
+      pointer-events: none;
+    }
+    .dialog-container {
+      position: relative;
+      z-index: 2;
+      width: 480px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      box-shadow: var(--shadow-modal);
+      margin: 0 auto;
+    }
+    .dialog-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border-divider);
+    }
+    .dialog-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      margin-bottom: 2px;
+    }
+    .dialog-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .dialog-body { padding: 18px 20px 0; }
+    .dialog-footer {
+      padding: 14px 20px 18px;
+    }
+
+    .key-value-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0;
+      align-items: end;
+    }
+    .key-value-separator {
+      width: 28px;
+      text-align: center;
+      padding-bottom: 8px;
+      color: var(--text-faint);
+      font-family: 'GeistMono', monospace;
+      font-size: 14px;
+      font-weight: 300;
+    }
+
+    .autocomplete-wrapper { position: relative; }
+    .autocomplete-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      box-shadow: var(--shadow-modal);
+      z-index: 10;
+      overflow: hidden;
+    }
+    .autocomplete-item {
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.1s;
+    }
+    .autocomplete-item:hover { background: var(--bg-card-elevated); }
+    .autocomplete-item.active {
+      background: var(--brand-subtle);
+      color: var(--brand);
+    }
+    .autocomplete-count {
+      font-size: 10px;
+      color: var(--text-faint);
+    }
+
+    /* Tag impact bars */
+    .tag-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .tag-bar-label {
+      font-size: 11px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-secondary);
+      width: 180px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tag-bar-label .key { color: var(--text-muted); }
+    .tag-bar-label .colon { color: var(--text-faint); }
+    .tag-bar-label .value { color: var(--text-primary); }
+    .tag-bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--tag-bar-bg);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+    .tag-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--brand);
+      transition: width 0.4s ease;
+    }
+    .tag-bar-track.new-tag {
+      background: transparent;
+      border: 1px dashed var(--tag-new-border);
+    }
+    .tag-bar-count {
+      font-size: 10px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-faint);
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .impact-summary {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .impact-summary strong { color: var(--text-emphasis); }
+
+
+    /* ══════════════════════════════════════════════════════════ */
+    /* FORM 2 — Hub: License Generation Sheet                  */
+    /* ══════════════════════════════════════════════════════════ */
+
+    .sheet-stage {
+      display: grid;
+      grid-template-columns: 1fr 500px;
+      gap: 0;
+      min-height: 600px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .sheet-backdrop-area {
+      background: var(--bg-page);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sheet-backdrop-area::before {
+      content: 'MAIN CONTENT AREA';
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--text-faint);
+      font-family: 'GeistMono', monospace;
+    }
+    .sheet-overlay-area {
+      background: var(--bg-card);
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+    }
+    .sheet-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border-divider);
+      flex-shrink: 0;
+    }
+    .sheet-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      margin-bottom: 2px;
+    }
+    .sheet-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .sheet-body {
+      padding: 16px 20px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .sheet-footer {
+      padding: 14px 20px 18px;
+      border-top: 1px solid var(--border-divider);
+      flex-shrink: 0;
+    }
+
+    .tier-cards { display: flex; flex-direction: column; gap: 6px; }
+    .tier-card {
+      padding: 10px 12px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tier-card:hover { border-color: var(--border-subtle); background: var(--bg-card); }
+    .tier-card.selected {
+      border-color: var(--tier-selected-border);
+      background: var(--tier-selected-bg);
+    }
+    .tier-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .tier-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+    }
+    .tier-limit {
+      font-size: 10px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-muted);
+    }
+    .tier-features {
+      font-size: 10px;
+      color: var(--text-faint);
+      line-height: 1.6;
+    }
+    .tier-selected-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--tier-selected-border);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .tier-selected-dot.checked::after {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--tier-selected-border);
+    }
+    .tier-card-left { display: flex; align-items: flex-start; gap: 10px; }
+
+    /* License card preview */
+    .license-card-preview {
+      background: var(--mono-card-bg);
+      border: 1px solid var(--mono-card-border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'GeistMono', monospace;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .license-card-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--brand);
+      margin-bottom: 6px;
+    }
+    .license-card-divider {
+      height: 1px;
+      background: var(--mono-card-border);
+      margin: 6px 0 10px;
+    }
+    .lc-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .lc-key { color: var(--text-faint); width: 90px; flex-shrink: 0; }
+    .lc-val { color: var(--text-secondary); }
+    .lc-val.highlight { color: var(--brand); }
+    .lc-key-mask { color: var(--text-faint); letter-spacing: 0.1em; }
+    .lc-features { margin-top: 8px; }
+    .lc-feature {
+      font-size: 10px;
+      color: var(--signal-green);
+      display: flex; align-items: center; gap: 6px;
+      line-height: 1.8;
+    }
+
+    .capacity-bar-row { margin-top: 12px; }
+    .capacity-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .capacity-text { font-size: 11px; color: var(--text-secondary); }
+    .capacity-count { font-size: 11px; font-family: 'GeistMono', monospace; color: var(--text-muted); }
+    .capacity-track {
+      height: 6px;
+      background: var(--tag-bar-bg);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .capacity-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--brand);
+    }
+
+
+    /* ══════════════════════════════════════════════════════════ */
+    /* FORM 3 — Hub: Feed Configuration Dialog                 */
+    /* ══════════════════════════════════════════════════════════ */
+
+    .feed-dialog-stage {
+      background: var(--bg-page);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 48px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .feed-dialog-stage::before {
+      content: 'FEEDS PAGE';
+      position: absolute;
+      inset: 0;
+      background: var(--bg-overlay);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-faint);
+      font-family: 'GeistMono', monospace;
+    }
+    .feed-dialog-container {
+      position: relative;
+      z-index: 2;
+      width: 520px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      box-shadow: var(--shadow-modal);
+      margin: 0 auto;
+    }
+
+    /* Pipeline flow viz */
+    .pipeline-flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 12px;
+    }
+    .pipeline-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .pipeline-circle {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--brand-subtle);
+      border: 1px solid var(--brand-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .pipeline-circle.source {
+      background: rgba(59,130,246,0.1);
+      border-color: rgba(59,130,246,0.3);
+    }
+    .pipeline-stage-label {
+      font-size: 9px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-muted);
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+    .pipeline-arrow {
+      font-size: 12px;
+      color: var(--flow-line);
+      padding: 0 2px;
+      margin-bottom: 18px; /* align with circles */
+    }
+    .pipeline-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .pipeline-stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border-divider);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .pipeline-stat-label {
+      font-size: 9px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 3px;
+    }
+    .pipeline-stat-value {
+      font-size: 12px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-secondary);
+    }
+    .pipeline-stat-value.green { color: var(--signal-green); }
+    .pipeline-stat-value.amber { color: var(--signal-amber); }
+
+
+    /* ══════════════════════════════════════════════════════════ */
+    /* FORM 4 — Notification Channel Setup                     */
+    /* ══════════════════════════════════════════════════════════ */
+
+    .channels-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .channel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .channel-card.expanded { border-color: var(--brand-border); }
+    .channel-header {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .channel-icon {
+      width: 30px; height: 30px;
+      border-radius: 7px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-divider);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .channel-info { flex: 1; }
+    .channel-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-emphasis);
+      margin-bottom: 1px;
+    }
+    .channel-status {
+      font-size: 10px;
+      font-family: 'GeistMono', monospace;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .channel-status.configured { color: var(--signal-green); }
+    .channel-status.not-configured { color: var(--signal-amber); }
+    .status-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .channel-expand-icon {
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    .channel-body {
+      padding: 0 14px 14px;
+      border-top: 1px solid var(--border-divider);
+      padding-top: 12px;
+    }
+    .channel-body .field-group { margin-bottom: 10px; }
+    .channel-body .input { padding: 6px 9px; font-size: 12px; }
+    .channel-body .field-label { margin-bottom: 4px; }
+
+    .inline-row {
+      display: grid;
+      grid-template-columns: 1fr 80px;
+      gap: 8px;
+    }
+    .tls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-top: 1px solid var(--border-divider);
+      margin-top: 4px;
+    }
+    .tls-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .toggle {
+      width: 36px; height: 20px;
+      background: var(--toggle-on-bg);
+      border-radius: 10px;
+      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 18px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .toggle.off { background: var(--toggle-off-bg); }
+    .toggle.off::after { left: 3px; }
+
+    .test-result {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-family: 'GeistMono', monospace;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+    .test-result.success {
+      color: var(--signal-green);
+      background: var(--signal-green-subtle);
+    }
+    .test-result.fail {
+      color: var(--signal-red);
+      background: var(--signal-red-subtle);
+    }
+    .channel-action-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-divider);
+      margin-top: 8px;
+    }
+
+    /* Notification flow diagram */
+    .notif-flow {
+      display: grid;
+      grid-template-columns: 140px 1fr 140px;
+      align-items: center;
+      gap: 0;
+    }
+    .notif-sources { display: flex; flex-direction: column; gap: 6px; }
+    .notif-channels-col { display: flex; flex-direction: column; gap: 8px; }
+    .notif-source {
+      padding: 6px 10px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-divider);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .notif-channel-node {
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .notif-channel-node.active {
+      background: var(--signal-green-subtle);
+      border: 1px solid rgba(16,185,129,0.2);
+      color: var(--signal-green);
+    }
+    .notif-channel-node.inactive {
+      background: var(--bg-card-elevated);
+      border: 1px dashed var(--border-subtle);
+      color: var(--text-faint);
+    }
+    .notif-channel-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .notif-channel-dot.active { background: var(--signal-green); }
+    .notif-channel-dot.inactive { background: var(--text-faint); }
+
+    .flow-lines {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 12px;
+      position: relative;
+    }
+    .flow-lines-svg {
+      width: 100%;
+      height: 160px;
+      overflow: visible;
+    }
+
+    .notif-summary {
+      margin-top: 14px;
+      padding: 10px 12px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-divider);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .notif-summary-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .notif-summary-text strong { color: var(--text-emphasis); }
+    .notif-summary-badge {
+      font-size: 10px;
+      font-family: 'GeistMono', monospace;
+      padding: 2px 8px;
+      background: var(--signal-green-subtle);
+      color: var(--signal-green);
+      border-radius: 4px;
+      border: 1px solid rgba(16,185,129,0.2);
+    }
+
+    /* Misc helpers */
+    .text-muted { color: var(--text-muted); }
+    .text-green { color: var(--signal-green); }
+    .text-amber { color: var(--signal-amber); }
+    .text-red { color: var(--signal-red); }
+    .mono { font-family: 'GeistMono', monospace; }
+    .small { font-size: 11px; }
+    .mt-4 { margin-top: 4px; }
+    .mt-8 { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+    .mb-4 { margin-bottom: 4px; }
+    .mb-8 { margin-bottom: 8px; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; }
+    .flex-center { display: flex; align-items: center; gap: 8px; }
+
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'GeistMono', monospace;
+      letter-spacing: 0.04em;
+    }
+    .badge-green { background: var(--signal-green-subtle); color: var(--signal-green); }
+    .badge-amber { background: var(--signal-amber-subtle); color: var(--signal-amber); }
+    .badge-blue { background: var(--signal-blue-subtle); color: var(--signal-blue); }
+    .badge-brand {
+      background: var(--brand-subtle);
+      color: var(--brand);
+      border: 1px solid var(--brand-border);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Page Header ──────────────────────────────────────────── -->
+  <header class="page-header">
+    <div class="page-header-left">
+      <div class="logo-mark">P</div>
+      <div>
+        <div class="page-title">PatchIQ — Form Patterns</div>
+        <div class="page-subtitle">m3 · ui mockup · 18-forms-collection</div>
+      </div>
+    </div>
+    <button class="theme-btn" onclick="document.documentElement.classList.toggle('light'); this.textContent = document.documentElement.classList.contains('light') ? '◐ Dark' : '◑ Light'">◑ Light</button>
+  </header>
+
+  <!-- ─── Main ─────────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SECTION 1 — Tag Creation Dialog                         -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">01</div>
+        <div class="section-meta">
+          <div class="section-name">Tag Creation<span class="section-tag">dialog · 480px</span></div>
+          <div class="section-desc">modal with impact preview · key:value model · autocomplete + context bars</div>
+        </div>
+      </div>
+
+      <!-- Dialog Stage -->
+      <div class="dialog-stage">
+        <div class="dialog-container">
+          <!-- Header -->
+          <div class="dialog-header">
+            <div class="flex-between">
+              <div>
+                <div class="dialog-title">Create Tag</div>
+                <div class="dialog-subtitle">Tags are key:value pairs used to classify and target endpoints</div>
+              </div>
+              <span class="badge badge-brand">NEW</span>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="dialog-body">
+
+            <!-- Key / Value row -->
+            <div class="field-group">
+              <label class="field-label">Tag Key &amp; Value</label>
+              <div class="key-value-row">
+                <!-- Key with autocomplete -->
+                <div class="autocomplete-wrapper">
+                  <input type="text" class="input mono" value="environment" readonly />
+                  <div class="autocomplete-dropdown">
+                    <div class="autocomplete-item active">
+                      <span>environment</span>
+                      <span class="autocomplete-count">535 tags</span>
+                    </div>
+                    <div class="autocomplete-item">
+                      <span>os</span>
+                      <span class="autocomplete-count">1,247 tags</span>
+                    </div>
+                    <div class="autocomplete-item">
+                      <span>role</span>
+                      <span class="autocomplete-count">312 tags</span>
+                    </div>
+                    <div class="autocomplete-item">
+                      <span>team</span>
+                      <span class="autocomplete-count">89 tags</span>
+                    </div>
+                    <div class="autocomplete-item">
+                      <span>datacenter</span>
+                      <span class="autocomplete-count">48 tags</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="key-value-separator">:</div>
+                <input type="text" class="input mono" value="staging" readonly />
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="field-group">
+              <label class="field-label">Description <span class="optional">— optional</span></label>
+              <textarea class="input" readonly>Staging environment endpoints for pre-production testing</textarea>
+            </div>
+
+            <!-- Impact Preview Visualization -->
+            <div class="viz-panel">
+              <div class="viz-label">Impact Preview</div>
+              <div class="impact-summary">
+                This tag will be available for assignment to <strong>1,247 endpoints</strong>
+              </div>
+              <div class="small text-muted mb-8">Similar tags with key <span class="mono" style="color:var(--brand)">environment</span>:</div>
+
+              <!-- Bar rows -->
+              <div class="tag-bar-row">
+                <div class="tag-bar-label">
+                  <span class="key">environment</span><span class="colon">:</span><span class="value">production</span>
+                </div>
+                <div class="tag-bar-track">
+                  <div class="tag-bar-fill" style="width: 82%"></div>
+                </div>
+                <div class="tag-bar-count">423</div>
+              </div>
+
+              <div class="tag-bar-row">
+                <div class="tag-bar-label">
+                  <span class="key">environment</span><span class="colon">:</span><span class="value">development</span>
+                </div>
+                <div class="tag-bar-track">
+                  <div class="tag-bar-fill" style="width: 22%"></div>
+                </div>
+                <div class="tag-bar-count">112</div>
+              </div>
+
+              <div class="tag-bar-row">
+                <div class="tag-bar-label" style="color:var(--brand)">
+                  <span style="opacity:0.7">environment</span><span style="opacity:0.5">:</span><span>staging</span>
+                  <span class="badge badge-brand" style="margin-left:6px;font-size:9px">new</span>
+                </div>
+                <div class="tag-bar-track new-tag">
+                  <!-- empty -->
+                </div>
+                <div class="tag-bar-count" style="color:var(--text-faint)">0</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Footer -->
+          <div class="dialog-footer">
+            <div class="btn-actions" style="margin-top:0; border-top:none; padding-top:0;">
+              <button class="btn btn-ghost">Cancel</button>
+              <button class="btn btn-brand">Create Tag</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SECTION 2 — Hub: License Generation Sheet               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">02</div>
+        <div class="section-meta">
+          <div class="section-name">Hub: License Generation<span class="section-tag">sheet · 500px</span></div>
+          <div class="section-desc">right-side sheet · tier selector cards · live license preview · fleet capacity bar</div>
+        </div>
+      </div>
+
+      <!-- Sheet Stage -->
+      <div class="sheet-stage">
+        <!-- Backdrop -->
+        <div class="sheet-backdrop-area"></div>
+
+        <!-- Sheet Overlay -->
+        <div class="sheet-overlay-area">
+          <div class="sheet-header">
+            <div class="flex-between">
+              <div>
+                <div class="sheet-title">Generate License</div>
+                <div class="sheet-subtitle">Issue a new license key for a customer</div>
+              </div>
+              <span class="badge badge-green">Hub Manager</span>
+            </div>
+          </div>
+
+          <div class="sheet-body">
+
+            <!-- Customer fields -->
+            <div class="field-group">
+              <label class="field-label">Customer Name</label>
+              <input type="text" class="input" value="Acme Corporation" readonly />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Customer Email <span class="optional">— optional</span></label>
+              <input type="text" class="input" value="admin@acme.corp" readonly />
+            </div>
+
+            <!-- Tier selector -->
+            <div class="field-group">
+              <label class="field-label">License Tier</label>
+              <div class="tier-cards">
+
+                <div class="tier-card">
+                  <div class="tier-card-header">
+                    <div class="tier-card-left">
+                      <div class="tier-selected-dot"></div>
+                      <div>
+                        <div class="tier-name">Community</div>
+                        <div class="tier-limit">Free · up to 25 endpoints</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tier-features">Basic inventory · patch scanning · single user</div>
+                </div>
+
+                <div class="tier-card">
+                  <div class="tier-card-header">
+                    <div class="tier-card-left">
+                      <div class="tier-selected-dot"></div>
+                      <div>
+                        <div class="tier-name">Professional</div>
+                        <div class="tier-limit">$299/mo · up to 100 endpoints</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tier-features">Compliance frameworks · workflow automation · 5 users</div>
+                </div>
+
+                <div class="tier-card selected">
+                  <div class="tier-card-header">
+                    <div class="tier-card-left">
+                      <div class="tier-selected-dot checked"></div>
+                      <div>
+                        <div class="tier-name" style="color:var(--brand)">Enterprise</div>
+                        <div class="tier-limit">Custom · unlimited endpoints</div>
+                      </div>
+                    </div>
+                    <span class="badge badge-brand">selected</span>
+                  </div>
+                  <div class="tier-features" style="color:var(--text-muted)">All features · API access · priority support · SSO</div>
+                </div>
+
+                <div class="tier-card">
+                  <div class="tier-card-header">
+                    <div class="tier-card-left">
+                      <div class="tier-selected-dot"></div>
+                      <div>
+                        <div class="tier-name">MSP</div>
+                        <div class="tier-limit">Custom · multi-tenant</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tier-features">White-label · reseller portal · dedicated support</div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Endpoint count + Expiry -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="field-group" style="margin-bottom:0">
+                <label class="field-label">Max Endpoints</label>
+                <input type="number" class="input mono" value="500" readonly />
+              </div>
+              <div class="field-group" style="margin-bottom:0">
+                <label class="field-label">Expiration</label>
+                <input type="text" class="input mono" value="2027-03-23" readonly />
+              </div>
+            </div>
+
+            <div class="field-group mt-8">
+              <label class="field-label">Notes <span class="optional">— optional</span></label>
+              <textarea class="input" style="min-height:52px" readonly>Annual contract renewal — enterprise tier</textarea>
+            </div>
+
+            <!-- License Preview Visualization -->
+            <div class="viz-panel">
+              <div class="viz-label">License Preview</div>
+              <div class="license-card-preview">
+                <div class="license-card-title">PATCHIQ LICENSE</div>
+                <div class="license-card-divider"></div>
+                <div class="lc-row"><span class="lc-key">Customer:</span><span class="lc-val">Acme Corporation</span></div>
+                <div class="lc-row">
+                  <span class="lc-key">Tier:</span>
+                  <span class="lc-val highlight">Enterprise</span>
+                  <span style="font-size:10px;color:var(--brand);letter-spacing:0.05em">██████████</span>
+                </div>
+                <div class="lc-row"><span class="lc-key">Endpoints:</span><span class="lc-val">0 / 500</span></div>
+                <div class="lc-row"><span class="lc-key">Valid:</span><span class="lc-val">Mar 23, 2026 → Mar 23, 2027</span></div>
+                <div class="lc-row"><span class="lc-key">Key:</span><span class="lc-key-mask">****-****-****-****</span></div>
+                <div class="lc-features">
+                  <div class="lc-feature">✓ Unlimited endpoints</div>
+                  <div class="lc-feature">✓ Compliance frameworks</div>
+                  <div class="lc-feature">✓ Workflow automation</div>
+                  <div class="lc-feature">✓ API access &amp; SSO</div>
+                  <div class="lc-feature">✓ Priority support</div>
+                </div>
+              </div>
+
+              <!-- Fleet capacity bar -->
+              <div class="capacity-bar-row">
+                <div class="capacity-label">
+                  <span class="capacity-text">Fleet capacity after issuance</span>
+                  <span class="capacity-count mono">72 / 600 seats</span>
+                </div>
+                <div class="capacity-track">
+                  <div class="capacity-fill" style="width:12%"></div>
+                </div>
+                <div class="small text-muted mt-4">100 existing + 500 new seats · 72 currently enrolled</div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="sheet-footer">
+            <div class="flex-between">
+              <button class="btn btn-ghost">Cancel</button>
+              <button class="btn btn-brand">Generate License</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SECTION 3 — Hub: Feed Configuration Dialog              -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">03</div>
+        <div class="section-meta">
+          <div class="section-name">Hub: Feed Configuration<span class="section-tag">dialog · 520px</span></div>
+          <div class="section-desc">feed setup · pipeline preview stages · health expectations · sync schedule</div>
+        </div>
+      </div>
+
+      <!-- Feed Dialog Stage -->
+      <div class="feed-dialog-stage">
+        <div class="feed-dialog-container">
+
+          <div class="dialog-header">
+            <div class="flex-between">
+              <div>
+                <div class="dialog-title">Add Feed</div>
+                <div class="dialog-subtitle">Configure a new vulnerability feed source for the catalog</div>
+              </div>
+              <span class="badge badge-blue">Hub</span>
+            </div>
+          </div>
+
+          <div class="dialog-body">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="field-group">
+                <label class="field-label">Feed Name</label>
+                <input type="text" class="input" value="Red Hat OVAL" readonly />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Sync Interval</label>
+                <select class="input">
+                  <option>1 hour</option>
+                  <option>6 hours</option>
+                  <option selected>12 hours</option>
+                  <option>24 hours</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Display Name</label>
+              <input type="text" class="input" value="Red Hat OVAL Vulnerability Feed" readonly />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Source URL</label>
+              <input type="text" class="input mono" value="https://www.redhat.com/security/data/oval/" readonly />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Description <span class="optional">— optional</span></label>
+              <textarea class="input" style="min-height:52px" readonly>Official Red Hat OVAL data for RHEL vulnerability tracking and patch correlation</textarea>
+            </div>
+
+            <!-- Pipeline Preview Visualization -->
+            <div class="viz-panel">
+              <div class="viz-label">Feed Pipeline Preview</div>
+
+              <!-- Pipeline flow -->
+              <div class="pipeline-flow">
+                <div class="pipeline-stage">
+                  <div class="pipeline-circle source">🌐</div>
+                  <div class="pipeline-stage-label">Source</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-stage">
+                  <div class="pipeline-circle">⬇</div>
+                  <div class="pipeline-stage-label">Ingest</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-stage">
+                  <div class="pipeline-circle">⟳</div>
+                  <div class="pipeline-stage-label">Normalize</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-stage">
+                  <div class="pipeline-circle">◈</div>
+                  <div class="pipeline-stage-label">Deduplicate</div>
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-stage">
+                  <div class="pipeline-circle">📦</div>
+                  <div class="pipeline-stage-label">Catalog</div>
+                </div>
+              </div>
+
+              <!-- Stats grid -->
+              <div class="pipeline-stats">
+                <div class="pipeline-stat">
+                  <div class="pipeline-stat-label">Est. Entries</div>
+                  <div class="pipeline-stat-value">~892</div>
+                </div>
+                <div class="pipeline-stat">
+                  <div class="pipeline-stat-label">Sync Time</div>
+                  <div class="pipeline-stat-value green">~5 min</div>
+                </div>
+                <div class="pipeline-stat">
+                  <div class="pipeline-stat-label">Error Rate</div>
+                  <div class="pipeline-stat-value green">&lt;1%</div>
+                </div>
+              </div>
+
+              <!-- Schedule info -->
+              <div style="margin-top:10px; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-divider); border-radius:6px;">
+                <div class="flex-between mb-4">
+                  <span class="small text-muted">Next sync</span>
+                  <span class="small mono" style="color:var(--brand)">immediately after creation</span>
+                </div>
+                <div class="flex-between mb-4">
+                  <span class="small text-muted">Recurring</span>
+                  <span class="small mono text-muted">every 12 hours</span>
+                </div>
+                <div class="flex-between">
+                  <span class="small text-muted">Based on</span>
+                  <span class="small mono text-muted">similar OVAL feeds avg</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="dialog-footer">
+            <div class="btn-actions" style="margin-top:0; border-top:none; padding-top:0;">
+              <button class="btn btn-ghost">Cancel</button>
+              <button class="btn btn-brand">Add Feed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SECTION 4 — Notification Channel Setup                  -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">04</div>
+        <div class="section-meta">
+          <div class="section-name">Notification Channel Setup<span class="section-tag">multi-step · expandable</span></div>
+          <div class="section-desc">2×2 channel cards · expandable SMTP config · test connection · routing flow diagram</div>
+        </div>
+      </div>
+
+      <!-- Channels 2x2 grid -->
+      <div class="channels-grid">
+
+        <!-- Email — EXPANDED -->
+        <div class="channel-card expanded" style="grid-column: 1 / -1;">
+          <div class="channel-header">
+            <div class="channel-icon">✉️</div>
+            <div class="channel-info">
+              <div class="channel-name">Email</div>
+              <div class="channel-status not-configured">
+                <span class="status-dot"></span>Not configured
+              </div>
+            </div>
+            <span class="channel-expand-icon">▲</span>
+          </div>
+          <div class="channel-body">
+            <div class="inline-row">
+              <div class="field-group" style="margin-bottom:0">
+                <label class="field-label">SMTP Host</label>
+                <input type="text" class="input" value="smtp.company.com" readonly />
+              </div>
+              <div class="field-group" style="margin-bottom:0">
+                <label class="field-label">Port</label>
+                <input type="text" class="input mono" value="587" readonly />
+              </div>
+            </div>
+            <div class="field-group mt-8">
+              <label class="field-label">Username</label>
+              <input type="text" class="input" value="notifications@patchiq.com" readonly />
+            </div>
+            <div class="field-group">
+              <label class="field-label">Password</label>
+              <input type="password" class="input" value="supersecret123" readonly />
+            </div>
+            <div class="field-group">
+              <label class="field-label">From Address</label>
+              <input type="text" class="input" value="PatchIQ <no-reply@patchiq.com>" readonly />
+            </div>
+            <div class="tls-row">
+              <span class="tls-label">Enable TLS / STARTTLS</span>
+              <div class="toggle"></div>
+            </div>
+            <div class="channel-action-row">
+              <button class="btn btn-outline-brand btn-sm">Test Connection</button>
+              <span class="test-result success">✓ Connected</span>
+              <div style="flex:1"></div>
+              <button class="btn btn-ghost btn-sm">Discard</button>
+              <button class="btn btn-brand btn-sm">Save Channel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slack — Collapsed / configured -->
+        <div class="channel-card">
+          <div class="channel-header">
+            <div class="channel-icon">💬</div>
+            <div class="channel-info">
+              <div class="channel-name">Slack</div>
+              <div class="channel-status configured">
+                <span class="status-dot"></span>Connected · #patchiq-alerts
+              </div>
+            </div>
+            <span class="channel-expand-icon">▼</span>
+          </div>
+        </div>
+
+        <!-- Webhook — Collapsed / not configured -->
+        <div class="channel-card">
+          <div class="channel-header">
+            <div class="channel-icon">🌐</div>
+            <div class="channel-info">
+              <div class="channel-name">Webhook</div>
+              <div class="channel-status not-configured">
+                <span class="status-dot"></span>Not configured
+              </div>
+            </div>
+            <span class="channel-expand-icon">▼</span>
+          </div>
+        </div>
+
+        <!-- Discord — Collapsed / not configured -->
+        <div class="channel-card">
+          <div class="channel-header">
+            <div class="channel-icon">🎮</div>
+            <div class="channel-info">
+              <div class="channel-name">Discord</div>
+              <div class="channel-status not-configured">
+                <span class="status-dot"></span>Not configured
+              </div>
+            </div>
+            <span class="channel-expand-icon">▼</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Notification Flow Diagram -->
+      <div class="card" style="padding:20px;">
+        <div class="viz-label" style="margin-bottom:14px;">Notification Flow Preview</div>
+        <div class="notif-flow">
+
+          <!-- Sources (left) -->
+          <div class="notif-sources">
+            <div class="notif-source">
+              <span style="font-size:14px">🚀</span>
+              <span>Deployment</span>
+            </div>
+            <div class="notif-source">
+              <span style="font-size:14px">🛡️</span>
+              <span>Compliance</span>
+            </div>
+            <div class="notif-source">
+              <span style="font-size:14px">⚠️</span>
+              <span>Security</span>
+            </div>
+            <div class="notif-source">
+              <span style="font-size:14px">⚙️</span>
+              <span>System</span>
+            </div>
+          </div>
+
+          <!-- SVG flow lines (center) -->
+          <div class="flow-lines">
+            <svg class="flow-lines-svg" viewBox="0 0 120 160" preserveAspectRatio="none">
+              <!-- Sources at x=0: y=20, 55, 90, 125; Channels at x=120: y=30, 70, 110, 140 -->
+              <!-- Email (active) -->
+              <path d="M0,20 C60,20 60,30 120,30" stroke="var(--flow-dot-active)" stroke-width="1.5" fill="none" opacity="0.7"/>
+              <path d="M0,55 C60,55 60,30 120,30" stroke="var(--flow-dot-active)" stroke-width="1.5" fill="none" opacity="0.7"/>
+              <path d="M0,90 C60,90 60,30 120,30" stroke="var(--flow-dot-active)" stroke-width="1.5" fill="none" opacity="0.7"/>
+              <path d="M0,125 C60,125 60,30 120,30" stroke="var(--flow-dot-active)" stroke-width="1.5" fill="none" opacity="0.4"/>
+              <!-- Slack (active) -->
+              <path d="M0,20 C60,20 60,70 120,70" stroke="var(--flow-dot-active)" stroke-width="1.5" fill="none" opacity="0.5"/>
+              <path d="M0,55 C60,55 60,70 120,70" stroke="var(--flow-dot-active)" stroke-width="1.5" fill="none" opacity="0.7"/>
+              <!-- Webhook (inactive dashed) -->
+              <path d="M0,20 C60,20 60,110 120,110" stroke="var(--flow-line)" stroke-width="1" stroke-dasharray="3,3" fill="none" opacity="0.5"/>
+              <!-- Discord (inactive dashed) -->
+              <path d="M0,125 C60,125 60,140 120,140" stroke="var(--flow-line)" stroke-width="1" stroke-dasharray="3,3" fill="none" opacity="0.5"/>
+              <!-- source dots -->
+              <circle cx="0" cy="20" r="3" fill="var(--flow-dot-active)"/>
+              <circle cx="0" cy="55" r="3" fill="var(--flow-dot-active)"/>
+              <circle cx="0" cy="90" r="3" fill="var(--flow-dot-active)"/>
+              <circle cx="0" cy="125" r="3" fill="var(--flow-dot-active)" opacity="0.4"/>
+              <!-- channel dots -->
+              <circle cx="120" cy="30" r="3" fill="var(--flow-dot-active)"/>
+              <circle cx="120" cy="70" r="3" fill="var(--flow-dot-active)"/>
+              <circle cx="120" cy="110" r="3" fill="var(--flow-dot-inactive)"/>
+              <circle cx="120" cy="140" r="3" fill="var(--flow-dot-inactive)"/>
+            </svg>
+          </div>
+
+          <!-- Channels (right) -->
+          <div class="notif-channels-col">
+            <div class="notif-channel-node active">
+              <span class="notif-channel-dot active"></span>
+              <span>✉️ Email</span>
+            </div>
+            <div class="notif-channel-node active">
+              <span class="notif-channel-dot active"></span>
+              <span>💬 Slack</span>
+            </div>
+            <div class="notif-channel-node inactive">
+              <span class="notif-channel-dot inactive"></span>
+              <span>🌐 Webhook</span>
+            </div>
+            <div class="notif-channel-node inactive">
+              <span class="notif-channel-dot inactive"></span>
+              <span>🎮 Discord</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="notif-summary">
+          <span class="notif-summary-text"><strong>23 event types</strong> routed to <strong>2 channels</strong> · Webhook &amp; Discord not configured</span>
+          <span class="notif-summary-badge">2 / 4 active</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+</body>
+</html>

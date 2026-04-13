@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Appearance Settings</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    /* ─── CSS Custom Properties: Accent System ───────────────── */
+    :root {
+      --accent:        #10b981;
+      --accent-subtle: rgba(16,185,129,0.08);
+      --accent-border: rgba(16,185,129,0.3);
+      --accent-hover:  #0d9668;
+      --accent-glow:   0 0 0 3px rgba(16,185,129,0.25);
+    }
+
+    /* ─── Design Tokens: Dark (default) ─────────────────────── */
+    :root {
+      --bg-page:          #000000;
+      --bg-sidebar:       #000000;
+      --bg-topbar:        #000000;
+      --bg-card:          #111113;
+      --bg-card-elevated: #161618;
+      --bg-input:         #0d0d0f;
+      --border-subtle:    #222222;
+      --border-divider:   #1c1c1c;
+      --shadow-card:      0 1px 2px rgba(0,0,0,0.5);
+      --shadow-modal:     0 24px 64px rgba(0,0,0,0.7);
+
+      --text-emphasis:    #ffffff;
+      --text-primary:     #d4d4d4;
+      --text-secondary:   #a1a1a1;
+      --text-muted:       #737373;
+      --text-faint:       #525252;
+
+      --nav-item-color:   #737373;
+      --nav-item-hover:   #a1a1a1;
+      --nav-label:        #525252;
+
+      --btn-ghost-border: #333333;
+      --btn-ghost-text:   #737373;
+      --btn-ghost-hover:  #1c1c1c;
+
+      --input-border:     #222222;
+      --input-placeholder: #525252;
+
+      --scrollbar-thumb:  #333333;
+
+      /* Signal colors — NEVER change with accent */
+      --signal-healthy:   #22c55e;
+      --signal-critical:  #ef4444;
+      --signal-warning:   #f59e0b;
+      --signal-info:      #3b82f6;
+      --signal-healthy-subtle:  rgba(34,197,94,0.10);
+      --signal-critical-subtle: rgba(239,68,68,0.10);
+      --signal-warning-subtle:  rgba(245,158,11,0.10);
+
+      /* Ring/chart track */
+      --track-bg:         #222222;
+      --chart-grid:       #1c1c1c;
+
+      /* Preview sidebar */
+      --preview-sidebar-bg: #0a0a0a;
+      --preview-content-bg: #0d0d0f;
+      --preview-card-bg:    #111113;
+      --preview-row-hover:  #161618;
+    }
+
+    /* ─── Design Tokens: Light ───────────────────────────────── */
+    html.light {
+      --bg-page:          #f5f5f5;
+      --bg-sidebar:       #ffffff;
+      --bg-topbar:        #ffffff;
+      --bg-card:          #ffffff;
+      --bg-card-elevated: #fafafa;
+      --bg-input:         #ffffff;
+      --border-subtle:    #e0e0e0;
+      --border-divider:   #ebebeb;
+      --shadow-card:      0 1px 3px rgba(0,0,0,0.08);
+
+      --text-emphasis:    #0a0a0a;
+      --text-primary:     #1a1a1a;
+      --text-secondary:   #525252;
+      --text-muted:       #737373;
+      --text-faint:       #a1a1a1;
+
+      --nav-item-color:   #525252;
+      --nav-item-hover:   #1a1a1a;
+      --nav-label:        #a1a1a1;
+
+      --btn-ghost-border: #e0e0e0;
+      --btn-ghost-text:   #525252;
+      --btn-ghost-hover:  #f5f5f5;
+
+      --input-border:     #d4d4d4;
+      --input-placeholder: #a1a1a1;
+
+      --scrollbar-thumb:  #d4d4d4;
+
+      --track-bg:         #e5e5e5;
+      --chart-grid:       #f0f0f0;
+
+      --preview-sidebar-bg: #f9f9f9;
+      --preview-content-bg: #f3f4f6;
+      --preview-card-bg:    #ffffff;
+      --preview-row-hover:  #f5f5f5;
+    }
+
+    /* ─── Reset & Base ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { height: 100%; }
+
+    body {
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      height: 100%;
+      display: flex;
+      overflow: hidden;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ─── Scrollbar ──────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+    /* ─── Sidebar ────────────────────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .sidebar-logo {
+      padding: 20px 16px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-divider);
+      margin-bottom: 8px;
+    }
+    .logo-mark {
+      width: 24px; height: 24px;
+      background: var(--accent);
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .logo-mark svg { width: 14px; height: 14px; }
+    .logo-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      letter-spacing: -0.01em;
+    }
+    .logo-badge {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-subtle);
+      padding: 1px 5px;
+      border-radius: 3px;
+      letter-spacing: 0.05em;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nav-section {
+      padding: 0 8px 8px;
+    }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--nav-label);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 8px 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      color: var(--nav-item-color);
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 450;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .nav-item:hover { color: var(--nav-item-hover); background: var(--bg-card); }
+    .nav-item.active {
+      color: var(--accent);
+      background: var(--accent-subtle);
+      font-weight: 500;
+    }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.8; }
+    .nav-item.active svg { opacity: 1; }
+
+    .nav-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--signal-critical);
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-divider);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--accent-subtle);
+      border: 1.5px solid var(--accent-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .avatar-info { flex: 1; min-width: 0; }
+    .avatar-name { font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .avatar-role { font-size: 10px; color: var(--text-muted); }
+
+    /* ─── Main Layout ────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─── Topbar ─────────────────────────────────────────────── */
+    .topbar {
+      height: 48px;
+      min-height: 48px;
+      background: var(--bg-topbar);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 0;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .breadcrumb-sep { opacity: 0.4; }
+    .breadcrumb-active { color: var(--text-primary); font-weight: 450; }
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .topbar-btn {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+    .topbar-btn:hover { color: var(--text-primary); border-color: var(--border-subtle); background: var(--bg-card); }
+    .topbar-btn svg { width: 14px; height: 14px; }
+
+    /* ─── Content ────────────────────────────────────────────── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px;
+      max-width: 860px;
+    }
+
+    /* ─── Page Header ────────────────────────────────────────── */
+    .page-header { margin-bottom: 28px; }
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .page-subtitle { font-size: 13px; color: var(--text-secondary); }
+
+    /* ─── Section ────────────────────────────────────────────── */
+    .section {
+      margin-bottom: 28px;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .section-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .section-divider {
+      height: 1px;
+      background: var(--border-divider);
+      margin-bottom: 28px;
+    }
+
+    /* ─── Mode Cards ─────────────────────────────────────────── */
+    .mode-cards {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .mode-card {
+      width: 160px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-subtle);
+      background: var(--bg-card);
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      position: relative;
+    }
+    .mode-card:hover {
+      border-color: var(--accent-border);
+      background: var(--bg-card-elevated);
+    }
+    .mode-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-subtle);
+    }
+    .mode-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--bg-card-elevated);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+      border: 1px solid var(--border-subtle);
+    }
+    .mode-card.selected .mode-icon {
+      background: var(--accent-subtle);
+      border-color: var(--accent-border);
+    }
+    .mode-icon svg { width: 18px; height: 18px; color: var(--text-muted); }
+    .mode-card.selected .mode-icon svg { color: var(--accent); }
+    .mode-name { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+    .mode-card.selected .mode-name { color: var(--accent); }
+    .mode-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+    .mode-check {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: none;
+      align-items: center; justify-content: center;
+    }
+    .mode-check svg { width: 10px; height: 10px; color: #fff; }
+    .mode-card.selected .mode-check { display: flex; }
+
+    /* Mode preview swatches */
+    .mode-swatch {
+      width: 100%;
+      height: 40px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border-divider);
+      overflow: hidden;
+      display: flex;
+    }
+    .swatch-sidebar { width: 30%; background: #0a0a0a; }
+    .swatch-content { flex: 1; background: #111113; }
+    .mode-card.light-mode .swatch-sidebar { background: #f0f0f0; }
+    .mode-card.light-mode .swatch-content { background: #ffffff; }
+    .mode-card.system-mode .swatch-sidebar { background: linear-gradient(to right, #0a0a0a 50%, #f0f0f0 50%); }
+    .mode-card.system-mode .swatch-content { background: linear-gradient(to right, #111113 50%, #ffffff 50%); }
+
+    /* ─── Color Circles ──────────────────────────────────────── */
+    .color-circles {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .color-circle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .color-circle {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      position: relative;
+      transition: transform 0.15s, box-shadow 0.15s;
+      border: 2px solid transparent;
+    }
+    .color-circle-wrap:hover .color-circle {
+      transform: scale(1.1);
+    }
+    .color-circle-wrap.selected .color-circle {
+      transform: scale(1.05);
+    }
+    .color-check {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.2);
+    }
+    .color-check svg { width: 16px; height: 16px; color: #fff; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4)); }
+    .color-circle-wrap.selected .color-check { display: flex; }
+    .color-name {
+      font-size: 10px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      font-weight: 450;
+    }
+    .color-circle-wrap.selected .color-name { color: var(--accent); font-weight: 500; }
+
+    /* ─── Advanced Hex Input ─────────────────────────────────── */
+    .advanced-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+      user-select: none;
+      width: fit-content;
+    }
+    .advanced-toggle:hover { color: var(--text-secondary); }
+    .advanced-toggle svg { width: 12px; height: 12px; transition: transform 0.15s; }
+    .advanced-toggle.open svg { transform: rotate(90deg); }
+
+    .advanced-panel {
+      display: none;
+      margin-top: 12px;
+      padding: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      gap: 10px;
+      align-items: center;
+    }
+    .advanced-panel.open { display: flex; }
+    .hex-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    .hex-preview {
+      width: 32px; height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+      transition: background 0.1s;
+    }
+    .hex-input {
+      flex: 1;
+      height: 32px;
+      background: var(--bg-input);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      padding: 0 10px;
+      font-family: 'GeistMono', monospace;
+      font-size: 12px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .hex-input::placeholder { color: var(--input-placeholder); }
+    .hex-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-subtle); }
+    .hex-input.invalid { border-color: var(--signal-critical); }
+    .hex-apply-btn {
+      height: 32px;
+      padding: 0 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .hex-apply-btn:hover { opacity: 0.85; }
+    .hex-status {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    /* ─── Preview Card ───────────────────────────────────────── */
+    .preview-card {
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+      background: var(--preview-sidebar-bg);
+      height: 480px;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.2s, border-color 0.2s;
+      box-shadow: var(--shadow-card);
+    }
+    .preview-titlebar {
+      height: 32px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .titlebar-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .titlebar-dot:nth-child(1) { background: #ef4444; }
+    .titlebar-dot:nth-child(2) { background: #f59e0b; }
+    .titlebar-dot:nth-child(3) { background: #22c55e; }
+    .titlebar-label {
+      margin-left: 4px;
+      font-size: 10px;
+      color: var(--text-faint);
+      font-family: 'GeistMono', monospace;
+    }
+
+    .preview-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Mini Sidebar */
+    .mini-sidebar {
+      width: 42px;
+      background: var(--preview-sidebar-bg);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+      gap: 4px;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .mini-logo {
+      width: 20px; height: 20px;
+      background: var(--accent);
+      border-radius: 4px;
+      margin-bottom: 4px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .mini-nav-item {
+      width: 28px; height: 20px;
+      border-radius: 4px;
+      background: transparent;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .mini-nav-item.active {
+      background: var(--accent-subtle);
+    }
+    .mini-nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: -1px; top: 2px; bottom: 2px;
+      width: 2px;
+      background: var(--accent);
+      border-radius: 0 1px 1px 0;
+      transition: background 0.2s;
+    }
+
+    /* Mini Content */
+    .mini-content {
+      flex: 1;
+      background: var(--preview-content-bg);
+      overflow: hidden;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      transition: background 0.2s;
+    }
+
+    /* Stat Cards */
+    .mini-stats {
+      display: flex;
+      gap: 5px;
+    }
+    .mini-stat {
+      flex: 1;
+      background: var(--preview-card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      padding: 6px 8px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .mini-stat-num {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      font-family: 'GeistMono', monospace;
+      letter-spacing: -0.02em;
+    }
+    .mini-stat-num.critical { color: var(--signal-critical); }
+    .mini-stat-label { font-size: 9px; color: var(--text-muted); margin-top: 1px; }
+    .mini-stat-bar {
+      height: 2px;
+      background: var(--track-bg);
+      border-radius: 1px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    .mini-stat-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 1px;
+      transition: background 0.2s;
+    }
+
+    /* Mini Widgets Row */
+    .mini-widgets {
+      display: flex;
+      gap: 5px;
+    }
+
+    /* Ring Gauge */
+    .mini-ring-wrap {
+      width: 80px;
+      background: var(--preview-card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .mini-ring-label { font-size: 9px; color: var(--text-muted); font-weight: 500; }
+
+    .ring-svg { overflow: visible; }
+    .ring-track { fill: none; stroke: var(--track-bg); stroke-width: 6; transition: stroke 0.2s; }
+    .ring-fill {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: stroke 0.4s ease, stroke-dashoffset 0.4s ease;
+    }
+    .ring-center-text {
+      font-size: 8px;
+      font-weight: 600;
+      fill: var(--text-emphasis);
+      text-anchor: middle;
+      dominant-baseline: middle;
+      font-family: 'GeistMono', monospace;
+    }
+
+    /* Mini Chart */
+    .mini-chart-wrap {
+      flex: 1;
+      background: var(--preview-card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      padding: 6px 8px;
+      overflow: hidden;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .mini-chart-title { font-size: 9px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+    .mini-chart-svg { width: 100%; }
+
+    /* Mini Table */
+    .mini-table-wrap {
+      flex: 1;
+      background: var(--preview-card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      overflow: hidden;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .mini-table-header {
+      display: flex;
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 8px;
+    }
+    .mini-th {
+      font-size: 9px;
+      color: var(--text-faint);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .mini-th:first-child { flex: 2; }
+    .mini-th:nth-child(2) { flex: 1; }
+    .mini-th:last-child { flex: 1; text-align: right; }
+
+    .mini-tr {
+      display: flex;
+      padding: 4px 8px;
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid var(--border-divider);
+    }
+    .mini-tr:last-child { border-bottom: none; }
+    .mini-tr:hover { background: var(--preview-row-hover); }
+
+    .mini-td { font-size: 9.5px; color: var(--text-secondary); }
+    .mini-td:first-child { flex: 2; }
+    .mini-td:nth-child(2) { flex: 1; }
+    .mini-td:last-child { flex: 1; text-align: right; }
+
+    .mini-link { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; transition: color 0.2s; }
+    .mini-checkbox {
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 2px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 3px;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .mini-checkbox svg { width: 6px; height: 6px; color: #fff; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 9px;
+      font-weight: 500;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .status-badge.online { color: var(--signal-healthy); background: var(--signal-healthy-subtle); }
+    .status-badge.critical { color: var(--signal-critical); background: var(--signal-critical-subtle); }
+    .status-badge-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+
+    /* Mini Buttons */
+    .mini-buttons {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .mini-btn {
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: default;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      border: 1px solid transparent;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .mini-btn.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .mini-btn.secondary {
+      background: transparent;
+      color: var(--accent);
+      border-color: var(--accent-border);
+    }
+    .mini-btn.ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border-color: var(--border-subtle);
+    }
+    .mini-btn.destructive {
+      background: transparent;
+      color: var(--signal-critical);
+      border-color: rgba(239,68,68,0.3);
+    }
+
+    /* ─── Density Section ────────────────────────────────────── */
+    .density-options {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .density-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      background: var(--bg-card);
+    }
+    .density-option:hover { border-color: var(--accent-border); }
+    .density-option.selected {
+      border-color: var(--accent);
+      background: var(--accent-subtle);
+    }
+    .density-radio {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-subtle);
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.15s;
+    }
+    .density-option.selected .density-radio {
+      border-color: var(--accent);
+    }
+    .density-radio-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: none;
+    }
+    .density-option.selected .density-radio-dot { display: block; }
+    .density-label { font-size: 12.5px; font-weight: 500; color: var(--text-primary); }
+    .density-desc { font-size: 11px; color: var(--text-muted); }
+    .density-option.selected .density-label { color: var(--accent); }
+
+    /* Density preview table */
+    .density-table-preview {
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-card);
+    }
+    .density-table-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border-divider);
+      transition: height 0.2s, padding 0.2s;
+    }
+    .density-table-row:last-child { border-bottom: none; }
+    .density-table-row.comfortable { height: 48px; }
+    .density-table-row.compact { height: 36px; }
+    .density-table-row.header {
+      background: var(--bg-card-elevated);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .density-col-1 { flex: 2; font-size: 12.5px; color: var(--text-primary); }
+    .density-col-2 { flex: 1; font-size: 12px; color: var(--text-secondary); }
+    .density-col-3 { flex: 1; text-align: right; }
+    .density-table-row.header .density-col-1,
+    .density-table-row.header .density-col-2,
+    .density-table-row.header .density-col-3 { font-size: 11px; color: var(--text-faint); }
+
+    /* ─── Reset Section ──────────────────────────────────────── */
+    .reset-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 4px;
+    }
+    .reset-link {
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color 0.15s;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+    .reset-link:hover { color: var(--text-secondary); }
+    .reset-defaults-hint {
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    /* ─── Transitions ────────────────────────────────────────── */
+    .sidebar, .topbar, .content,
+    .preview-card, .mini-content,
+    .mini-sidebar, .mini-stat, .mini-ring-wrap,
+    .mini-chart-wrap, .mini-table-wrap,
+    .mode-card, .density-table-preview {
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    /* ─── Utility ────────────────────────────────────────────── */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .gap-4 { gap: 16px; }
+    .items-center { align-items: center; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Sidebar ──────────────────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 1L12 4V7C12 10 7 13 7 13C7 13 2 10 2 7V4L7 1Z"/>
+        </svg>
+      </div>
+      <span class="logo-text">PatchIQ</span>
+      <span class="logo-badge">M3</span>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Platform</div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="6" r="3"/><path d="M2 14c0-3 2.5-5 6-5s6 2 6 5"/></svg>
+        Endpoints
+        <span class="nav-dot"></span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 2h8l2 3v9H2V5L4 2z"/><path d="M6 8h4M6 10.5h3"/></svg>
+        Patches
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+        Deployments
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2L2 5v4c0 3 3 5 6 5s6-2 6-5V5L8 2z"/></svg>
+        Compliance
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 7h6M5 10h4"/></svg>
+        Policies
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">System</div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/><circle cx="8" cy="8" r="3"/></svg>
+        Audit Log
+      </div>
+      <div class="nav-item active">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2"/><path d="M8 2.5V1M8 15v-1.5M2.5 8H1M15 8h-1.5"/></svg>
+        Settings
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="avatar">H</div>
+      <div class="avatar-info">
+        <div class="avatar-name">Heramb</div>
+        <div class="avatar-role">Admin</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── Main ──────────────────────────────────────────────────── -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span>System</span>
+        <span class="breadcrumb-sep">›</span>
+        <span>Settings</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-active">Appearance</span>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn" title="Notifications">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2a5 5 0 0 0-5 5v2.5L2 11h12l-1-1.5V7a5 5 0 0 0-5-5z"/><path d="M6.5 13a1.5 1.5 0 0 0 3 0"/></svg>
+        </button>
+        <button class="topbar-btn" title="Help">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M6 6c0-1.1.9-2 2-2s2 .9 2 2c0 1-1 1.5-2 2"/><circle cx="8" cy="12" r=".5" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="page-header">
+        <div class="page-title">Appearance</div>
+        <div class="page-subtitle">Customize how PatchIQ looks for you. Changes apply instantly.</div>
+      </div>
+
+      <!-- ─── Section 1: Mode ─────────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Mode</div>
+        <div class="section-subtitle">Choose between light, dark, or system-matched appearance.</div>
+        <div class="mode-cards">
+          <div class="mode-card dark-mode selected" data-mode="dark" onclick="setMode('dark')">
+            <div class="mode-check">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+            </div>
+            <div class="mode-swatch">
+              <div class="swatch-sidebar"></div>
+              <div class="swatch-content"></div>
+            </div>
+            <div class="mode-icon">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 10.5a7 7 0 0 1-9-9 7 7 0 1 0 9 9z"/></svg>
+            </div>
+            <div class="mode-name">Dark</div>
+            <div class="mode-desc">Easy on the eyes in low-light environments.</div>
+          </div>
+
+          <div class="mode-card light-mode" data-mode="light" onclick="setMode('light')">
+            <div class="mode-check">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+            </div>
+            <div class="mode-swatch">
+              <div class="swatch-sidebar"></div>
+              <div class="swatch-content"></div>
+            </div>
+            <div class="mode-icon">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="9" r="3.5"/><path d="M9 2v1.5M9 14.5V16M2 9h1.5M14.5 9H16M3.9 3.9l1.06 1.06M13.04 13.04l1.06 1.06M3.9 14.1l1.06-1.06M13.04 4.96l1.06-1.06"/></svg>
+            </div>
+            <div class="mode-name">Light</div>
+            <div class="mode-desc">Clean and bright for well-lit workspaces.</div>
+          </div>
+
+          <div class="mode-card system-mode" data-mode="system" onclick="setMode('system')">
+            <div class="mode-check">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+            </div>
+            <div class="mode-swatch">
+              <div class="swatch-sidebar"></div>
+              <div class="swatch-content"></div>
+            </div>
+            <div class="mode-icon">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="3" width="14" height="10" rx="1.5"/><path d="M6 16h6M9 13v3"/></svg>
+            </div>
+            <div class="mode-name">System</div>
+            <div class="mode-desc">Matches your OS preference automatically.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- ─── Section 2: Accent Color ────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Accent Color</div>
+        <div class="section-subtitle">Choose your brand color. This affects buttons, links, active states, and data visualizations.</div>
+        <div class="color-circles" id="colorCircles">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="advanced-toggle" id="advancedToggle" onclick="toggleAdvanced()">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,2 8,6 4,10"/></svg>
+          Advanced — custom hex color
+        </div>
+
+        <div class="advanced-panel" id="advancedPanel">
+          <div class="hex-input-wrap">
+            <div class="hex-preview" id="hexPreview" style="background: var(--accent)"></div>
+            <input
+              type="text"
+              class="hex-input"
+              id="hexInput"
+              placeholder="#10b981"
+              maxlength="7"
+              oninput="onHexInput(this)"
+              onkeydown="onHexKeydown(event)"
+            />
+          </div>
+          <button class="hex-apply-btn" onclick="applyHexColor()">Apply</button>
+          <span class="hex-status" id="hexStatus">Enter any hex color</span>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- ─── Section 3: Live Preview ──────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Preview</div>
+        <div class="section-subtitle">Live preview of your current theme settings.</div>
+        <div class="preview-card">
+          <div class="preview-titlebar">
+            <div class="titlebar-dot"></div>
+            <div class="titlebar-dot"></div>
+            <div class="titlebar-dot"></div>
+            <span class="titlebar-label">patchiq.local — Dashboard</span>
+          </div>
+          <div class="preview-body">
+            <!-- Mini Sidebar -->
+            <div class="mini-sidebar">
+              <div class="mini-logo"></div>
+              <div class="mini-nav-item"></div>
+              <div class="mini-nav-item active"></div>
+              <div class="mini-nav-item"></div>
+              <div class="mini-nav-item"></div>
+            </div>
+            <!-- Mini Content -->
+            <div class="mini-content">
+              <!-- Row 1: Stat Cards -->
+              <div class="mini-stats">
+                <div class="mini-stat">
+                  <div class="mini-stat-num">1,247</div>
+                  <div class="mini-stat-label">Endpoints</div>
+                  <div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width: 72%"></div></div>
+                </div>
+                <div class="mini-stat">
+                  <div class="mini-stat-num critical">23</div>
+                  <div class="mini-stat-label">Critical CVEs</div>
+                </div>
+                <div class="mini-stat">
+                  <div class="mini-stat-num">94.2%</div>
+                  <div class="mini-stat-label">Compliance</div>
+                  <div class="mini-stat-bar"><div class="mini-stat-bar-fill" style="width: 94.2%"></div></div>
+                </div>
+              </div>
+
+              <!-- Row 2: Ring + Chart -->
+              <div class="mini-widgets">
+                <div class="mini-ring-wrap">
+                  <div class="mini-ring-label">Patch SLA</div>
+                  <svg class="ring-svg" width="54" height="54" viewBox="0 0 54 54">
+                    <circle class="ring-track" cx="27" cy="27" r="21" transform="rotate(-90 27 27)"/>
+                    <circle class="ring-fill" id="previewRingFill" cx="27" cy="27" r="21"
+                      transform="rotate(-90 27 27)"
+                      stroke-dasharray="131.9"
+                      stroke-dashoffset="13.2"/>
+                    <text class="ring-center-text" x="27" y="27">96%</text>
+                  </svg>
+                </div>
+                <div class="mini-chart-wrap">
+                  <div class="mini-chart-title">Patch activity — 30 days</div>
+                  <svg class="mini-chart-svg" id="previewChartSvg" height="68" viewBox="0 0 180 68" preserveAspectRatio="none">
+                    <!-- Chart rendered by JS -->
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Row 3: Mini Table -->
+              <div class="mini-table-wrap">
+                <div class="mini-table-header">
+                  <span class="mini-th" style="flex:2">Host</span>
+                  <span class="mini-th" style="flex:1">Patches</span>
+                  <span class="mini-th" style="flex:1;text-align:right">Status</span>
+                </div>
+                <div class="mini-tr">
+                  <div class="mini-td" style="flex:2"><span class="mini-link">prod-web-01</span></div>
+                  <div class="mini-td" style="flex:1">14 pending</div>
+                  <div class="mini-td" style="flex:1;text-align:right"><span class="status-badge online"><span class="status-badge-dot"></span>Online</span></div>
+                </div>
+                <div class="mini-tr">
+                  <div class="mini-td" style="flex:2">
+                    <span class="mini-checkbox"><svg viewBox="0 0 6 6" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,3 2.5,4.5 5,1.5"/></svg></span>
+                    api-server-03
+                  </div>
+                  <div class="mini-td" style="flex:1">7 pending</div>
+                  <div class="mini-td" style="flex:1;text-align:right"><span class="status-badge online"><span class="status-badge-dot"></span>Online</span></div>
+                </div>
+                <div class="mini-tr">
+                  <div class="mini-td" style="flex:2">db-primary-01</div>
+                  <div class="mini-td" style="flex:1">31 pending</div>
+                  <div class="mini-td" style="flex:1;text-align:right"><span class="status-badge critical"><span class="status-badge-dot"></span>Critical</span></div>
+                </div>
+              </div>
+
+              <!-- Row 4: Buttons -->
+              <div class="mini-buttons">
+                <div class="mini-btn primary">Primary</div>
+                <div class="mini-btn secondary">Secondary</div>
+                <div class="mini-btn ghost">Ghost</div>
+                <div class="mini-btn destructive">Destructive</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- ─── Section 4: Density ─────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Density</div>
+        <div class="section-subtitle">Control the spacing and row height of tables and lists.</div>
+        <div class="density-options">
+          <div class="density-option selected" data-density="comfortable" onclick="setDensity('comfortable')">
+            <div class="density-radio"><div class="density-radio-dot"></div></div>
+            <div>
+              <div class="density-label">Comfortable</div>
+              <div class="density-desc">48px rows · 16px padding</div>
+            </div>
+          </div>
+          <div class="density-option" data-density="compact" onclick="setDensity('compact')">
+            <div class="density-radio"><div class="density-radio-dot"></div></div>
+            <div>
+              <div class="density-label">Compact</div>
+              <div class="density-desc">36px rows · 12px padding</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="density-table-preview">
+          <div class="density-table-row header comfortable" id="densityHeader">
+            <div class="density-col-1">Endpoint</div>
+            <div class="density-col-2">OS</div>
+            <div class="density-col-3">Status</div>
+          </div>
+          <div class="density-table-row comfortable" id="densityRow1">
+            <div class="density-col-1" style="color:var(--text-primary);font-size:13px">prod-web-01.internal</div>
+            <div class="density-col-2">Ubuntu 24.04 LTS</div>
+            <div class="density-col-3" style="text-align:right"><span class="status-badge online"><span class="status-badge-dot"></span>Online</span></div>
+          </div>
+          <div class="density-table-row comfortable" id="densityRow2">
+            <div class="density-col-1" style="color:var(--text-primary);font-size:13px">api-server-03.internal</div>
+            <div class="density-col-2">RHEL 9.3</div>
+            <div class="density-col-3" style="text-align:right"><span class="status-badge critical"><span class="status-badge-dot"></span>Critical</span></div>
+          </div>
+          <div class="density-table-row comfortable" id="densityRow3">
+            <div class="density-col-1" style="color:var(--text-primary);font-size:13px">db-primary-01.internal</div>
+            <div class="density-col-2">Windows Server 2022</div>
+            <div class="density-col-3" style="text-align:right"><span class="status-badge online"><span class="status-badge-dot"></span>Online</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- ─── Section 5: Reset ────────────────────────────────── -->
+      <div class="section">
+        <div class="reset-section">
+          <button class="reset-link" onclick="resetDefaults()">Reset to defaults</button>
+          <span class="reset-defaults-hint">Defaults: Dark mode · Emerald accent · Comfortable density</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ─── Accent Colors ─────────────────────────────────────────── */
+    const ACCENT_COLORS = [
+      { hex: '#10b981', name: 'Forest',    label: 'Emerald'  },
+      { hex: '#7c3aed', name: 'Amethyst',  label: 'Violet'   },
+      { hex: '#3b82f6', name: 'Ocean',     label: 'Blue'     },
+      { hex: '#06b6d4', name: 'Arctic',    label: 'Cyan'     },
+      { hex: '#f43f5e', name: 'Ruby',      label: 'Rose'     },
+      { hex: '#f97316', name: 'Ember',     label: 'Orange'   },
+      { hex: '#6366f1', name: 'Twilight',  label: 'Indigo'   },
+      { hex: '#14b8a6', name: 'Mint',      label: 'Teal'     },
+    ];
+
+    let currentAccent = '#10b981';
+    let currentMode   = 'dark';
+    let currentDensity = 'comfortable';
+
+    /* ─── Hex utilities ─────────────────────────────────────────── */
+    function hexToRgb(hex) {
+      const r = parseInt(hex.slice(1,3), 16);
+      const g = parseInt(hex.slice(3,5), 16);
+      const b = parseInt(hex.slice(5,7), 16);
+      return { r, g, b };
+    }
+
+    function darkenHex(hex, factor = 0.85) {
+      const { r, g, b } = hexToRgb(hex);
+      const dr = Math.round(r * factor);
+      const dg = Math.round(g * factor);
+      const db = Math.round(b * factor);
+      return `#${dr.toString(16).padStart(2,'0')}${dg.toString(16).padStart(2,'0')}${db.toString(16).padStart(2,'0')}`;
+    }
+
+    function hexToSubtle(hex, alpha = 0.08) {
+      const { r, g, b } = hexToRgb(hex);
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function hexToBorder(hex, alpha = 0.3) {
+      const { r, g, b } = hexToRgb(hex);
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function isValidHex(hex) {
+      return /^#[0-9A-Fa-f]{6}$/.test(hex);
+    }
+
+    /* ─── Apply Accent ──────────────────────────────────────────── */
+    function applyAccent(hex) {
+      currentAccent = hex;
+      const root = document.documentElement;
+      root.style.setProperty('--accent',        hex);
+      root.style.setProperty('--accent-subtle',  hexToSubtle(hex, 0.08));
+      root.style.setProperty('--accent-border',  hexToBorder(hex, 0.3));
+      root.style.setProperty('--accent-hover',   darkenHex(hex, 0.85));
+      root.style.setProperty('--accent-glow',    `0 0 0 3px ${hexToSubtle(hex, 0.25)}`);
+
+      // Update chart & ring
+      renderPreviewChart(hex);
+      updateRingColor(hex);
+      updateColorCircleSelection(hex);
+
+      // Update hex input preview
+      const hexPreview = document.getElementById('hexPreview');
+      if (hexPreview) hexPreview.style.background = hex;
+    }
+
+    /* ─── Color Circles ─────────────────────────────────────────── */
+    function renderColorCircles() {
+      const container = document.getElementById('colorCircles');
+      container.innerHTML = '';
+      ACCENT_COLORS.forEach(color => {
+        const wrap = document.createElement('div');
+        wrap.className = 'color-circle-wrap';
+        wrap.dataset.hex = color.hex;
+        if (color.hex === currentAccent) wrap.classList.add('selected');
+        wrap.onclick = () => applyAccent(color.hex);
+
+        const subtle = hexToSubtle(color.hex, 0.25);
+        const glowRing = `0 0 0 3px ${subtle}`;
+
+        wrap.innerHTML = `
+          <div class="color-circle" style="
+            background: ${color.hex};
+            box-shadow: 0 2px 6px ${hexToSubtle(color.hex, 0.5)};
+          " id="circle-${color.hex.replace('#','')}"
+          onmouseenter="this.style.boxShadow='${glowRing}, 0 2px 8px ${hexToSubtle(color.hex, 0.5)}'"
+          onmouseleave="this.style.boxShadow='0 2px 6px ${hexToSubtle(color.hex, 0.5)}'">
+            <div class="color-check">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3,8 6.5,11.5 13,4.5"/>
+              </svg>
+            </div>
+          </div>
+          <div class="color-name">${color.name}</div>
+        `;
+        container.appendChild(wrap);
+      });
+    }
+
+    function updateColorCircleSelection(hex) {
+      document.querySelectorAll('.color-circle-wrap').forEach(wrap => {
+        wrap.classList.toggle('selected', wrap.dataset.hex === hex);
+      });
+    }
+
+    /* ─── Mode ──────────────────────────────────────────────────── */
+    function setMode(mode) {
+      currentMode = mode;
+
+      // Update html class
+      const html = document.documentElement;
+      html.classList.remove('light');
+
+      if (mode === 'light') {
+        html.classList.add('light');
+      } else if (mode === 'system') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (!prefersDark) html.classList.add('light');
+      }
+
+      // Update card selection
+      document.querySelectorAll('.mode-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.mode === mode);
+      });
+
+      // Re-render chart with updated bg colors after transition
+      setTimeout(() => renderPreviewChart(currentAccent), 220);
+    }
+
+    /* ─── Density ───────────────────────────────────────────────── */
+    function setDensity(density) {
+      currentDensity = density;
+
+      document.querySelectorAll('.density-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.density === density);
+      });
+
+      const cls = density === 'compact' ? 'compact' : 'comfortable';
+      const other = density === 'compact' ? 'comfortable' : 'compact';
+
+      ['densityHeader','densityRow1','densityRow2','densityRow3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.classList.remove(other); el.classList.add(cls); }
+      });
+    }
+
+    /* ─── Ring ──────────────────────────────────────────────────── */
+    function updateRingColor(hex) {
+      const fill = document.getElementById('previewRingFill');
+      if (fill) fill.style.stroke = hex;
+    }
+
+    /* ─── Preview Chart ─────────────────────────────────────────── */
+    function renderPreviewChart(accent) {
+      const svg = document.getElementById('previewChartSvg');
+      if (!svg) return;
+
+      // Compute colors from CSS vars (post-transition)
+      const style = getComputedStyle(document.documentElement);
+      const gridColor = style.getPropertyValue('--chart-grid').trim() || '#1c1c1c';
+      const textFaint = style.getPropertyValue('--text-faint').trim() || '#525252';
+
+      // Sample data
+      const data = [12,18,9,24,15,20,11,28,22,14,30,18,25,19,16,26,21,17,23,29,14,20,25,16,22,28,18,24,31,19];
+      const W = 180, H = 68;
+      const padLeft = 4, padRight = 4, padTop = 6, padBottom = 12;
+      const chartW = W - padLeft - padRight;
+      const chartH = H - padTop - padBottom;
+      const maxVal = Math.max(...data);
+      const minVal = Math.min(...data);
+      const range = maxVal - minVal || 1;
+
+      const xs = data.map((_, i) => padLeft + (i / (data.length - 1)) * chartW);
+      const ys = data.map(v => padTop + chartH - ((v - minVal) / range) * chartH);
+
+      // Polyline path
+      const linePts = xs.map((x, i) => `${x},${ys[i]}`).join(' ');
+
+      // Area path
+      const areaPts = [
+        `${xs[0]},${padTop + chartH}`,
+        ...xs.map((x, i) => `${x},${ys[i]}`),
+        `${xs[xs.length-1]},${padTop + chartH}`
+      ].join(' ');
+
+      const { r, g, b } = hexToRgb(accent);
+
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${accent}" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="${accent}" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        <!-- Grid lines -->
+        <line x1="${padLeft}" y1="${padTop}" x2="${W-padRight}" y2="${padTop}" stroke="${gridColor}" stroke-width="0.5"/>
+        <line x1="${padLeft}" y1="${padTop + chartH/2}" x2="${W-padRight}" y2="${padTop + chartH/2}" stroke="${gridColor}" stroke-width="0.5"/>
+        <line x1="${padLeft}" y1="${padTop + chartH}" x2="${W-padRight}" y2="${padTop + chartH}" stroke="${gridColor}" stroke-width="0.5"/>
+        <!-- Area -->
+        <polygon points="${areaPts}" fill="url(#chartGrad)"/>
+        <!-- Line -->
+        <polyline points="${linePts}" fill="none" stroke="${accent}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Last point dot -->
+        <circle cx="${xs[xs.length-1]}" cy="${ys[ys.length-1]}" r="2.5" fill="${accent}" stroke="var(--preview-card-bg)" stroke-width="1.5"/>
+      `;
+    }
+
+    /* ─── Advanced Hex ──────────────────────────────────────────── */
+    function toggleAdvanced() {
+      const toggle = document.getElementById('advancedToggle');
+      const panel  = document.getElementById('advancedPanel');
+      toggle.classList.toggle('open');
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) {
+        const input = document.getElementById('hexInput');
+        input.value = currentAccent;
+        document.getElementById('hexPreview').style.background = currentAccent;
+      }
+    }
+
+    function onHexInput(input) {
+      let val = input.value.trim();
+      if (!val.startsWith('#')) val = '#' + val;
+      input.value = val;
+
+      const preview = document.getElementById('hexPreview');
+      const status  = document.getElementById('hexStatus');
+
+      if (isValidHex(val)) {
+        input.classList.remove('invalid');
+        preview.style.background = val;
+        status.textContent = 'Press Enter or click Apply';
+        status.style.color = 'var(--signal-healthy)';
+      } else if (val.length > 1) {
+        input.classList.add('invalid');
+        preview.style.background = 'transparent';
+        status.textContent = val.length < 7 ? `${7 - val.length} more char${7 - val.length !== 1 ? 's' : ''}…` : 'Invalid hex';
+        status.style.color = 'var(--signal-critical)';
+      } else {
+        input.classList.remove('invalid');
+        preview.style.background = 'var(--accent)';
+        status.textContent = 'Enter any hex color';
+        status.style.color = 'var(--text-muted)';
+      }
+    }
+
+    function onHexKeydown(event) {
+      if (event.key === 'Enter') applyHexColor();
+    }
+
+    function applyHexColor() {
+      const input = document.getElementById('hexInput');
+      let val = input.value.trim();
+      if (!val.startsWith('#')) val = '#' + val;
+
+      if (isValidHex(val)) {
+        applyAccent(val);
+        const status = document.getElementById('hexStatus');
+        status.textContent = 'Applied!';
+        status.style.color = 'var(--signal-healthy)';
+        setTimeout(() => {
+          status.textContent = 'Enter any hex color';
+          status.style.color = 'var(--text-muted)';
+        }, 1500);
+      }
+    }
+
+    /* ─── Reset ─────────────────────────────────────────────────── */
+    function resetDefaults() {
+      setMode('dark');
+      applyAccent('#10b981');
+      setDensity('comfortable');
+
+      // Close advanced panel
+      const toggle = document.getElementById('advancedToggle');
+      const panel  = document.getElementById('advancedPanel');
+      toggle.classList.remove('open');
+      panel.classList.remove('open');
+
+      // Reset hex input
+      const input = document.getElementById('hexInput');
+      if (input) {
+        input.value = '#10b981';
+        input.classList.remove('invalid');
+      }
+    }
+
+    /* ─── System Mode Media Query ───────────────────────────────── */
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (currentMode === 'system') {
+        const html = document.documentElement;
+        html.classList.toggle('light', !e.matches);
+        setTimeout(() => renderPreviewChart(currentAccent), 220);
+      }
+    });
+
+    /* ─── Init ──────────────────────────────────────────────────── */
+    renderColorCircles();
+    renderPreviewChart('#10b981');
+  </script>
+</body>
+</html>

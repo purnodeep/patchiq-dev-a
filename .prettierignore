@@ -1,0 +1,11 @@
+node_modules/
+dist/
+gen/
+internal/*/store/sqlcgen/
+*.min.js
+pnpm-lock.yaml
+.worktrees/
+.claude/
+.playwright-mcp/
+testdata/
+internal/*/inventory/testdata/

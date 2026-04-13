@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package patchiq.v1;
+
+import "google/protobuf/timestamp.proto";
+import "patchiq/v1/common.proto";
+
+// HubService handles Patch Manager to Hub Manager communication.
+service HubService {
+  // SyncCatalog fetches new or updated patches and CVEs from the hub catalog.
+  rpc SyncCatalog(SyncCatalogRequest) returns (SyncCatalogResponse);
+
+  // ValidateLicense checks a Patch Manager's license against the hub.
+  rpc ValidateLicense(ValidateLicenseRequest) returns (ValidateLicenseResponse);
+}
+
+enum LicenseTier {
+  LICENSE_TIER_UNSPECIFIED = 0;
+  LICENSE_TIER_FREE = 1;
+  LICENSE_TIER_STANDARD = 2;
+  LICENSE_TIER_ENTERPRISE = 3;
+}
+
+enum LicenseValidationError {
+  LICENSE_VALIDATION_ERROR_UNSPECIFIED = 0;
+  LICENSE_VALIDATION_ERROR_KEY_NOT_FOUND = 1;
+  LICENSE_VALIDATION_ERROR_INSTANCE_MISMATCH = 2;
+  LICENSE_VALIDATION_ERROR_EXPIRED = 3;
+  LICENSE_VALIDATION_ERROR_ENDPOINT_LIMIT_EXCEEDED = 4;
+  LICENSE_VALIDATION_ERROR_REVOKED = 5;
+}
+
+enum SyncCatalogStatus {
+  SYNC_CATALOG_STATUS_UNSPECIFIED = 0;
+  SYNC_CATALOG_STATUS_OK = 1;
+  SYNC_CATALOG_STATUS_TOKEN_EXPIRED = 2;
+  SYNC_CATALOG_STATUS_TOKEN_INVALID = 3;
+  SYNC_CATALOG_STATUS_PARTIAL_ERROR = 4;
+}
+
+message SyncCatalogRequest {
+  // Filters the response to patches and CVEs updated after this time.
+  // Set to zero value to request a full sync.
+  google.protobuf.Timestamp last_sync_timestamp = 1;
+  // Optionally restricts the response to a specific set of patch IDs.
+  // If empty, all patches updated since last_sync_timestamp are returned.
+  repeated string patch_ids = 2;
+  // If set, resumes a paginated sync using the token from the previous response.
+  // Takes precedence over last_sync_timestamp when present.
+  // patch_ids is ignored when sync_token is set; the server continues the original filtered request.
+  string sync_token = 3;
+}
+
+message SyncCatalogResponse {
+  repeated PatchInfo patches = 1;
+  repeated CVEInfo cves = 2;
+  // Opaque token for the next incremental sync call.
+  // Empty means this is the final (or only) page.
+  string next_sync_token = 3;
+  // Outcome of this sync request. UNSPECIFIED should not be returned by the server.
+  SyncCatalogStatus status = 4;
+  // Human-readable detail when status indicates an error.
+  string status_message = 5;
+}
+
+message ValidateLicenseRequest {
+  string license_key = 1;
+  string instance_id = 2;
+  uint32 endpoint_count = 3;
+}
+
+message ValidateLicenseResponse {
+  bool valid = 1;
+  // License tier.
+  // Populated even when valid is false, to show the detected tier.
+  LicenseTier tier = 2;
+  repeated string features = 3;
+  google.protobuf.Timestamp expires_at = 4;
+  // 0 means unlimited.
+  uint32 max_endpoints = 5;
+  // Populated when valid is false and the Hub could determine the specific reason.
+  LicenseValidationError error_code = 6;
+  string error_message = 7;
+}

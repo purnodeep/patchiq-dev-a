@@ -1,0 +1,5 @@
+bash	5.1.8	1.el9	x86_64
+curl	7.76.1	26.el9_3.3	x86_64
+openssl-libs	3.0.7	25.el9_3	x86_64
+glibc	2.34	83.el9_3.12	x86_64
+systemd	252	18.el9	x86_64

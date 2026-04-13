@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — KB5034441</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:260px;--topbar-h:56px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+body{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:var(--sidebar-w);background:#0d1117;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s}
+#sidebar.collapsed{width:64px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-icon{width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.sb-logo-text{font-weight:700;font-size:14px;color:var(--text)}
+.sb-logo-sub{font-size:10px;color:var(--muted)}
+.sb-group{margin-top:6px}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.sb-item{padding:7px 16px 7px 20px;display:flex;align-items:center;gap:9px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;text-decoration:none;font-size:12.5px}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:15px;height:15px;flex-shrink:0}
+.sb-badge{margin-left:auto;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.red{background:#ef444420;color:#ef4444}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+.sb-badge.amber{background:#f59e0b20;color:#f59e0b}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-breadcrumb a{color:var(--muted);text-decoration:none}
+.tb-breadcrumb a:hover{color:var(--text)}
+.tb-sep{color:#374151}
+.tb-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb-icon-btn{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:17px;height:17px}
+.notif-badge{position:absolute;top:5px;right:5px;background:var(--danger);color:#fff;border-radius:10px;font-size:9px;font-weight:700;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid #0d1117;padding:0 3px}
+.tb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;color:#fff;flex-shrink:0}
+.tb-user{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border-radius:7px;transition:.15s}
+.tb-user:hover{background:#ffffff08}
+.tb-user-name{font-size:12px;font-weight:500}
+#page{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d;border-color:#374151}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--border)}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:5px}
+.btn-danger{background:#ef444415;color:var(--danger);border-color:#ef444430}
+.badge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.badge-critical{background:#ef444420;color:#ef4444;border:1px solid #ef444430}
+.badge-high{background:#f9731620;color:#f97316;border:1px solid #f9731630}
+.badge-medium{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+.badge-low{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-success{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-info{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630}
+.badge-muted{background:#ffffff10;color:var(--muted);border:1px solid var(--border)}
+.badge-warn{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+/* Patch header */
+.patch-header{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:14px}
+.ph-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.ph-identity{flex:1}
+.patch-id{font-size:28px;font-weight:800;color:var(--text);font-family:monospace;margin-bottom:6px}
+.patch-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.patch-actions{display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border)}
+/* Context ring */
+.context-ring{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+.ctx-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;position:relative;overflow:hidden;cursor:pointer;transition:.15s}
+.ctx-card:hover{border-color:#374151;transform:translateY(-1px)}
+.ctx-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--primary));opacity:.7}
+.ctx-val{font-size:20px;font-weight:700;color:var(--text);line-height:1.1}
+.ctx-sub{font-size:10px;color:var(--muted);margin-top:2px;margin-bottom:4px}
+.ctx-label{font-size:10px;color:var(--muted)}
+/* Tabs */
+.tab-bar{display:flex;border-bottom:none;margin-bottom:0;overflow-x:auto;background:var(--card);border-radius:10px 10px 0 0;border:1px solid var(--border);border-bottom:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{padding:12px 16px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;background:transparent;border-top:none;border-left:none;border-right:none}
+.tab-btn:hover{color:var(--text);background:#ffffff05}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);background:#3b82f608}
+.tab-panel{display:none;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:20px;animation:fadeIn .15s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+/* Tables */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:#0a0e1a}
+.data-table td{padding:9px 12px;border-bottom:1px solid #1e293b50;font-size:12px;vertical-align:middle}
+.data-table tr:hover td{background:#ffffff03}
+.data-table tr:last-child td{border-bottom:none}
+.table-wrap{background:var(--card2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.chevron-btn{background:none;border:none;cursor:pointer;color:var(--muted);transition:.2s;padding:2px 4px;border-radius:3px;display:flex;align-items:center}
+.chevron-btn:hover{color:var(--text);background:#ffffff10}
+.chevron-btn.open svg{transform:rotate(90deg)}
+.chevron-btn svg{width:13px;height:13px;transition:.2s}
+.exp-row{display:none}
+.exp-row.open{display:table-row}
+.exp-row td{padding:0!important;border-bottom:1px solid var(--border)!important}
+.exp-content-inner{padding:12px 16px;background:#0a0e1a;animation:fadeIn .15s ease}
+/* Status dot */
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-dot.success{background:#10b981;box-shadow:0 0 0 2px #10b98130}
+.status-dot.partial{background:#f59e0b}
+.status-dot.failed{background:#ef4444}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div><div class="sb-logo-text">PatchIQ</div><div class="sb-logo-sub">Patch Manager</div></div>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Overview</div>
+    <a class="sb-item" href="../patch-manager.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Inventory</div>
+    <a class="sb-item" href="endpoints.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Endpoints<span class="sb-badge blue">247</span></a>
+    <a class="sb-item active" href="patches.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Patches<span class="sb-badge red">12</span></a>
+    <a class="sb-item" href="cves.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>CVEs</a>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Operations</div>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Policies</a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>Deployments<span class="sb-badge amber">3</span></a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Workflows</a>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Reports</div>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Compliance</a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>Audit</a>
+  </div>
+  <div class="sb-group"><div class="sb-group-label">Configuration</div>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Roles</a>
+    <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>Notifications</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <button class="tb-icon-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="tb-breadcrumb">
+      <a href="#">Home</a><span class="tb-sep">/</span>
+      <a href="#">Inventory</a><span class="tb-sep">/</span>
+      <a href="patches.html">Patches</a><span class="tb-sep">/</span>
+      <span style="color:var(--text);font-weight:500">KB5034441</span>
+    </div>
+    <div class="tb-icons">
+      <button class="tb-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg><span class="notif-badge">3</span></button>
+      <button class="tb-icon-btn" onclick="toggleDark()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></button>
+      <div class="tb-user"><div class="tb-avatar">A</div><span class="tb-user-name">admin@acme.com</span></div>
+    </div>
+  </div>
+
+  <div id="page">
+    <!-- Patch Header -->
+    <div class="patch-header">
+      <div class="ph-top">
+        <div class="ph-identity">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span class="patch-id">KB5034441</span>
+            <span class="badge badge-muted" style="font-size:12px">2024.01</span>
+            <span class="badge badge-info">Windows Server 2022</span>
+            <span class="badge badge-critical" style="font-size:13px;padding:4px 10px">Critical</span>
+          </div>
+          <div class="patch-meta">
+            <span style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Released January 9, 2024
+            </span>
+            <span style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Addresses SmartScreen bypass vulnerability (CVE-2024-21412)
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="patch-actions">
+        <button class="btn btn-primary btn-sm">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>
+          Create Deployment
+        </button>
+        <button class="btn btn-outline btn-sm">Add to Policy</button>
+        <button class="btn btn-ghost btn-sm">Mark Superseded</button>
+      </div>
+    </div>
+
+    <!-- Context Ring -->
+    <div class="context-ring">
+      <div class="ctx-card" style="--accent:#ef4444">
+        <div class="ctx-val">4</div>
+        <div class="ctx-sub">CVEs</div>
+        <div class="ctx-label">CVE Count</div>
+      </div>
+      <div class="ctx-card" style="--accent:#ef4444">
+        <div class="ctx-val" style="color:#ef4444">9.8</div>
+        <div style="height:4px;background:#ffffff10;border-radius:2px;margin:4px 4px"><div style="width:98%;height:100%;background:#ef4444;border-radius:2px"></div></div>
+        <div class="ctx-label">Highest CVSS</div>
+      </div>
+      <div class="ctx-card" style="--accent:#f97316">
+        <div class="ctx-val">18</div>
+        <div class="ctx-sub" style="color:#f97316">6 unprotected</div>
+        <div class="ctx-label">Affected Endpoints</div>
+      </div>
+      <div class="ctx-card" style="--accent:#10b981">
+        <div class="ctx-val" style="color:#10b981">12</div>
+        <div class="ctx-sub">of 18</div>
+        <div class="ctx-label">Deployed To</div>
+      </div>
+      <div class="ctx-card" style="--accent:#10b981">
+        <div class="ctx-val" style="color:#10b981">92%</div>
+        <div class="ctx-sub">success rate</div>
+        <div class="ctx-label">Success Rate</div>
+      </div>
+      <div class="ctx-card" style="--accent:#3b82f6">
+        <div class="ctx-val" style="font-size:16px">4m 32s</div>
+        <div class="ctx-sub">avg install</div>
+        <div class="ctx-label">Avg Install Time</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('overview',this)">Overview</button>
+      <button class="tab-btn" onclick="switchTab('cves',this)">CVEs</button>
+      <button class="tab-btn" onclick="switchTab('endpoints',this)">Affected Endpoints</button>
+      <button class="tab-btn" onclick="switchTab('history',this)">Deployment History</button>
+      <button class="tab-btn" onclick="switchTab('metrics',this)">Remediation Metrics</button>
+    </div>
+
+    <!-- TAB: OVERVIEW -->
+    <div class="tab-panel active" id="tab-overview">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Blast Radius</div>
+          <svg width="100%" height="220" viewBox="0 0 500 220">
+            <defs><radialGradient id="bgrad"><stop offset="0%" stop-color="#ef444408"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs>
+            <ellipse cx="250" cy="110" rx="230" ry="100" fill="url(#bgrad)"/>
+            <!-- center: patch -->
+            <circle cx="250" cy="110" r="24" fill="#111827" stroke="#3b82f6" stroke-width="2"/>
+            <text x="250" y="106" text-anchor="middle" font-size="8" fill="#3b82f6" font-weight="700">KB</text>
+            <text x="250" y="118" text-anchor="middle" font-size="8" fill="#3b82f6" font-weight="700">5034441</text>
+            <!-- CVEs -->
+            <line x1="250" y1="110" x2="100" y2="50" stroke="#ef444435" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <circle cx="100" cy="50" r="18" fill="#ef444415" stroke="#ef4444" stroke-width="1.5"/>
+            <text x="100" y="47" text-anchor="middle" font-size="7" fill="#ef4444">CVE</text>
+            <text x="100" y="57" text-anchor="middle" font-size="7" fill="#ef4444">21412</text>
+            <text x="100" y="31" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="700">9.8</text>
+
+            <line x1="250" y1="110" x2="90" y2="160" stroke="#ef444435" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <circle cx="90" cy="160" r="18" fill="#ef444415" stroke="#ef4444" stroke-width="1.5"/>
+            <text x="90" y="157" text-anchor="middle" font-size="7" fill="#ef4444">CVE</text>
+            <text x="90" y="167" text-anchor="middle" font-size="7" fill="#ef4444">21413</text>
+            <text x="90" y="141" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="700">8.8</text>
+
+            <line x1="250" y1="110" x2="400" y2="50" stroke="#f9731635" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <circle cx="400" cy="50" r="18" fill="#f9731615" stroke="#f97316" stroke-width="1.5"/>
+            <text x="400" y="47" text-anchor="middle" font-size="7" fill="#f97316">CVE</text>
+            <text x="400" y="57" text-anchor="middle" font-size="7" fill="#f97316">0012</text>
+            <text x="400" y="31" text-anchor="middle" font-size="9" fill="#f97316" font-weight="700">7.8</text>
+
+            <line x1="250" y1="110" x2="410" y2="165" stroke="#f59e0b35" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <circle cx="410" cy="165" r="18" fill="#f59e0b15" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="410" y="162" text-anchor="middle" font-size="7" fill="#f59e0b">CVE</text>
+            <text x="410" y="172" text-anchor="middle" font-size="7" fill="#f59e0b">6387</text>
+            <text x="410" y="146" text-anchor="middle" font-size="9" fill="#f59e0b" font-weight="700">6.5</text>
+
+            <!-- Endpoints -->
+            <line x1="250" y1="110" x2="175" y2="200" stroke="#3b82f625" stroke-width="1" stroke-dasharray="3,3"/>
+            <rect x="148" y="190" width="54" height="18" rx="4" fill="#111827" stroke="#3b82f640" stroke-width="1"/>
+            <text x="175" y="203" text-anchor="middle" font-size="8" fill="#3b82f6">prod-web-01</text>
+
+            <line x1="250" y1="110" x2="250" y2="208" stroke="#3b82f625" stroke-width="1" stroke-dasharray="3,3"/>
+            <rect x="223" y="198" width="54" height="18" rx="4" fill="#111827" stroke="#3b82f640" stroke-width="1"/>
+            <text x="250" y="211" text-anchor="middle" font-size="8" fill="#3b82f6">prod-web-02</text>
+
+            <line x1="250" y1="110" x2="325" y2="200" stroke="#3b82f625" stroke-width="1" stroke-dasharray="3,3"/>
+            <rect x="298" y="190" width="54" height="18" rx="4" fill="#111827" stroke="#3b82f640" stroke-width="1"/>
+            <text x="325" y="203" text-anchor="middle" font-size="8" fill="#3b82f6">prod-win-03</text>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Deployment Summary</div>
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid #1e293b40">
+                <span style="font-size:12px;color:var(--muted)">Total Affected Endpoints</span>
+                <span style="font-size:16px;font-weight:700;color:var(--text)">18</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;color:var(--muted)">Deployed Successfully</span>
+                <span style="font-size:14px;font-weight:600;color:#10b981">12</span>
+              </div>
+              <div style="height:8px;background:#ffffff10;border-radius:4px;overflow:hidden">
+                <div style="width:67%;height:100%;background:#10b981;border-radius:4px;transition:.8s ease"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+                <span>0%</span><span style="color:#10b981;font-weight:600">67% deployed</span><span>100%</span>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <div style="flex:1;text-align:center;padding:8px;background:#10b98108;border-radius:6px;border:1px solid #10b98120">
+                  <div style="font-size:18px;font-weight:700;color:#10b981">12</div>
+                  <div style="font-size:10px;color:var(--muted)">Deployed</div>
+                </div>
+                <div style="flex:1;text-align:center;padding:8px;background:#f59e0b08;border-radius:6px;border:1px solid #f59e0b20">
+                  <div style="font-size:18px;font-weight:700;color:#f59e0b">5</div>
+                  <div style="font-size:10px;color:var(--muted)">Pending</div>
+                </div>
+                <div style="flex:1;text-align:center;padding:8px;background:#ef444408;border-radius:6px;border:1px solid #ef444420">
+                  <div style="font-size:18px;font-weight:700;color:#ef4444">1</div>
+                  <div style="font-size:10px;color:var(--muted)">Failed</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CVEs -->
+    <div class="tab-panel" id="tab-cves">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Attack Vector</th><th>Exploit</th><th>KEV</th><th>Published</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span style="font-family:monospace;color:var(--primary);font-weight:600">CVE-2024-21412</span></td>
+              <td><div style="display:flex;align-items:center;gap:6px"><div style="width:60px;height:5px;background:#ffffff10;border-radius:3px"><div style="width:98%;height:100%;background:#ef4444;border-radius:3px"></div></div><span style="color:#ef4444;font-size:11px;font-weight:600">9.8</span></div></td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td><span class="badge badge-info">Network</span></td>
+              <td><span style="color:#ef4444">🛡 Yes</span></td>
+              <td><span style="color:#f59e0b">⚑ Yes</span></td>
+              <td style="font-size:11px;color:var(--muted)">2024-01-09</td>
+              <td><button class="chevron-btn" onclick="this.classList.toggle('open');document.getElementById('cve-exp-0').classList.toggle('open')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+            </tr>
+            <tr class="exp-row" id="cve-exp-0"><td colspan="8" style="padding:0!important;border-bottom:1px solid var(--border)!important">
+              <div class="exp-content-inner">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                  <div>
+                    <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase">CVSS v3.1 Vector Metrics</div>
+                    <div style="display:flex;flex-direction:column;gap:5px">
+                      ${[['Attack Vector (AV)','Network',100,'#ef4444'],['Attack Complexity (AC)','Low',100,'#ef4444'],['Privileges Required (PR)','None',100,'#ef4444'],['User Interaction (UI)','None',100,'#ef4444'],['Scope (S)','Changed',80,'#f97316'],['Confidentiality (C)','High',100,'#ef4444'],['Integrity (I)','High',100,'#ef4444'],['Availability (A)','High',100,'#ef4444']].map(([label,val,pct,color])=>`
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <span style="font-size:10px;color:var(--muted);width:190px;flex-shrink:0">${label}</span>
+                        <div style="width:80px;height:4px;background:#ffffff10;border-radius:2px"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px"></div></div>
+                        <span style="font-size:10px;color:${color};font-weight:600">${val}</span>
+                      </div>`).join('')}
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase">Description</div>
+                    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">Internet Shortcut Files Security Feature Bypass Vulnerability. An attacker can create a malicious internet shortcut file that bypasses the SmartScreen protection, leading to arbitrary code execution.</div>
+                    <div style="font-size:10px;color:var(--muted)">CVSS Vector: <span style="font-family:monospace;color:var(--primary)">CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H</span></div>
+                    <div style="margin-top:8px">
+                      <span style="font-size:10px;color:var(--muted)">Affected range: </span>
+                      <span style="font-family:monospace;font-size:11px;color:var(--text)">Windows Server 2022 &lt; 10.0.20348.2227</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td></tr>
+            <tr>
+              <td><span style="font-family:monospace;color:var(--primary);font-weight:600">CVE-2024-21413</span></td>
+              <td><div style="display:flex;align-items:center;gap:6px"><div style="width:60px;height:5px;background:#ffffff10;border-radius:3px"><div style="width:88%;height:100%;background:#ef4444;border-radius:3px"></div></div><span style="color:#ef4444;font-size:11px;font-weight:600">8.8</span></div></td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td><span class="badge badge-info">Network</span></td>
+              <td><span style="color:#ef4444">🛡 Yes</span></td>
+              <td><span style="color:var(--muted)">No</span></td>
+              <td style="font-size:11px;color:var(--muted)">2024-01-09</td>
+              <td><button class="chevron-btn" onclick="this.classList.toggle('open');document.getElementById('cve-exp-1').classList.toggle('open')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+            </tr>
+            <tr class="exp-row" id="cve-exp-1"><td colspan="8" style="padding:0!important;border-bottom:1px solid var(--border)!important">
+              <div class="exp-content-inner" style="font-size:12px;color:var(--muted)">Microsoft Outlook Remote Code Execution Vulnerability. A specially crafted email can trigger code execution without user interaction in the preview pane.</div>
+            </td></tr>
+            <tr>
+              <td><span style="font-family:monospace;color:var(--primary);font-weight:600">CVE-2024-21314</span></td>
+              <td><div style="display:flex;align-items:center;gap:6px"><div style="width:60px;height:5px;background:#ffffff10;border-radius:3px"><div style="width:78%;height:100%;background:#f97316;border-radius:3px"></div></div><span style="color:#f97316;font-size:11px;font-weight:600">7.8</span></div></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-muted">Local</span></td>
+              <td><span style="color:var(--muted)">No</span></td>
+              <td><span style="color:var(--muted)">No</span></td>
+              <td style="font-size:11px;color:var(--muted)">2024-01-09</td>
+              <td><button class="chevron-btn" onclick="this.classList.toggle('open');document.getElementById('cve-exp-2').classList.toggle('open')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+            </tr>
+            <tr class="exp-row" id="cve-exp-2"><td colspan="8" style="padding:0!important;border-bottom:1px solid var(--border)!important">
+              <div class="exp-content-inner" style="font-size:12px;color:var(--muted)">Windows Kernel Elevation of Privilege Vulnerability. Local attacker can gain SYSTEM privileges by exploiting a race condition in kernel memory management.</div>
+            </td></tr>
+            <tr>
+              <td><span style="font-family:monospace;color:var(--primary);font-weight:600">CVE-2024-21338</span></td>
+              <td><div style="display:flex;align-items:center;gap:6px"><div style="width:60px;height:5px;background:#ffffff10;border-radius:3px"><div style="width:65%;height:100%;background:#f59e0b;border-radius:3px"></div></div><span style="color:#f59e0b;font-size:11px;font-weight:600">6.5</span></div></td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-muted">Network</span></td>
+              <td><span style="color:var(--muted)">No</span></td>
+              <td><span style="color:var(--muted)">No</span></td>
+              <td style="font-size:11px;color:var(--muted)">2024-01-09</td>
+              <td><button class="chevron-btn" onclick="this.classList.toggle('open');document.getElementById('cve-exp-3').classList.toggle('open')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+            </tr>
+            <tr class="exp-row" id="cve-exp-3"><td colspan="8" style="padding:0!important;border-bottom:1px solid var(--border)!important">
+              <div class="exp-content-inner" style="font-size:12px;color:var(--muted)">Windows AppLocker Security Feature Bypass Vulnerability. Allows bypassing of AppLocker policies via crafted DLL injection technique.</div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: AFFECTED ENDPOINTS -->
+    <div class="tab-panel" id="tab-endpoints">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Hostname</th><th>OS</th><th>Status</th><th>Agent Ver</th><th>Patch Status</th><th>Last Deployed</th><th>Action</th></tr></thead>
+          <tbody id="epBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: DEPLOYMENT HISTORY -->
+    <div class="tab-panel" id="tab-history">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Deploy ID</th><th>Triggered By</th><th>Status</th><th>Endpoints</th><th>Started</th><th>Duration</th><th>Result</th><th></th></tr></thead>
+          <tbody id="histBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: REMEDIATION METRICS -->
+    <div class="tab-panel" id="tab-metrics">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Time-to-Patch Distribution (hours)</div>
+          <canvas id="ttpChart" height="180"></canvas>
+        </div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Deployment Success Rate Over Time</div>
+          <canvas id="successChart" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const epData=[
+  {host:'prod-web-01',os:'Windows Server 2022',status:'Deployed',agent:'1.2.3',patchStatus:'success',deployed:'2026-02-28'},
+  {host:'prod-web-02',os:'Windows Server 2022',status:'Deployed',agent:'1.2.3',patchStatus:'success',deployed:'2026-02-28'},
+  {host:'prod-worker-01',os:'Windows Server 2022',status:'Deployed',agent:'1.2.3',patchStatus:'success',deployed:'2026-02-28'},
+  {host:'prod-worker-02',os:'Windows Server 2022',status:'Pending',agent:'1.2.1',patchStatus:'pending',deployed:'—'},
+  {host:'dev-workstation-02',os:'Windows 11 22H2',status:'Pending',agent:'1.2.3',patchStatus:'pending',deployed:'—'},
+  {host:'mail-srv-01',os:'Windows Server 2019',status:'Pending',agent:'1.2.2',patchStatus:'pending',deployed:'—'},
+  {host:'prod-win-03',os:'Windows Server 2022',status:'Deployed',agent:'1.2.3',patchStatus:'success',deployed:'2026-02-29'},
+  {host:'prod-win-04',os:'Windows Server 2022',status:'Deployed',agent:'1.2.3',patchStatus:'success',deployed:'2026-03-01'},
+  {host:'staging-win-01',os:'Windows Server 2022',status:'Deployed',agent:'1.2.3',patchStatus:'failed',deployed:'2026-03-02'},
+  {host:'prod-win-05',os:'Windows Server 2019',status:'Deployed',agent:'1.2.3',patchStatus:'success',deployed:'2026-03-01'},
+];
+
+const histData=[
+  {id:'DEP-0842',by:'admin@acme.com',status:'success',ep:12,started:'2026-02-28 02:00',duration:'18m 23s',result:'11/12 OK'},
+  {id:'DEP-0791',by:'system (policy)',status:'partial',ep:6,started:'2026-02-14 02:00',duration:'24m 08s',result:'5/6 OK'},
+  {id:'DEP-0745',by:'sandy@acme.com',status:'failed',ep:3,started:'2026-02-01 10:30',duration:'8m 44s',result:'0/3 OK'},
+  {id:'DEP-0698',by:'admin@acme.com',status:'success',ep:5,started:'2026-01-20 14:15',duration:'15m 32s',result:'5/5 OK'},
+  {id:'DEP-0651',by:'system (policy)',status:'success',ep:4,started:'2026-01-15 02:00',duration:'12m 11s',result:'4/4 OK'},
+];
+
+function renderEps(){
+  document.getElementById('epBody').innerHTML=epData.map(e=>`
+    <tr>
+      <td><a href="endpoint-detail.html" style="color:var(--primary);font-weight:600;text-decoration:none;font-family:monospace;font-size:12px">${e.host}</a></td>
+      <td style="font-size:11px;color:var(--muted)">${e.os}</td>
+      <td><span class="badge badge-${e.patchStatus==='success'?'success':e.patchStatus==='failed'?'critical':'warn'}">${e.status}</span></td>
+      <td style="font-family:monospace;font-size:11px;color:var(--muted)">${e.agent}</td>
+      <td><span class="status-dot ${e.patchStatus}" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${e.patchStatus==='success'?'#10b981':e.patchStatus==='failed'?'#ef4444':'#f59e0b'};margin-right:5px"></span><span style="font-size:11px;color:var(--muted)">${e.patchStatus==='success'?'Deployed':e.patchStatus==='failed'?'Failed':'Pending'}</span></td>
+      <td style="font-size:11px;color:var(--muted)">${e.deployed}</td>
+      <td>${e.patchStatus!=='success'?`<button class="btn btn-primary btn-sm">Deploy</button>`:''}</td>
+    </tr>
+  `).join('');
+}
+
+function renderHist(){
+  document.getElementById('histBody').innerHTML=histData.map((h,i)=>`
+    <tr>
+      <td><span style="font-family:monospace;color:var(--primary)">${h.id}</span></td>
+      <td style="font-size:11px">${h.by}</td>
+      <td><span class="badge badge-${h.status==='success'?'success':h.status==='partial'?'medium':'critical'}">${h.status==='success'?'Success':h.status==='partial'?'Partial':'Failed'}</span></td>
+      <td style="font-size:12px">${h.ep}</td>
+      <td style="font-size:11px;color:var(--muted)">${h.started}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--muted)">${h.duration}</td>
+      <td style="font-size:12px;color:${h.result.startsWith(h.ep)?'#10b981':'#f59e0b'}">${h.result}</td>
+      <td><button class="chevron-btn" onclick="this.classList.toggle('open');document.getElementById('hist-exp-${i}').classList.toggle('open')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+    </tr>
+    <tr class="exp-row" id="hist-exp-${i}"><td colspan="8" style="padding:0!important;border-bottom:1px solid var(--border)!important">
+      <div class="exp-content-inner">
+        <pre style="background:#0a0e1a;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:10px;color:#10b981;font-family:monospace;white-space:pre-wrap;max-height:100px;overflow-y:auto">[${h.started}] Deployment ${h.id} started
+[INFO] Target: ${h.ep} endpoints
+[INFO] Installing KB5034441 on prod-web-01 ... OK (3m 22s)
+[${h.status==='failed'?'ERROR':'INFO'}] Deployment ${h.result}</pre>
+      </div>
+    </td></tr>
+  `).join('');
+}
+
+let chartsInit=false;
+function initCharts(){
+  if(chartsInit)return;chartsInit=true;
+  new Chart(document.getElementById('ttpChart'),{
+    type:'bar',
+    data:{labels:['0-4h','4-8h','8-16h','16-24h','24-48h','2-7d','>7d'],datasets:[{data:[2,5,8,4,2,1,1],backgroundColor:'#3b82f680',borderColor:'#3b82f6',borderWidth:1,borderRadius:4}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'#1e293b30'}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'#1e293b50'}}}}
+  });
+  new Chart(document.getElementById('successChart'),{
+    type:'line',
+    data:{labels:['Jan 15','Jan 20','Feb 01','Feb 14','Feb 28','Mar 01','Mar 10'],datasets:[{label:'Success Rate %',data:[100,100,0,83,92,92,92],borderColor:'#10b981',tension:.3,pointRadius:3,borderWidth:2,fill:true,backgroundColor:'#10b98115'}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'#1e293b30'}},y:{min:0,max:100,ticks:{color:'#64748b',font:{size:10}},grid:{color:'#1e293b50'}}}}
+  });
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  location.hash=id;
+  if(id==='metrics')initCharts();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+function toggleDark(){document.documentElement.classList.toggle('dark');localStorage.setItem('theme',document.documentElement.classList.contains('dark')?'dark':'light');}
+(function(){
+  if(localStorage.getItem('theme')==='light')document.documentElement.classList.remove('dark');
+  renderEps();renderHist();
+  const h=location.hash.replace('#','');
+  if(h){const b=document.querySelector(`.tab-btn[onclick*="'${h}'"]`);if(b)switchTab(h,b);}
+})();
+</script>
+</body>
+</html>

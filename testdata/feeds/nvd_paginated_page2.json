@@ -1,0 +1,40 @@
+{
+  "resultsPerPage": 1,
+  "startIndex": 1,
+  "totalResults": 2,
+  "format": "NVD_CVE",
+  "version": "2.0",
+  "vulnerabilities": [
+    {
+      "cve": {
+        "id": "CVE-2024-0056",
+        "published": "2024-01-09T18:15:00.000",
+        "lastModified": "2024-01-12T00:00:00.000",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "Microsoft.Data.SqlClient and System.Data.SqlClient SQL Data Provider Security Feature Bypass Vulnerability"
+          }
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {
+              "source": "security@microsoft.com",
+              "type": "Secondary",
+              "cvssData": {
+                "version": "3.1",
+                "vectorString": "CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:H/I:H/A:N",
+                "baseScore": 6.8,
+                "baseSeverity": "MEDIUM"
+              }
+            }
+          ]
+        },
+        "configurations": [],
+        "references": [
+          { "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-0056" }
+        ]
+      }
+    }
+  ]
+}

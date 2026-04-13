@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Settings Redesign</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    /* ─── Design Tokens: Dark (default) ─────────────────────── */
+    :root {
+      --bg-page:          #000000;
+      --bg-sidebar:       #000000;
+      --bg-card:          #111113;
+      --bg-card-elevated: #161618;
+      --bg-inset:         #0a0a0c;
+      --bg-input:         #0d0d0f;
+
+      --border:           #222222;
+      --border-hover:     #2e2e2e;
+      --border-strong:    #333333;
+      --border-divider:   #1a1a1a;
+      --border-faint:     #181818;
+
+      --text-emphasis:    #ffffff;
+      --text-primary:     #d4d4d4;
+      --text-secondary:   #a1a1a1;
+      --text-muted:       #737373;
+      --text-faint:       #525252;
+
+      --accent:           #10b981;
+      --accent-subtle:    rgba(16,185,129,0.08);
+      --accent-border:    rgba(16,185,129,0.3);
+      --accent-hover:     #0d9668;
+      --accent-glow:      0 0 0 3px rgba(16,185,129,0.15);
+
+      --signal-healthy:         #22c55e;
+      --signal-critical:        #ef4444;
+      --signal-warning:         #f59e0b;
+      --signal-info:            #3b82f6;
+      --signal-critical-subtle: rgba(239,68,68,0.08);
+      --signal-warning-subtle:  rgba(245,158,11,0.08);
+      --signal-healthy-subtle:  rgba(34,197,94,0.08);
+      --signal-info-subtle:     rgba(59,130,246,0.08);
+
+      --shadow-card:      0 1px 2px rgba(0,0,0,0.5);
+      --shadow-float:     0 8px 32px rgba(0,0,0,0.6);
+
+      --scrollbar-thumb:  #333333;
+
+      --nav-active-bg:    rgba(16,185,129,0.06);
+      --nav-active-border: var(--accent);
+      --nav-hover-bg:     #111113;
+
+      --font-sans:  'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono:  'GeistMono', 'JetBrains Mono', monospace;
+    }
+
+    /* ─── Design Tokens: Light ──────────────────────────────── */
+    html.light {
+      --bg-page:          #f5f5f5;
+      --bg-sidebar:       #ffffff;
+      --bg-card:          #ffffff;
+      --bg-card-elevated: #fafafa;
+      --bg-inset:         #f0f0f0;
+      --bg-input:         #ffffff;
+
+      --border:           #e0e0e0;
+      --border-hover:     #d4d4d4;
+      --border-strong:    #cccccc;
+      --border-divider:   #ebebeb;
+      --border-faint:     #f0f0f0;
+
+      --text-emphasis:    #0a0a0a;
+      --text-primary:     #1a1a1a;
+      --text-secondary:   #525252;
+      --text-muted:       #737373;
+      --text-faint:       #a1a1a1;
+
+      --accent:           #7c3aed;
+      --accent-subtle:    rgba(124,58,237,0.06);
+      --accent-border:    rgba(124,58,237,0.25);
+      --accent-hover:     #6d28d9;
+      --accent-glow:      0 0 0 3px rgba(124,58,237,0.12);
+
+      --signal-healthy:         #059669;
+      --signal-critical:        #dc2626;
+      --signal-warning:         #d97706;
+      --signal-info:            #2563eb;
+      --signal-critical-subtle: rgba(220,38,38,0.06);
+      --signal-warning-subtle:  rgba(217,119,6,0.06);
+      --signal-healthy-subtle:  rgba(5,150,105,0.06);
+      --signal-info-subtle:     rgba(37,99,235,0.06);
+
+      --shadow-card:      0 1px 3px rgba(0,0,0,0.06);
+      --shadow-float:     0 8px 32px rgba(0,0,0,0.12);
+
+      --scrollbar-thumb:  #d4d4d4;
+
+      --nav-active-bg:    rgba(124,58,237,0.05);
+      --nav-active-border: var(--accent);
+      --nav-hover-bg:     #fafafa;
+    }
+
+    /* ─── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.5;
+      display: flex;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+    /* ─── Sidebar — Settings Mode (takeover) ────────────────── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: background 0.2s;
+    }
+
+    /* Back button */
+    .sidebar-back {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-divider);
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 12px;
+      transition: color 0.12s, background 0.12s;
+      user-select: none;
+    }
+    .sidebar-back:hover { color: var(--text-primary); background: var(--nav-hover-bg); }
+    .sidebar-back svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .sidebar-back-label { font-weight: 500; }
+
+    /* Settings header in sidebar */
+    .sidebar-settings-header {
+      padding: 16px 16px 12px;
+    }
+    .sidebar-settings-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      letter-spacing: -0.02em;
+    }
+    .sidebar-settings-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Nav groups */
+    .s-nav-group { padding: 4px 8px; }
+
+    .s-nav-group-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      padding: 12px 8px 4px;
+    }
+
+    .s-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      position: relative;
+      color: var(--text-secondary);
+      font-size: 13px;
+      user-select: none;
+    }
+    .s-nav-item:hover {
+      background: var(--nav-hover-bg);
+      color: var(--text-primary);
+    }
+    .s-nav-item.active {
+      background: var(--nav-active-bg);
+      color: var(--text-emphasis);
+    }
+    .s-nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 6px; bottom: 6px;
+      width: 2px;
+      border-radius: 1px;
+      background: var(--nav-active-border);
+    }
+    .s-nav-item svg {
+      width: 15px; height: 15px;
+      flex-shrink: 0; opacity: 0.5;
+      transition: opacity 0.12s;
+    }
+    .s-nav-item:hover svg { opacity: 0.7; }
+    .s-nav-item.active svg { opacity: 1; color: var(--accent); }
+
+    .nav-dot {
+      margin-left: auto;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .nav-dot.green { background: var(--signal-healthy); box-shadow: 0 0 0 3px var(--signal-healthy-subtle); }
+
+    /* ─── Main Area ─────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 48px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 24px; gap: 12px;
+      background: var(--bg-page);
+    }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+    .breadcrumb-seg { color: var(--text-muted); cursor: pointer; }
+    .breadcrumb-seg:hover { color: var(--text-secondary); }
+    .breadcrumb-sep { color: var(--text-faint); font-size: 11px; }
+    .breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+    .theme-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 10px; background: transparent;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px; color: var(--text-muted);
+      font-size: 11px; font-family: var(--font-mono);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .theme-btn:hover { background: var(--bg-card); color: var(--text-primary); }
+
+    /* ─── Content Scroll ────────────────────────────────────── */
+    .content-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 40px 80px;
+    }
+    .content-inner {
+      max-width: 680px;
+    }
+
+    /* ─── Section Header ────────────────────────────────────── */
+    .section-header {
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-divider);
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      letter-spacing: -0.02em;
+    }
+    .section-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      max-width: 520px;
+      line-height: 1.6;
+    }
+
+    /* ─── Form ──────────────────────────────────────────────── */
+    .form-group { margin-bottom: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .form-label {
+      display: block;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      margin-bottom: 6px;
+    }
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .form-input {
+      width: 100%; height: 36px;
+      padding: 0 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-input:focus { border-color: var(--accent); box-shadow: var(--accent-glow); }
+    .form-input::placeholder { color: var(--text-faint); }
+    .form-input.mono { font-family: var(--font-mono); font-size: 12px; }
+    .form-input.readonly { background: var(--bg-inset); cursor: default; color: var(--text-secondary); }
+
+    .form-select {
+      width: 100%; height: 36px;
+      padding: 0 28px 0 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px; font-family: var(--font-sans);
+      outline: none; cursor: pointer;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23737373' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color 0.15s;
+    }
+    .form-select:focus { border-color: var(--accent); box-shadow: var(--accent-glow); }
+
+    /* ─── Buttons ────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 6px;
+      font-size: 13px; font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer; transition: all 0.15s;
+      border: 1px solid transparent; white-space: nowrap;
+    }
+    .btn-brand { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn-brand:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border-strong); }
+    .btn-ghost:hover { background: var(--bg-card); color: var(--text-primary); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+    .btn-actions {
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 8px; padding-top: 20px; margin-top: 20px;
+      border-top: 1px solid var(--border-divider);
+    }
+
+    .divider { height: 1px; background: var(--border-divider); margin: 24px 0; }
+
+    /* ─── Sections (show/hide) ───────────────────────────────── */
+    .settings-section { display: none; }
+    .settings-section.active { display: block; }
+
+    /* ─── Provider Card ──────────────────────────────────────── */
+    .provider-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 24px;
+    }
+    .provider-icon {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 18px; font-weight: 800;
+    }
+    .provider-info { flex: 1; min-width: 0; }
+    .provider-name { font-size: 14px; font-weight: 600; color: var(--text-emphasis); }
+    .provider-protocol { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+    .provider-status {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 500;
+    }
+    .provider-status.connected {
+      background: var(--signal-healthy-subtle);
+      color: var(--signal-healthy);
+      border: 1px solid rgba(34,197,94,0.2);
+    }
+    .provider-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    /* ─── Info Banner ────────────────────────────────────────── */
+    .info-banner {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 14px; border-radius: 8px;
+      font-size: 12px; line-height: 1.5; margin-bottom: 20px;
+    }
+    .info-banner.info {
+      background: var(--signal-info-subtle);
+      border: 1px solid rgba(59,130,246,0.15);
+      color: var(--text-secondary);
+    }
+    .info-banner svg { flex-shrink: 0; margin-top: 1px; }
+
+    /* ─── Test Result ────────────────────────────────────────── */
+    .test-result {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 8px;
+      font-size: 12px; margin-top: 12px;
+    }
+    .test-result.success {
+      background: var(--signal-healthy-subtle);
+      border: 1px solid rgba(34,197,94,0.15);
+      color: var(--signal-healthy);
+    }
+    .test-result .latency {
+      margin-left: auto; font-family: var(--font-mono);
+      font-size: 11px; opacity: 0.7;
+    }
+
+    /* ─── Role Mapping Table ─────────────────────────────────── */
+    .mapping-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .mapping-table th {
+      text-align: left; padding: 6px 12px 8px;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-faint); font-family: var(--font-mono);
+      border-bottom: 1px solid var(--border);
+    }
+    .mapping-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-faint);
+      vertical-align: middle;
+    }
+    .mapping-external { font-family: var(--font-mono); color: var(--text-secondary); font-size: 12px; }
+    .mapping-arrow { color: var(--text-faint); font-size: 12px; width: 32px; }
+    .mapping-internal { color: var(--text-primary); }
+    .mapping-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .mapping-badge.active { color: var(--signal-healthy); }
+
+    /* ─── Badges ─────────────────────────────────────────────── */
+    .anno-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 7px; border-radius: 4px;
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .anno-badge.readonly {
+      background: var(--signal-info-subtle);
+      color: var(--signal-info);
+      border: 1px solid rgba(59,130,246,0.15);
+    }
+    .anno-badge.managed {
+      background: var(--accent-subtle);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+    }
+
+    /* Reveal button */
+    .readonly-field { display: flex; align-items: center; gap: 8px; }
+    .reveal-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 36px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-muted);
+      cursor: pointer; transition: all 0.12s; flex-shrink: 0;
+    }
+    .reveal-btn:hover { background: var(--bg-card); color: var(--text-primary); }
+
+    /* ─── Channel Cards ──────────────────────────────────────── */
+    .channel-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+
+    .channel-card {
+      padding: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color 0.15s;
+    }
+    .channel-card:hover { border-color: var(--border-hover); }
+
+    .channel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .channel-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 14px;
+    }
+    .channel-name { font-size: 13px; font-weight: 600; color: var(--text-emphasis); }
+    .channel-status {
+      margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+    }
+    .channel-status.on { background: var(--signal-healthy); box-shadow: 0 0 0 3px var(--signal-healthy-subtle); }
+    .channel-status.off { background: var(--text-faint); }
+
+    .channel-url {
+      font-size: 11px; font-family: var(--font-mono);
+      color: var(--text-muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      margin-bottom: 10px;
+    }
+    .channel-footer { display: flex; align-items: center; justify-content: space-between; }
+    .channel-tested { font-size: 10px; color: var(--text-faint); }
+    .channel-test-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; background: transparent;
+      border: 1px solid var(--border); border-radius: 4px;
+      color: var(--text-muted); font-size: 10px;
+      font-family: var(--font-mono); cursor: pointer; transition: all 0.12s;
+    }
+    .channel-test-btn:hover {
+      border-color: var(--accent-border);
+      color: var(--accent); background: var(--accent-subtle);
+    }
+
+    /* ─── Toggle ─────────────────────────────────────────────── */
+    .toggle {
+      width: 36px; height: 20px; border-radius: 10px;
+      background: var(--border-strong); cursor: pointer;
+      position: relative; transition: background 0.2s; flex-shrink: 0;
+    }
+    .toggle.on { background: var(--accent); }
+    .toggle::after {
+      content: ''; position: absolute;
+      top: 2px; left: 2px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: white; transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .toggle.on::after { transform: translateX(16px); }
+
+    /* ─── Setting Row ────────────────────────────────────────── */
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid var(--border-faint);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row-info { flex: 1; min-width: 0; }
+    .setting-row-label { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+    .setting-row-desc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+    /* ─── License ────────────────────────────────────────────── */
+    .license-card {
+      display: flex; gap: 20px; padding: 20px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; margin-bottom: 24px;
+    }
+    .license-tier {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-width: 100px; padding: 16px; border-radius: 8px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(124,58,237,0.04));
+      border: 1px solid rgba(124,58,237,0.2);
+    }
+    .license-tier-icon { font-size: 20px; margin-bottom: 4px; }
+    .license-tier-name { font-size: 13px; font-weight: 700; color: var(--text-emphasis); letter-spacing: -0.01em; }
+    .license-tier-type { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+    .license-details { flex: 1; }
+    .license-metric { margin-bottom: 16px; }
+    .license-metric-label {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-faint); font-family: var(--font-mono); margin-bottom: 6px;
+    }
+    .usage-bar-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+    .usage-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    .usage-bar-labels { display: flex; justify-content: space-between; }
+    .usage-bar-value { font-size: 12px; font-family: var(--font-mono); color: var(--text-primary); font-weight: 600; }
+    .usage-bar-remaining { font-size: 11px; color: var(--text-muted); }
+
+    .expiry-row { display: flex; align-items: center; gap: 10px; padding: 12px 0; }
+    .expiry-date { font-size: 13px; font-family: var(--font-mono); color: var(--text-primary); }
+    .expiry-days { font-size: 11px; font-weight: 600; color: var(--signal-healthy); }
+
+    /* ─── Feature Matrix ─────────────────────────────────────── */
+    .feature-matrix {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0; border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden;
+    }
+    .feature-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-bottom: 1px solid var(--border-faint);
+      font-size: 12px;
+    }
+    .feature-item:nth-child(odd) { border-right: 1px solid var(--border-faint); }
+    .feature-item:nth-last-child(-n+2) { border-bottom: none; }
+
+    .feature-check {
+      width: 16px; height: 16px; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .feature-check.enabled { background: var(--signal-healthy-subtle); color: var(--signal-healthy); }
+    .feature-check.disabled { background: var(--bg-inset); color: var(--text-faint); }
+    .feature-name { color: var(--text-primary); }
+    .feature-item.disabled .feature-name { color: var(--text-faint); }
+
+    /* ─── Appearance ─────────────────────────────────────────── */
+    .theme-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+
+    .theme-card {
+      padding: 0; border: 2px solid var(--border);
+      border-radius: 10px; cursor: pointer;
+      transition: border-color 0.15s; overflow: hidden;
+    }
+    .theme-card:hover { border-color: var(--border-hover); }
+    .theme-card.selected { border-color: var(--accent); }
+
+    .theme-preview { height: 80px; display: flex; overflow: hidden; }
+    .theme-preview-sidebar {
+      width: 40px; display: flex; flex-direction: column;
+      gap: 4px; padding: 8px 6px;
+    }
+    .theme-preview-sidebar div { height: 3px; border-radius: 1px; }
+    .theme-preview-content {
+      flex: 1; padding: 8px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .theme-preview-content div { border-radius: 3px; }
+
+    .theme-card-label {
+      padding: 10px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .theme-card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+    .theme-card-check {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .theme-card.selected .theme-card-check { background: var(--accent); border-color: var(--accent); }
+
+    .accent-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+    .accent-swatch {
+      width: 32px; height: 32px; border-radius: 8px;
+      cursor: pointer; border: 2px solid transparent;
+      transition: border-color 0.12s, transform 0.12s; position: relative;
+    }
+    .accent-swatch:hover { transform: scale(1.1); }
+    .accent-swatch.selected { border-color: var(--text-emphasis); }
+    .accent-swatch.selected::after {
+      content: ''; position: absolute; inset: 5px;
+      border-radius: 4px; border: 2px solid rgba(255,255,255,0.6);
+    }
+
+    /* ─── Saved Indicator ────────────────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .save-indicator {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--signal-healthy);
+      animation: fadeInUp 0.2s ease;
+    }
+
+    /* ─── Mockup Banner ──────────────────────────────────────── */
+    .mockup-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+      background: var(--accent); color: #000;
+      text-align: center; padding: 5px 12px;
+      font-size: 11px; font-weight: 600;
+      font-family: var(--font-mono); letter-spacing: 0.02em;
+    }
+    body { padding-top: 28px; }
+  </style>
+</head>
+<body>
+  <div class="mockup-banner">MOCKUP — Settings Redesign v2 · Sidebar Takeover Pattern · PatchIQ Design System</div>
+
+  <!-- ─── Sidebar: Settings Mode ───────────────────────────── -->
+  <aside class="sidebar">
+    <!-- Back to main nav -->
+    <div class="sidebar-back" title="Back to main navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 12H5m0 0l7 7m-7-7l7-7"/></svg>
+      <span class="sidebar-back-label">Back</span>
+    </div>
+
+    <div class="sidebar-settings-header">
+      <div class="sidebar-settings-title">Settings</div>
+      <div class="sidebar-settings-subtitle">Patch Manager</div>
+    </div>
+
+    <div class="s-nav-group">
+      <div class="s-nav-group-label">Configuration</div>
+      <div class="s-nav-item active" data-section="general">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        General
+      </div>
+      <div class="s-nav-item" data-section="identity">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Identity &amp; Access
+        <span class="nav-dot green"></span>
+      </div>
+      <div class="s-nav-item" data-section="notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Notifications
+      </div>
+    </div>
+
+    <div class="s-nav-group">
+      <div class="s-nav-group-label">Account</div>
+      <div class="s-nav-item" data-section="license">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        License
+      </div>
+      <div class="s-nav-item" data-section="appearance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Appearance
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── Main ─────────────────────────────────────────────── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span class="breadcrumb-seg">Settings</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current" id="breadcrumb-section">General</span>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-btn" onclick="document.documentElement.classList.toggle('light')">
+          <span>◑</span> Theme
+        </button>
+      </div>
+    </div>
+
+    <div class="content-scroll">
+      <div class="content-inner">
+
+        <!-- ═══ GENERAL ═══════════════════════════════════════ -->
+        <div class="settings-section active" id="section-general">
+          <div class="section-header">
+            <div class="section-title">General</div>
+            <div class="section-desc">Organization identity, regional preferences, and default scan behavior.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Organization Name</label>
+            <input class="form-input" type="text" value="Acme Corporation" />
+            <div class="form-hint">Displayed in reports, notifications, and the dashboard header.</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Timezone</label>
+              <select class="form-select">
+                <option>UTC</option>
+                <option selected>America/New_York</option>
+                <option>America/Los_Angeles</option>
+                <option>Europe/London</option>
+                <option>Europe/Berlin</option>
+                <option>Asia/Tokyo</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date Format</label>
+              <select class="form-select">
+                <option selected>YYYY-MM-DD</option>
+                <option>MM/DD/YYYY</option>
+                <option>DD/MM/YYYY</option>
+                <option>DD MMM YYYY</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Default Scan Interval</label>
+            <select class="form-select" style="max-width: 200px;">
+              <option>1 hour</option><option>2 hours</option><option>4 hours</option>
+              <option>6 hours</option><option>12 hours</option><option selected>24 hours</option>
+            </select>
+            <div class="form-hint">How frequently agents scan for available patches. Overridden by per-endpoint settings.</div>
+          </div>
+
+          <div class="btn-actions">
+            <span class="save-indicator" style="margin-right: auto;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+              Saved
+            </span>
+            <button class="btn btn-ghost">Discard</button>
+            <button class="btn btn-brand">Save Changes</button>
+          </div>
+        </div>
+
+        <!-- ═══ IDENTITY & ACCESS ═════════════════════════════ -->
+        <div class="settings-section" id="section-identity">
+          <div class="section-header">
+            <div class="section-title">Identity &amp; Access</div>
+            <div class="section-desc">Single sign-on via Zitadel OIDC. Connection testing and role mapping.</div>
+          </div>
+
+          <div class="provider-card">
+            <div class="provider-icon" style="background: linear-gradient(135deg, #ff6b35, #ff3d00); color: white;">Z</div>
+            <div class="provider-info">
+              <div class="provider-name">Zitadel</div>
+              <div class="provider-protocol">OIDC + PKCE · SSO Provider</div>
+            </div>
+            <div class="provider-status connected">
+              <span class="provider-status-dot"></span>
+              Connected
+            </div>
+          </div>
+
+          <div class="info-banner info">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+            <div>
+              Identity settings are managed through the
+              <strong style="color: var(--text-primary);">Zitadel admin console</strong>.
+              Fields below are read-only. Use <strong style="color: var(--text-primary);">Test Connection</strong> to verify.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">SSO URL <span class="anno-badge readonly" style="margin-left: 6px;">Read-only</span></label>
+            <input class="form-input mono readonly" type="text" value="https://auth.acme.corp" readonly />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Client ID <span class="anno-badge readonly" style="margin-left: 6px;">Read-only</span></label>
+            <div class="readonly-field">
+              <input class="form-input mono readonly" type="text" value="298374829347••••••••" readonly style="flex:1;" />
+              <button class="reveal-btn" title="Reveal">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 4px;">
+            <button class="btn btn-ghost btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Test Connection
+            </button>
+          </div>
+
+          <div class="test-result success">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            OIDC discovery validated — issuer, authorization, and token endpoints found
+            <span class="latency">42ms</span>
+          </div>
+
+          <div class="divider" style="margin: 28px 0;"></div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div>
+              <div style="font-size: 14px; font-weight: 600; color: var(--text-emphasis);">Role Mappings</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Map Zitadel roles to PatchIQ permissions</div>
+            </div>
+            <span class="anno-badge managed">Managed</span>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+            <table class="mapping-table">
+              <thead>
+                <tr>
+                  <th style="width: 35%;">Zitadel Role</th>
+                  <th class="mapping-arrow"></th>
+                  <th style="width: 35%;">PatchIQ Role</th>
+                  <th style="width: 15%;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td class="mapping-external">admin</td><td class="mapping-arrow">→</td><td class="mapping-internal">Administrator</td><td><span class="mapping-badge active">● Active</span></td></tr>
+                <tr><td class="mapping-external">operator</td><td class="mapping-arrow">→</td><td class="mapping-internal">Operator</td><td><span class="mapping-badge active">● Active</span></td></tr>
+                <tr><td class="mapping-external">viewer</td><td class="mapping-arrow">→</td><td class="mapping-internal">Read-Only</td><td><span class="mapping-badge active">● Active</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ═══ NOTIFICATIONS ═════════════════════════════════ -->
+        <div class="settings-section" id="section-notifications">
+          <div class="section-header">
+            <div class="section-title">Notifications</div>
+            <div class="section-desc">Delivery channels and alert preferences.</div>
+          </div>
+
+          <div class="channel-grid">
+            <div class="channel-card">
+              <div class="channel-header">
+                <div class="channel-icon" style="background: rgba(59,130,246,0.1); color: var(--signal-info);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                </div>
+                <div class="channel-name">Webhook</div>
+                <span class="channel-status on"></span>
+              </div>
+              <div class="channel-url">https://hooks.acme.corp/patchiq</div>
+              <div class="channel-footer">
+                <span class="channel-tested">Tested 2h ago · ✓</span>
+                <button class="channel-test-btn">Test</button>
+              </div>
+            </div>
+            <div class="channel-card">
+              <div class="channel-header">
+                <div class="channel-icon" style="background: rgba(245,158,11,0.1); color: var(--signal-warning);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 2c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5h5c.83 0 1.5-.67 1.5-1.5S20.33 7 19.5 7h-5"/><path d="M2 9.5C2 10.33 2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5v-5C10 3.67 9.33 3 8.5 3S7 3.67 7 4.5v5"/></svg>
+                </div>
+                <div class="channel-name">Slack</div>
+                <span class="channel-status on"></span>
+              </div>
+              <div class="channel-url">#security-ops · Acme workspace</div>
+              <div class="channel-footer">
+                <span class="channel-tested">Tested 5h ago · ✓</span>
+                <button class="channel-test-btn">Test</button>
+              </div>
+            </div>
+            <div class="channel-card">
+              <div class="channel-header">
+                <div class="channel-icon" style="background: rgba(34,197,94,0.1); color: var(--signal-healthy);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/></svg>
+                </div>
+                <div class="channel-name">Email</div>
+                <span class="channel-status off"></span>
+              </div>
+              <div class="channel-url" style="color: var(--text-faint);">Not configured</div>
+              <div class="channel-footer">
+                <span class="channel-tested" style="color: var(--text-faint);">Never tested</span>
+                <button class="channel-test-btn" style="opacity: 0.4; pointer-events: none;">Test</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-banner info">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+            <div>
+              Channel configuration and event subscriptions are managed on the
+              <a href="#" style="color: var(--accent); text-decoration: none; font-weight: 600;">Notifications page →</a>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div style="font-size: 14px; font-weight: 600; color: var(--text-emphasis); margin-bottom: 12px;">Quick Preferences</div>
+
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-label">Deployment alerts</div>
+              <div class="setting-row-desc">Notify on deployment start, completion, and failure</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-label">Critical CVE alerts</div>
+              <div class="setting-row-desc">Immediate notification for CVSS ≥ 9.0 or CISA KEV entries</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-label">Compliance threshold breach</div>
+              <div class="setting-row-desc">Alert when any framework score drops below threshold</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-label">Agent disconnect</div>
+              <div class="setting-row-desc">Alert when an endpoint goes offline for more than 15 minutes</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-label">License expiry warnings</div>
+              <div class="setting-row-desc">30-day and 7-day reminders before license expires</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <!-- ═══ LICENSE ═══════════════════════════════════════ -->
+        <div class="settings-section" id="section-license">
+          <div class="section-header">
+            <div class="section-title">License</div>
+            <div class="section-desc">Current tier, endpoint capacity, and feature entitlements.</div>
+          </div>
+
+          <div class="license-card">
+            <div class="license-tier">
+              <div class="license-tier-icon">★</div>
+              <div class="license-tier-name">Enterprise</div>
+              <div class="license-tier-type">TIER</div>
+            </div>
+            <div class="license-details">
+              <div class="license-metric">
+                <div class="license-metric-label">Endpoint Usage</div>
+                <div class="usage-bar-track">
+                  <div class="usage-bar-fill" style="width: 34%; background: var(--signal-healthy);"></div>
+                </div>
+                <div class="usage-bar-labels">
+                  <span class="usage-bar-value">34 / 100</span>
+                  <span class="usage-bar-remaining">66 slots remaining</span>
+                </div>
+              </div>
+              <div class="expiry-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <span class="expiry-date">2027-03-15</span>
+                <span class="expiry-days">349 days remaining</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size: 14px; font-weight: 600; color: var(--text-emphasis); margin-bottom: 12px;">Feature Entitlements</div>
+
+          <div class="feature-matrix">
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">Endpoint Management</span></div>
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">Patch Deployment</span></div>
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">Workflow Engine</span></div>
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">Compliance Frameworks</span></div>
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">Multi-Wave Deployments</span></div>
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">API Access</span></div>
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">RBAC</span></div>
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">SSO Integration</span></div>
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">AI Assistant</span></div>
+            <div class="feature-item disabled"><div class="feature-check disabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div><span class="feature-name">Multi-Site</span></div>
+            <div class="feature-item disabled"><div class="feature-check disabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div><span class="feature-name">HA / DR</span></div>
+            <div class="feature-item"><div class="feature-check enabled"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div><span class="feature-name">Vulnerability Integration</span></div>
+          </div>
+        </div>
+
+        <!-- ═══ APPEARANCE ════════════════════════════════════ -->
+        <div class="settings-section" id="section-appearance">
+          <div class="section-header">
+            <div class="section-title">Appearance</div>
+            <div class="section-desc">Theme, accent color, and display preferences.</div>
+          </div>
+
+          <div style="font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px;">Theme</div>
+
+          <div class="theme-cards">
+            <div class="theme-card selected" onclick="selectThemeCard(this, 'dark')">
+              <div class="theme-preview" style="background: #000;">
+                <div class="theme-preview-sidebar" style="border-right: 1px solid #222;">
+                  <div style="background: #10b981; width: 16px; height: 16px; border-radius: 4px; margin-bottom: 6px;"></div>
+                  <div style="background: #333; width: 100%;"></div>
+                  <div style="background: #333; width: 70%;"></div>
+                  <div style="background: #222; width: 100%;"></div>
+                  <div style="background: #333; width: 80%;"></div>
+                </div>
+                <div class="theme-preview-content">
+                  <div style="background: #111; height: 12px; width: 50%;"></div>
+                  <div style="background: #111; flex: 1; margin-top: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px;">
+                    <div style="background: #1a1a1a; border-radius: 2px;"></div>
+                    <div style="background: #1a1a1a; border-radius: 2px;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="theme-card-label">
+                <span class="theme-card-name">Dark</span>
+                <div class="theme-card-check">
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+              </div>
+            </div>
+            <div class="theme-card" onclick="selectThemeCard(this, 'light')">
+              <div class="theme-preview" style="background: #f5f5f5;">
+                <div class="theme-preview-sidebar" style="border-right: 1px solid #e0e0e0; background: #fff;">
+                  <div style="background: #7c3aed; width: 16px; height: 16px; border-radius: 4px; margin-bottom: 6px;"></div>
+                  <div style="background: #e0e0e0; width: 100%;"></div>
+                  <div style="background: #e0e0e0; width: 70%;"></div>
+                  <div style="background: #eee; width: 100%;"></div>
+                  <div style="background: #e0e0e0; width: 80%;"></div>
+                </div>
+                <div class="theme-preview-content">
+                  <div style="background: #e0e0e0; height: 12px; width: 50%;"></div>
+                  <div style="background: #fff; flex: 1; margin-top: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; border: 1px solid #eee; border-radius: 3px;">
+                    <div style="background: #fafafa; border-radius: 2px;"></div>
+                    <div style="background: #fafafa; border-radius: 2px;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="theme-card-label">
+                <span class="theme-card-name">Light</span>
+                <div class="theme-card-check"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div style="font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px;">Accent Color</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;">Applied to active states, primary buttons, and focus rings.</div>
+
+          <div class="accent-grid">
+            <div class="accent-swatch selected" style="background: #10b981;" onclick="selectSwatch(this)"></div>
+            <div class="accent-swatch" style="background: #7c3aed;" onclick="selectSwatch(this)"></div>
+            <div class="accent-swatch" style="background: #3b82f6;" onclick="selectSwatch(this)"></div>
+            <div class="accent-swatch" style="background: #f59e0b;" onclick="selectSwatch(this)"></div>
+            <div class="accent-swatch" style="background: #ef4444;" onclick="selectSwatch(this)"></div>
+            <div class="accent-swatch" style="background: #ec4899;" onclick="selectSwatch(this)"></div>
+            <div class="accent-swatch" style="background: #06b6d4;" onclick="selectSwatch(this)"></div>
+            <div class="accent-swatch" style="background: #8b5cf6;" onclick="selectSwatch(this)"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-label">Compact mode</div>
+              <div class="setting-row-desc">Reduce padding in tables and cards for higher information density</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-label">Show monospace data</div>
+              <div class="setting-row-desc">Use monospace font for IDs, hashes, and technical values</div>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Section navigation
+    const navItems = document.querySelectorAll('.s-nav-item[data-section]');
+    const sections = document.querySelectorAll('.settings-section');
+    const breadcrumb = document.getElementById('breadcrumb-section');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const sectionId = item.dataset.section;
+        navItems.forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+        sections.forEach(s => s.classList.remove('active'));
+        document.getElementById('section-' + sectionId).classList.add('active');
+        breadcrumb.textContent = item.textContent.trim().replace(/●.*/, '').trim();
+      });
+    });
+
+    function selectThemeCard(card, theme) {
+      document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      document.documentElement.classList.toggle('light', theme === 'light');
+    }
+
+    function selectSwatch(el) {
+      document.querySelectorAll('.accent-swatch').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+  </script>
+</body>
+</html>

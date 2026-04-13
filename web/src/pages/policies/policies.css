@@ -1,0 +1,10 @@
+/* policies.css — legacy styles retained for compatibility; visual logic moved to inline styles */
+
+/* Countdown pulse animation used by ContextRing */
+@keyframes policy-countdown-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.policy-countdown-pulse {
+  animation: policy-countdown-pulse 2s infinite;
+}

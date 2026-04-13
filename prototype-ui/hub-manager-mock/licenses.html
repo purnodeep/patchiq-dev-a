@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Hub — Licenses</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#141c2e;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#6366f1;--primary-dark:#4f46e5;
+  --secondary:#8b5cf6;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --radius:8px;--sidebar-w:260px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:13px}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+#sidebar{width:var(--sidebar-w);min-height:100vh;background:#0d1120;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:width .2s}
+#sidebar.collapsed{width:64px}
+.sidebar-brand{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;overflow:hidden}
+.sidebar-brand-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sidebar-brand-text{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.sidebar-brand-sub{font-size:10px;color:var(--muted);display:block}
+.sidebar-nav{flex:1;padding:10px 0;overflow-y:auto;overflow-x:hidden}
+.nav-group-label{padding:8px 16px 3px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 16px;cursor:pointer;color:var(--muted);transition:all .15s;position:relative;font-size:12.5px;white-space:nowrap;text-decoration:none}
+.nav-item:hover{color:var(--text);background:rgba(99,102,241,.07)}
+.nav-item.active{color:var(--primary);background:rgba(99,102,241,.12)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--primary);border-radius:0 2px 2px 0}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--warning);color:#000;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.nav-badge.primary{background:var(--primary);color:#fff}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.collapse-btn{position:absolute;top:50%;right:-12px;transform:translateY(-50%);width:24px;height:24px;background:var(--card);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:var(--muted);z-index:101}
+#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .2s}
+#main.sidebar-collapsed{margin-left:64px}
+#topbar{height:52px;background:#0d1120;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:90}
+.topbar-brand{font-size:13px;font-weight:700;color:var(--primary)}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.breadcrumb span.active{color:var(--text)}
+.breadcrumb .sep{color:var(--border)}
+.client-switcher{margin-left:auto;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:16px}
+.topbar-icon-btn{width:32px;height:32px;border-radius:6px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.topbar-icon-btn:hover{border-color:var(--primary);color:var(--primary)}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--danger);border-radius:50%;font-size:8px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center}
+.page-body{padding:24px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.page-count{font-size:14px;font-weight:400;color:var(--muted)}
+.page-subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+.page-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn-warning{background:rgba(245,158,11,.15);color:var(--warning);border:1px solid rgba(245,158,11,.3)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.badge-success{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-warning{background:rgba(245,158,11,.15);color:var(--warning)}
+.badge-danger{background:rgba(239,68,68,.15);color:var(--danger)}
+.badge-primary{background:rgba(99,102,241,.15);color:var(--primary)}
+.badge-secondary{background:rgba(139,92,246,.15);color:var(--secondary)}
+.badge-muted{background:rgba(100,116,139,.15);color:var(--muted)}
+.badge-blue{background:rgba(59,130,246,.15);color:#60a5fa}
+/* STATS STRIP */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--primary)}
+.stat-card.green::before{background:var(--success)}
+.stat-card.amber::before{background:var(--warning)}
+.stat-card.red::before{background:var(--danger)}
+.stat-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.stat-value{font-size:22px;font-weight:700;line-height:1}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;font-weight:600;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid rgba(30,41,59,.5);font-size:12.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(99,102,241,.03)}
+.expand-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:3px;transition:all .15s}
+.expand-btn:hover{color:var(--text)}
+.expand-row td{background:rgba(10,14,26,.7)}
+/* USAGE BAR */
+.usage-bar-wrap{width:90px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}
+.usage-bar-fill{height:100%;border-radius:3px;transition:width .4s}
+/* SPARKLINE MINI */
+.spark-mini{display:flex;align-items:flex-end;gap:1px;height:18px}
+.spark-mini-bar{width:4px;border-radius:1px}
+/* EXPAND CONTENT */
+.expand-content{padding:16px 20px}
+.expand-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.exp-section-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.key-display{background:#060a12;border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-family:monospace;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;justify-content:space-between}
+.copy-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;transition:all .15s}
+.copy-btn:hover{border-color:var(--primary);color:var(--primary)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div style="position:relative">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">H</div>
+      <div>
+        <div class="sidebar-brand-text">PatchIQ Hub</div>
+        <span class="sidebar-brand-sub">Control Plane</span>
+      </div>
+    </div>
+    <button class="collapse-btn" onclick="toggleSidebar()">◀</button>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="../hub-manager.html" class="nav-item"><span class="nav-icon">⬡</span> Dashboard</a>
+    <div class="nav-group-label">Fleet</div>
+    <a href="clients.html" class="nav-item"><span class="nav-icon">🖥</span> Clients <span class="nav-badge">8</span></a>
+    <a href="deployments.html" class="nav-item"><span class="nav-icon">🚀</span> Deployments <span class="nav-badge primary">2</span></a>
+    <div class="nav-group-label">Catalog</div>
+    <a href="catalog.html" class="nav-item"><span class="nav-icon">📦</span> Catalog</a>
+    <a href="feeds.html" class="nav-item"><span class="nav-icon">⚡</span> Feeds</a>
+    <div class="nav-group-label">Licensing</div>
+    <a href="licenses.html" class="nav-item active"><span class="nav-icon">🔑</span> Licenses</a>
+    <div class="nav-group-label">Configuration</div>
+    <a href="configuration.html" class="nav-item"><span class="nav-icon">⚙</span> Settings</a>
+  </div>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer">
+      <div class="avatar">HA</div>
+      <div style="overflow:hidden">
+        <div style="font-size:12px;font-weight:500;white-space:nowrap">hubadmin</div>
+        <div style="font-size:10px;color:var(--muted);white-space:nowrap">hubadmin@msp.com</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <span class="topbar-brand">PatchIQ Hub</span>
+    <div class="breadcrumb">
+      <span class="sep">/</span><span>Home</span>
+      <span class="sep">/</span><span>Licensing</span>
+      <span class="sep">/</span><span class="active">Licenses</span>
+    </div>
+    <div class="client-switcher" style="margin-left:auto">🏢 All Clients ▾</div>
+    <div class="topbar-right">
+      <div style="position:relative">
+        <button class="topbar-icon-btn">🔔<div class="notif-badge">2</div></button>
+      </div>
+      <button class="topbar-icon-btn" onclick="toggleDark()">🌙</button>
+      <div class="avatar" style="width:30px;height:30px;font-size:11px;cursor:pointer">HA</div>
+    </div>
+  </div>
+
+  <div class="page-body">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Licenses <span class="page-count">(8)</span></div>
+        <div class="page-subtitle">Manage endpoint licensing across all connected Patch Manager instances</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-outline">📥 Import</button>
+        <button class="btn btn-primary">+ Generate License</button>
+      </div>
+    </div>
+
+    <!-- STATS STRIP -->
+    <div class="stats-strip">
+      <div class="stat-card green">
+        <div class="stat-label">Total Active</div>
+        <div class="stat-value" style="color:var(--success)">8</div>
+        <div class="stat-sub">No expired licenses</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Endpoints Licensed</div>
+        <div class="stat-value">2,000</div>
+        <div class="stat-sub">Across 8 licenses</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Currently Used</div>
+        <div class="stat-value">1,117</div>
+        <div style="margin-top:6px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+          <div style="width:55.85%;height:100%;background:var(--success);border-radius:2px"></div>
+        </div>
+        <div class="stat-sub" style="margin-top:4px">55.9% of total capacity</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Expiring Soon</div>
+        <div class="stat-value" style="color:var(--warning)">1</div>
+        <div class="stat-sub" style="color:var(--warning)">BluePeak — 23 days</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table id="licenseTable">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Tier</th>
+            <th>Max Endpoints</th>
+            <th>Usage</th>
+            <th>Issued</th>
+            <th>Expires</th>
+            <th>Status</th>
+            <th>Assigned PM</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="licenseBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+if(localStorage.getItem('theme')==='light') document.documentElement.classList.remove('dark');
+function toggleDark(){ document.documentElement.classList.toggle('dark'); localStorage.setItem('theme',document.documentElement.classList.contains('dark')?'dark':'light'); }
+let sidebarCollapsed=false;
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed',sidebarCollapsed);
+  document.getElementById('main').classList.toggle('sidebar-collapsed',sidebarCollapsed);
+}
+
+const licenses = [
+  {
+    id:'L001', customer:'Acme Corp', tier:'Enterprise', tier_c:'badge-primary',
+    max:500, used:247, issued:'Jun 1, 2025', expires:'Dec 31, 2026', days:296,
+    status:'Active', status_c:'badge-success', pm:'Acme Corp PM',
+    key:'ENT-ACME-4F8A-1234',
+    features:['Endpoint Management','Patch Deployment','Workflow Engine','Compliance','Multi-Wave Deploy','API Access','RBAC','SSO'],
+    sparkData:[180,195,210,225,230,238,242,245,247]
+  },
+  {
+    id:'L002', customer:'TechNova Inc', tier:'Professional', tier_c:'badge-blue',
+    max:300, used:198, issued:'Aug 15, 2025', expires:'Aug 14, 2026', days:157,
+    status:'Active', status_c:'badge-success', pm:'TechNova PM',
+    key:'PRO-TNOV-8C3D-5678',
+    features:['Endpoint Management','Patch Deployment','Workflow Engine','Compliance','API Access','RBAC'],
+    sparkData:[120,140,155,168,175,180,188,194,198]
+  },
+  {
+    id:'L003', customer:'Riverside Health', tier:'Enterprise', tier_c:'badge-primary',
+    max:400, used:312, issued:'Jan 1, 2025', expires:'Dec 31, 2025', days:-70,
+    status:'Expired', status_c:'badge-danger', pm:'Riverside PM',
+    key:'ENT-RIVH-2B7E-9012',
+    features:['Endpoint Management','Patch Deployment','Workflow Engine','Compliance','Multi-Wave Deploy','API Access','RBAC','SSO'],
+    sparkData:[200,220,250,270,285,295,305,310,312]
+  },
+  {
+    id:'L004', customer:'Meridian Finance', tier:'Enterprise', tier_c:'badge-primary',
+    max:250, used:89, issued:'Sep 10, 2025', expires:'Sep 9, 2026', days:183,
+    status:'Active', status_c:'badge-success', pm:'Meridian PM',
+    key:'ENT-MFIN-6A1C-3456',
+    features:['Endpoint Management','Patch Deployment','Workflow Engine','Compliance','Multi-Wave Deploy','API Access','RBAC','SSO'],
+    sparkData:[40,52,63,71,78,83,86,88,89]
+  },
+  {
+    id:'L005', customer:'Skyline Retail', tier:'Standard', tier_c:'badge-success',
+    max:150, used:134, issued:'Mar 1, 2025', expires:'Feb 28, 2026', days:-10,
+    status:'Expired', status_c:'badge-danger', pm:'Skyline PM',
+    key:'STD-SKYL-9D4F-7890',
+    features:['Endpoint Management','Patch Deployment','Compliance','API Access'],
+    sparkData:[80,90,100,108,115,122,128,131,134]
+  },
+  {
+    id:'L006', customer:'BluePeak Logistics', tier:'Professional', tier_c:'badge-blue',
+    max:200, used:67, issued:'Dec 1, 2025', expires:'Apr 2, 2026', days:23,
+    status:'Expiring', status_c:'badge-warning', pm:'BluePeak PM',
+    key:'PRO-BPKG-3E9B-2345',
+    features:['Endpoint Management','Patch Deployment','Workflow Engine','API Access','RBAC'],
+    sparkData:[20,32,44,50,56,60,64,66,67]
+  },
+  {
+    id:'L007', customer:'Northridge Education', tier:'Standard', tier_c:'badge-success',
+    max:100, used:44, issued:'Jul 15, 2025', expires:'Jul 14, 2026', days:126,
+    status:'Active', status_c:'badge-success', pm:'Northridge PM',
+    key:'STD-NRED-7F2C-6789',
+    features:['Endpoint Management','Patch Deployment','Compliance'],
+    sparkData:[10,18,24,30,35,39,41,43,44]
+  },
+  {
+    id:'L008', customer:'Vertex Systems', tier:'Trial', tier_c:'badge-muted',
+    max:50, used:26, issued:'Mar 1, 2026', expires:'Apr 1, 2026', days:22,
+    status:'Active', status_c:'badge-success', pm:'Unassigned',
+    key:'TRL-VRTX-1A5D-0000',
+    features:['Endpoint Management','Patch Deployment'],
+    sparkData:[0,5,12,18,22,24,25,26,26]
+  },
+];
+
+function getUsageColor(used, max){
+  const pct = used/max;
+  if(pct >= .9) return 'var(--danger)';
+  if(pct >= .7) return 'var(--warning)';
+  return 'var(--success)';
+}
+
+function getExpiresLabel(days){
+  if(days < 0) return `<span style="color:var(--danger);font-weight:700">EXPIRED</span>`;
+  if(days <= 30) return `<span style="color:var(--warning)">${days} days</span>`;
+  return `<span style="color:var(--muted)">${days} days</span>`;
+}
+
+function buildMiniSpark(data, color){
+  const max = Math.max(...data);
+  return `<div class="spark-mini">${data.map(v=>`<div class="spark-mini-bar" style="height:${Math.max(2,Math.round((v/max)*18))}px;background:${color};flex:1"></div>`).join('')}</div>`;
+}
+
+function renderTable(){
+  const tbody = document.getElementById('licenseBody');
+  tbody.innerHTML = '';
+  licenses.forEach((lic, i) => {
+    const pct = Math.round(lic.used/lic.max*100);
+    const usageColor = getUsageColor(lic.used, lic.max);
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-i', i);
+    tr.innerHTML = `
+      <td><a href="license-detail.html" style="color:var(--primary);font-weight:600">${lic.customer}</a></td>
+      <td><span class="badge ${lic.tier_c}">${lic.tier}</span></td>
+      <td style="font-weight:600">${lic.max.toLocaleString()}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="usage-bar-wrap"><div class="usage-bar-fill" style="width:${pct}%;background:${usageColor}"></div></div>
+          <span style="font-size:11.5px;color:${usageColor}">${lic.used}/${lic.max}</span>
+          <span style="font-size:10.5px;color:var(--muted)">${pct}%</span>
+        </div>
+      </td>
+      <td style="color:var(--muted);font-size:11.5px">${lic.issued}</td>
+      <td style="font-size:11.5px">${lic.expires}<br><span style="font-size:10.5px">${getExpiresLabel(lic.days)}</span></td>
+      <td><span class="badge ${lic.status_c}">${lic.status}</span></td>
+      <td style="font-size:12px;color:${lic.pm==='Unassigned'?'var(--muted)':'var(--text)'}">${lic.pm}</td>
+      <td><button class="expand-btn" onclick="toggleExpand(${i},this)">▼</button></td>`;
+    tbody.appendChild(tr);
+
+    // Expanded row
+    const expTr = document.createElement('tr');
+    expTr.id = `exp-lic-${i}`;
+    expTr.style.display = 'none';
+    expTr.className = 'expand-row';
+    expTr.innerHTML = `<td colspan="9">
+      <div class="expand-content">
+        <div class="expand-grid">
+          <div>
+            <div class="exp-section-label">License Key</div>
+            <div class="key-display">
+              <span>${lic.key.replace(/([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})/g,'$1-****-****')}</span>
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('${lic.key}')">📋 Copy</button>
+            </div>
+            <div class="exp-section-label" style="margin-top:12px">Features Enabled</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px">
+              ${lic.features.map(f=>`<span class="badge badge-primary" style="font-size:10.5px">✓ ${f}</span>`).join('')}
+            </div>
+          </div>
+          <div>
+            <div class="exp-section-label">Usage Trend</div>
+            ${buildMiniSpark(lic.sparkData, getUsageColor(lic.used, lic.max))}
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">Last 9 months</div>
+            ${lic.pm !== 'Unassigned' ? `<div class="exp-section-label" style="margin-top:12px">Assigned PM</div>
+            <div style="font-size:12.5px"><a href="#" style="color:var(--primary)">→ ${lic.pm}</a></div>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+          <button class="btn btn-primary btn-sm">🔄 Renew</button>
+          <button class="btn btn-outline btn-sm">↔ Reassign</button>
+          <button class="btn btn-danger btn-sm">🚫 Revoke</button>
+        </div>
+      </div>
+    </td>`;
+    tbody.appendChild(expTr);
+  });
+}
+
+function toggleExpand(i, btn){
+  const row = document.getElementById(`exp-lic-${i}`);
+  const v = row.style.display !== 'none';
+  row.style.display = v ? 'none' : 'table-row';
+  btn.textContent = v ? '▼' : '▲';
+}
+
+renderTable();
+</script>
+</body>
+</html>

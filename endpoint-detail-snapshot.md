@@ -1,0 +1,50 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - img [ref=e6]
+        - generic [ref=e9]: PatchIQ
+      - navigation [ref=e10]:
+        - group "Overview" [ref=e11]:
+          - generic [ref=e12]: Overview
+          - list [ref=e13]
+        - group "Assets" [ref=e23]:
+          - generic [ref=e24]: Assets
+          - list [ref=e25]
+        - group "Security" [ref=e32]:
+          - generic [ref=e33]: Security
+          - list [ref=e34]
+        - group "Operations" [ref=e56]:
+          - generic [ref=e57]: Operations
+          - list [ref=e58]
+        - group "Compliance" [ref=e78]:
+          - generic [ref=e79]: Compliance
+          - list [ref=e80]
+        - group "System" [ref=e110]:
+          - generic [ref=e111]: System
+          - list [ref=e112]
+      - button "User menu" [ref=e128] [cursor=pointer]:
+        - generic [ref=e129]: SA
+        - generic [ref=e130]: Sarah Auditor
+    - generic [ref=e131]:
+      - banner [ref=e132]:
+        - generic [ref=e133]:
+          - link "Endpoints" [ref=e637] [cursor=pointer]:
+            - /url: /endpoints
+          - generic [ref=e638]: /
+          - generic "staging-web-01" [ref=e639]
+        - button "Search" [ref=e135] [cursor=pointer]:
+          - img [ref=e136]
+          - generic [ref=e139]: Search endpoints, patches, CVEs…
+          - generic [ref=e140]: ⌘K
+        - generic [ref=e141]:
+          - button "Register Endpoint" [ref=e142] [cursor=pointer]
+          - button "Toggle theme" [ref=e146] [cursor=pointer]
+          - button "Notifications" [ref=e153] [cursor=pointer]
+      - main [ref=e157]:
+        - generic [ref=e640]:
+          - generic [ref=e641]
+          - generic [ref=e669]
+          - generic [ref=e700]
+          - generic [ref=e710]
+  - region "Notifications"

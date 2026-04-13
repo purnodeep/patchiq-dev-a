@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Agent — Patches</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --teal:#14b8a6;--teal-dim:#0d9488;--teal-glow:rgba(20,184,166,0.35);
+  --bg:#0f172a;--card:#1e293b;--card2:#162032;--border:#2d3f52;
+  --text:#e2e8f0;--muted:#64748b;
+  --success:#10b981;--warn:#f59e0b;--danger:#ef4444;--orange:#f97316;
+  --topbar-h:64px;--tabbar-h:48px;--filterbar-h:56px;
+}
+html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+body{min-height:100vh;background:var(--bg)}
+html.light{background:#f1f5f9;color:#0f172a}
+html.light body{background:#f1f5f9;color:#0f172a}
+html.light #topbar,html.light #tabbar,html.light #filterbar{background:#fff;border-color:#e2e8f0}
+html.light .patch-card{background:#fff;border-color:#e2e8f0}
+html.light .patch-card:hover{border-color:#cbd5e1}
+html.light .cve-block{background:#f8fafc;border-color:#e2e8f0}
+html.light .details-expanded{background:#f8fafc;border-color:#e2e8f0}
+html.light .filter-pill{border-color:#e2e8f0;color:#64748b}
+html.light .filter-pill:hover{border-color:#94a3b8}
+html.light .filter-pill.active{border-color:var(--teal);background:rgba(20,184,166,.1)}
+html.light .sort-select{background:#fff;border-color:#e2e8f0;color:#0f172a}
+html.light .text-muted{color:#64748b}
+
+#topbar{height:var(--topbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:fixed;top:0;left:0;right:0;z-index:100}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-name{font-size:16px;font-weight:700;color:var(--teal);letter-spacing:-.3px}
+.hostname{font-family:monospace;font-size:13px;color:var(--muted);background:#ffffff08;padding:3px 10px;border-radius:20px;border:1px solid var(--border)}
+.status-dot-wrap{display:flex;align-items:center;gap:6px;font-size:12px;color:#10b981}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;position:relative}
+.status-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:#10b981;opacity:.4;animation:pulse-ring 2s ease-out infinite}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.4}70%{transform:scale(1.8);opacity:0}100%{transform:scale(1.8);opacity:0}}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.toggle-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:.15s}
+.toggle-btn:hover{background:#ffffff0d;color:var(--text)}
+.toggle-btn svg{width:18px;height:18px}
+
+#tabbar{height:var(--tabbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 24px;gap:2px;position:fixed;top:var(--topbar-h);left:0;right:0;z-index:99}
+.tab{padding:0 18px;display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;position:relative;transition:.15s;white-space:nowrap;border-bottom:2px solid transparent}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.tab-inactive:hover{background:rgba(20,184,166,.08);color:var(--teal)}
+.tab-badge{background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;border:1px solid #ef444430}
+.tab-badge.teal{background:rgba(20,184,166,.15);color:var(--teal);border-color:rgba(20,184,166,.3)}
+.tab-dot{width:7px;height:7px;border-radius:50%;background:#10b981}
+
+#filterbar{height:auto;background:#0d1b2e;border-bottom:1px solid var(--border);padding:10px 24px;position:sticky;top:calc(var(--topbar-h) + var(--tabbar-h));z-index:98;display:flex;flex-direction:column;gap:8px}
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;min-width:48px}
+.filter-pill{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:.15s}
+.filter-pill:hover{border-color:#3d5168;color:var(--text)}
+.filter-pill.active{border-color:var(--teal);background:rgba(20,184,166,.12);color:var(--teal)}
+.filter-pill.active-red{border-color:#ef4444;background:#ef444415;color:#ef4444}
+.filter-pill.active-orange{border-color:#f97316;background:#f9731615;color:#f97316}
+.filter-pill.active-yellow{border-color:#eab308;background:#eab30815;color:#eab308}
+.sort-select{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;outline:none;margin-left:auto}
+.sort-select:focus{border-color:var(--teal)}
+
+#page{padding:calc(var(--topbar-h) + var(--tabbar-h) + 100px) 24px 40px;max-width:960px;margin:0 auto}
+
+/* Patch Cards */
+.patch-card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;transition:.15s;position:relative}
+.patch-card:hover{border-color:#3d5168}
+.severity-bar{width:4px;position:absolute;left:0;top:0;bottom:0}
+.severity-bar.critical{background:#ef4444}
+.severity-bar.high{background:#f97316}
+.severity-bar.medium{background:#eab308}
+.patch-main{padding:16px 16px 16px 20px}
+.patch-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.sev-badge{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+.sev-badge.critical{background:#ef444420;color:#ef4444;border:1px solid #ef444440}
+.sev-badge.high{background:#f9731620;color:#f97316;border:1px solid #f9731640}
+.sev-badge.medium{background:#eab30820;color:#eab308;border:1px solid #eab30840}
+.patch-name{font-size:15px;font-weight:700;font-family:monospace;color:var(--text);flex:1}
+.patch-meta-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;font-size:12px;color:var(--muted)}
+.patch-meta-item{display:flex;align-items:center;gap:4px}
+
+/* CVSS bar */
+.cvss-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cvss-label{font-size:11px;color:var(--muted);min-width:38px}
+.cvss-bar-bg{flex:1;height:6px;background:#1e3a5f;border-radius:3px;overflow:hidden;max-width:200px}
+.cvss-bar-fill{height:100%;border-radius:3px}
+.cvss-score{font-size:13px;font-weight:700;min-width:28px}
+
+/* Status row */
+.status-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:500}
+.status-badge.queued{background:#1e3a5f;color:#94a3b8;border:1px solid var(--border)}
+.status-badge.downloading{background:rgba(20,184,166,.12);color:var(--teal);border:1px solid rgba(20,184,166,.25)}
+.status-badge.installing{background:#eab30815;color:#eab308;border:1px solid #eab30830}
+.status-badge.ready{background:#10b98115;color:#10b981;border:1px solid #10b98130}
+.queue-time{font-size:11px;color:var(--muted)}
+
+/* Progress bar */
+.progress-wrap{margin:4px 0 10px;background:#1e3a5f;border-radius:4px;height:10px;overflow:hidden;position:relative}
+.progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--teal-dim),var(--teal));animation:dl-progress 18s linear infinite;position:relative;overflow:hidden;width:67%}
+.progress-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);animation:shimmer 1.5s linear infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+.progress-label{font-size:11px;color:var(--teal);margin-top:4px}
+
+/* Installing spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:14px;height:14px;border:2px solid #eab30840;border-top-color:#eab308;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+
+/* Dot animation */
+@keyframes dot-blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+.dot-anim span{animation:dot-blink 1.4s infinite both}
+.dot-anim span:nth-child(2){animation-delay:.2s}
+.dot-anim span:nth-child(3){animation-delay:.4s}
+
+/* CVE section */
+.cve-block{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:4px}
+.cve-summary{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.cve-pill{background:#ef444415;color:#ef4444;border:1px solid #ef444430;border-radius:4px;padding:2px 6px;font-size:11px;font-family:monospace}
+.cve-pill.high{background:#f9731615;color:#f97316;border-color:#f9731630}
+.cve-pill.medium{background:#eab30815;color:#eab308;border-color:#eab30830}
+
+/* Actions row */
+.actions-row{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.btn{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.btn-teal{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn-teal:hover{background:var(--teal-dim)}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--border)}
+.btn-ghost:hover{background:#ffffff08;color:var(--text);border-color:#3d5168}
+.btn-danger-ghost{background:transparent;color:#ef4444;border-color:#ef444430}
+.btn-danger-ghost:hover{background:#ef444415}
+.btn-expand{background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:0;transition:.15s}
+.btn-expand:hover{color:var(--text)}
+
+/* Details expanded table */
+.details-expanded{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:8px;display:none}
+.details-expanded.open{display:block}
+.cve-table{width:100%;border-collapse:collapse;font-size:12px}
+.cve-table th{text-align:left;color:var(--muted);padding:4px 8px;border-bottom:1px solid var(--border);font-weight:600;font-size:11px}
+.cve-table td{padding:6px 8px;border-bottom:1px solid #1e2d3d;font-family:monospace}
+.cve-table tr:last-child td{border-bottom:none}
+
+/* Load more */
+.load-more-wrap{text-align:center;padding:24px 0}
+.btn-load-more{padding:8px 24px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:13px;cursor:pointer;transition:.15s}
+.btn-load-more:hover{border-color:var(--teal);color:var(--teal)}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">
+    <span class="brand-name">PatchIQ Agent</span>
+    <span class="hostname">prod-web-01</span>
+    <div class="status-dot-wrap">
+      <div class="status-dot"></div>
+      <span>Healthy</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="toggle-btn" onclick="toggleTheme()" title="Toggle dark/light">
+      <svg id="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<nav id="tabbar">
+  <a href="index.html" class="tab tab-inactive">
+    <div class="tab-dot"></div>
+    Overview
+  </a>
+  <a href="patches.html" class="tab active">
+    Patches
+    <span class="tab-badge">20</span>
+  </a>
+  <a href="history.html" class="tab tab-inactive">History</a>
+  <a href="logs.html" class="tab tab-inactive">Logs</a>
+  <a href="settings.html" class="tab tab-inactive">Settings</a>
+</nav>
+
+<div id="filterbar">
+  <div class="filter-row">
+    <span class="filter-label">Severity</span>
+    <button class="filter-pill active" data-filter="sev" data-val="all" onclick="setFilter(this,'sev')">All <span style="font-weight:700">(20)</span></button>
+    <button class="filter-pill" data-filter="sev" data-val="critical" onclick="setFilter(this,'sev')"><span style="color:#ef4444">●</span> Critical (3)</button>
+    <button class="filter-pill" data-filter="sev" data-val="high" onclick="setFilter(this,'sev')"><span style="color:#f97316">●</span> High (5)</button>
+    <button class="filter-pill" data-filter="sev" data-val="medium" onclick="setFilter(this,'sev')"><span style="color:#eab308">●</span> Medium (12)</button>
+    <select class="sort-select" onchange="sortPatches(this.value)">
+      <option>Severity (High→Low)</option>
+      <option>Severity (Low→High)</option>
+      <option>CVSS Score</option>
+      <option>Newest First</option>
+      <option>Size (Large→Small)</option>
+    </select>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Status</span>
+    <button class="filter-pill active" data-filter="status" data-val="all" onclick="setFilter(this,'status')">All</button>
+    <button class="filter-pill" data-filter="status" data-val="queued" onclick="setFilter(this,'status')">Queued</button>
+    <button class="filter-pill" data-filter="status" data-val="downloading" onclick="setFilter(this,'status')">Downloading</button>
+    <button class="filter-pill" data-filter="status" data-val="installing" onclick="setFilter(this,'status')">Installing</button>
+    <button class="filter-pill" data-filter="status" data-val="ready" onclick="setFilter(this,'status')">Ready</button>
+  </div>
+</div>
+
+<main id="page">
+
+  <!-- CRITICAL PATCHES -->
+
+  <!-- Patch 1: Critical, Downloading -->
+  <div class="patch-card" data-sev="critical" data-status="downloading">
+    <div class="severity-bar critical"></div>
+    <div class="patch-main">
+      <div class="patch-top">
+        <span class="sev-badge critical">CRITICAL</span>
+        <span class="patch-name">KB5034441 — Windows Security Update</span>
+      </div>
+      <div class="patch-meta-row">
+        <span class="patch-meta-item">Version: <strong>2024.01.09</strong></span>
+        <span class="patch-meta-item">Size: <strong>45 MB</strong></span>
+        <span class="patch-meta-item">CVEs: <strong style="color:#ef4444">4</strong></span>
+        <span class="patch-meta-item">Published: <strong>Jan 9, 2026</strong></span>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">CVSS</span>
+        <div class="cvss-bar-bg">
+          <div class="cvss-bar-fill" style="width:98%;background:linear-gradient(90deg,#dc2626,#ef4444)"></div>
+        </div>
+        <span class="cvss-score" style="color:#ef4444">9.8</span>
+      </div>
+      <div class="status-row">
+        <span class="status-badge downloading">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Downloading...
+        </span>
+        <span class="queue-time">Started 4 min ago</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-fill"></div>
+      </div>
+      <div class="progress-label">67% · 32.4 MB / 45 MB</div>
+      <div class="cve-block">
+        <div class="cve-summary">
+          <span class="cve-pill">CVE-2024-21412 (9.8)</span>
+          <span class="cve-pill">CVE-2024-21351 (8.8)</span>
+          <span class="cve-pill high">CVE-2024-20698 (7.8)</span>
+          <span class="cve-pill medium">CVE-2024-20696 (6.1)</span>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-teal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Install Now
+        </button>
+        <button class="btn btn-danger-ghost">Skip</button>
+        <button class="btn-expand" onclick="toggleDetails(this)">
+          Details <span>▾</span>
+        </button>
+      </div>
+      <div class="details-expanded">
+        <table class="cve-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#ef4444">CVE-2024-21412</td><td style="color:#ef4444">9.8</td><td><span style="color:#ef4444">Critical</span></td><td style="color:#94a3b8;font-family:system-ui">Internet Shortcut Files Security Feature Bypass</td></tr>
+            <tr><td style="color:#ef4444">CVE-2024-21351</td><td style="color:#ef4444">8.8</td><td><span style="color:#ef4444">Critical</span></td><td style="color:#94a3b8;font-family:system-ui">Windows SmartScreen Security Feature Bypass</td></tr>
+            <tr><td style="color:#f97316">CVE-2024-20698</td><td style="color:#f97316">7.8</td><td><span style="color:#f97316">High</span></td><td style="color:#94a3b8;font-family:system-ui">Windows Kernel Elevation of Privilege</td></tr>
+            <tr><td style="color:#eab308">CVE-2024-20696</td><td style="color:#eab308">6.1</td><td><span style="color:#eab308">Medium</span></td><td style="color:#94a3b8;font-family:system-ui">Windows libarchive Remote Code Execution</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patch 2: Critical, Queued -->
+  <div class="patch-card" data-sev="critical" data-status="queued">
+    <div class="severity-bar critical"></div>
+    <div class="patch-main">
+      <div class="patch-top">
+        <span class="sev-badge critical">CRITICAL</span>
+        <span class="patch-name">USN-6587-1 — OpenSSL vulnerabilities</span>
+      </div>
+      <div class="patch-meta-row">
+        <span class="patch-meta-item">Version: <strong>3.0.2-0ubuntu1.14</strong></span>
+        <span class="patch-meta-item">Size: <strong>2.8 MB</strong></span>
+        <span class="patch-meta-item">CVEs: <strong style="color:#ef4444">2</strong></span>
+        <span class="patch-meta-item">Published: <strong>Jan 25, 2026</strong></span>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">CVSS</span>
+        <div class="cvss-bar-bg">
+          <div class="cvss-bar-fill" style="width:95%;background:linear-gradient(90deg,#dc2626,#ef4444)"></div>
+        </div>
+        <span class="cvss-score" style="color:#ef4444">9.5</span>
+      </div>
+      <div class="status-row">
+        <span class="status-badge queued">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          Queued
+        </span>
+        <span class="queue-time">Queued 2h 15m ago</span>
+      </div>
+      <div class="cve-block">
+        <div class="cve-summary">
+          <span class="cve-pill">CVE-2024-5535 (9.5)</span>
+          <span class="cve-pill high">CVE-2024-4741 (7.5)</span>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-teal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+          Install Now
+        </button>
+        <button class="btn btn-danger-ghost">Skip</button>
+        <button class="btn-expand" onclick="toggleDetails(this)">Details <span>▾</span></button>
+      </div>
+      <div class="details-expanded">
+        <table class="cve-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#ef4444">CVE-2024-5535</td><td style="color:#ef4444">9.5</td><td><span style="color:#ef4444">Critical</span></td><td style="color:#94a3b8;font-family:system-ui">SSL_select_next_proto buffer overread</td></tr>
+            <tr><td style="color:#f97316">CVE-2024-4741</td><td style="color:#f97316">7.5</td><td><span style="color:#f97316">High</span></td><td style="color:#94a3b8;font-family:system-ui">Use-after-free with SSL_free_buffers</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patch 3: Critical, Queued -->
+  <div class="patch-card" data-sev="critical" data-status="queued">
+    <div class="severity-bar critical"></div>
+    <div class="patch-main">
+      <div class="patch-top">
+        <span class="sev-badge critical">CRITICAL</span>
+        <span class="patch-name">RHSA-2024:0013 — curl security update</span>
+      </div>
+      <div class="patch-meta-row">
+        <span class="patch-meta-item">Version: <strong>7.81.0-1ubuntu1.16</strong></span>
+        <span class="patch-meta-item">Size: <strong>1.2 MB</strong></span>
+        <span class="patch-meta-item">CVEs: <strong style="color:#ef4444">3</strong></span>
+        <span class="patch-meta-item">Published: <strong>Jan 31, 2026</strong></span>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">CVSS</span>
+        <div class="cvss-bar-bg">
+          <div class="cvss-bar-fill" style="width:91%;background:linear-gradient(90deg,#dc2626,#ef4444)"></div>
+        </div>
+        <span class="cvss-score" style="color:#ef4444">9.1</span>
+      </div>
+      <div class="status-row">
+        <span class="status-badge queued">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          Queued
+        </span>
+        <span class="queue-time">Queued 1h 42m ago</span>
+      </div>
+      <div class="cve-block">
+        <div class="cve-summary">
+          <span class="cve-pill">CVE-2024-2379 (9.1)</span>
+          <span class="cve-pill high">CVE-2024-2004 (8.1)</span>
+          <span class="cve-pill medium">CVE-2024-1975 (5.9)</span>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-teal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+          Install Now
+        </button>
+        <button class="btn btn-danger-ghost">Skip</button>
+        <button class="btn-expand" onclick="toggleDetails(this)">Details <span>▾</span></button>
+      </div>
+      <div class="details-expanded">
+        <table class="cve-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#ef4444">CVE-2024-2379</td><td style="color:#ef4444">9.1</td><td><span style="color:#ef4444">Critical</span></td><td style="color:#94a3b8;font-family:system-ui">QUIC certificate verification bypass</td></tr>
+            <tr><td style="color:#f97316">CVE-2024-2004</td><td style="color:#f97316">8.1</td><td><span style="color:#f97316">High</span></td><td style="color:#94a3b8;font-family:system-ui">Usage of disabled protocol</td></tr>
+            <tr><td style="color:#eab308">CVE-2024-1975</td><td style="color:#eab308">5.9</td><td><span style="color:#eab308">Medium</span></td><td style="color:#94a3b8;font-family:system-ui">HTTPS proxy mixed certs</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIGH PATCHES -->
+
+  <!-- Patch 4: High, Installing -->
+  <div class="patch-card" data-sev="high" data-status="installing">
+    <div class="severity-bar high"></div>
+    <div class="patch-main">
+      <div class="patch-top">
+        <span class="sev-badge high">HIGH</span>
+        <span class="patch-name">USN-6640-1 — python3 security update</span>
+      </div>
+      <div class="patch-meta-row">
+        <span class="patch-meta-item">Version: <strong>3.10.12-1~22.04.3</strong></span>
+        <span class="patch-meta-item">Size: <strong>5.4 MB</strong></span>
+        <span class="patch-meta-item">CVEs: <strong style="color:#f97316">2</strong></span>
+        <span class="patch-meta-item">Published: <strong>Feb 12, 2026</strong></span>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">CVSS</span>
+        <div class="cvss-bar-bg">
+          <div class="cvss-bar-fill" style="width:82%;background:linear-gradient(90deg,#ea580c,#f97316)"></div>
+        </div>
+        <span class="cvss-score" style="color:#f97316">8.2</span>
+      </div>
+      <div class="status-row">
+        <span class="status-badge installing">
+          <span class="spinner"></span>
+          Installing<span class="dot-anim"><span>.</span><span>.</span><span>.</span></span>
+        </span>
+        <span class="queue-time">Started 43 sec ago</span>
+      </div>
+      <div style="font-size:11px;color:#eab308;margin:4px 0 10px;display:flex;align-items:center;gap:6px">
+        <span class="spinner" style="border-top-color:#eab308;border-color:#eab30840"></span>
+        Installing... Please wait
+      </div>
+      <div class="cve-block">
+        <div class="cve-summary">
+          <span class="cve-pill high">CVE-2024-0450 (8.2)</span>
+          <span class="cve-pill medium">CVE-2023-6507 (5.5)</span>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-ghost" disabled style="opacity:.5;cursor:not-allowed">Installing...</button>
+        <button class="btn-expand" onclick="toggleDetails(this)">Details <span>▾</span></button>
+      </div>
+      <div class="details-expanded">
+        <table class="cve-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#f97316">CVE-2024-0450</td><td style="color:#f97316">8.2</td><td><span style="color:#f97316">High</span></td><td style="color:#94a3b8;font-family:system-ui">zipfile: Path traversal in extraction</td></tr>
+            <tr><td style="color:#eab308">CVE-2023-6507</td><td style="color:#eab308">5.5</td><td><span style="color:#eab308">Medium</span></td><td style="color:#94a3b8;font-family:system-ui">CPython tempfile.NamedTemporaryFile race</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patch 5: High, Ready -->
+  <div class="patch-card" data-sev="high" data-status="ready">
+    <div class="severity-bar high"></div>
+    <div class="patch-main">
+      <div class="patch-top">
+        <span class="sev-badge high">HIGH</span>
+        <span class="patch-name">USN-6598-1 — nginx security update</span>
+      </div>
+      <div class="patch-meta-row">
+        <span class="patch-meta-item">Version: <strong>1.18.0-6ubuntu14.4</strong></span>
+        <span class="patch-meta-item">Size: <strong>612 KB</strong></span>
+        <span class="patch-meta-item">CVEs: <strong style="color:#f97316">1</strong></span>
+        <span class="patch-meta-item">Published: <strong>Feb 5, 2026</strong></span>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">CVSS</span>
+        <div class="cvss-bar-bg">
+          <div class="cvss-bar-fill" style="width:79%;background:linear-gradient(90deg,#ea580c,#f97316)"></div>
+        </div>
+        <span class="cvss-score" style="color:#f97316">7.9</span>
+      </div>
+      <div class="status-row">
+        <span class="status-badge ready">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+          Ready to Install
+        </span>
+        <span class="queue-time">Ready since 15 min ago</span>
+      </div>
+      <div class="cve-block">
+        <div class="cve-summary">
+          <span class="cve-pill high">CVE-2024-7347 (7.9)</span>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-teal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+          Install Now
+        </button>
+        <button class="btn btn-danger-ghost">Skip</button>
+        <button class="btn-expand" onclick="toggleDetails(this)">Details <span>▾</span></button>
+      </div>
+      <div class="details-expanded">
+        <table class="cve-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#f97316">CVE-2024-7347</td><td style="color:#f97316">7.9</td><td><span style="color:#f97316">High</span></td><td style="color:#94a3b8;font-family:system-ui">ngx_http_mp4_module out-of-bounds read</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patch 6-8: High, Queued -->
+  <div class="patch-card" data-sev="high" data-status="queued">
+    <div class="severity-bar high"></div>
+    <div class="patch-main">
+      <div class="patch-top">
+        <span class="sev-badge high">HIGH</span>
+        <span class="patch-name">USN-6648-1 — linux-headers security update</span>
+      </div>
+      <div class="patch-meta-row">
+        <span class="patch-meta-item">Version: <strong>6.5.0-44.44~22.04.1</strong></span>
+        <span class="patch-meta-item">Size: <strong>18.7 MB</strong></span>
+        <span class="patch-meta-item">CVEs: <strong style="color:#f97316">3</strong></span>
+        <span class="patch-meta-item">Published: <strong>Feb 20, 2026</strong></span>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">CVSS</span>
+        <div class="cvss-bar-bg">
+          <div class="cvss-bar-fill" style="width:77%;background:linear-gradient(90deg,#ea580c,#f97316)"></div>
+        </div>
+        <span class="cvss-score" style="color:#f97316">7.7</span>
+      </div>
+      <div class="status-row">
+        <span class="status-badge queued">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          Queued
+        </span>
+        <span class="queue-time">Queued 3h 10m ago</span>
+      </div>
+      <div class="cve-block">
+        <div class="cve-summary">
+          <span class="cve-pill high">CVE-2024-1086 (7.7)</span>
+          <span class="cve-pill medium">CVE-2024-0607 (6.7)</span>
+          <span class="cve-pill medium">CVE-2023-6817 (6.3)</span>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-teal">Install Now</button>
+        <button class="btn btn-danger-ghost">Skip</button>
+        <button class="btn-expand" onclick="toggleDetails(this)">Details <span>▾</span></button>
+      </div>
+      <div class="details-expanded">
+        <table class="cve-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#f97316">CVE-2024-1086</td><td style="color:#f97316">7.7</td><td><span style="color:#f97316">High</span></td><td style="color:#94a3b8;font-family:system-ui">Netfilter nf_tables use-after-free</td></tr>
+            <tr><td style="color:#eab308">CVE-2024-0607</td><td style="color:#eab308">6.7</td><td><span style="color:#eab308">Medium</span></td><td style="color:#94a3b8;font-family:system-ui">nftables arbitrary code execution</td></tr>
+            <tr><td style="color:#eab308">CVE-2023-6817</td><td style="color:#eab308">6.3</td><td><span style="color:#eab308">Medium</span></td><td style="color:#94a3b8;font-family:system-ui">inactive elements in nftables dead set</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="patch-card" data-sev="high" data-status="queued">
+    <div class="severity-bar high"></div>
+    <div class="patch-main">
+      <div class="patch-top">
+        <span class="sev-badge high">HIGH</span>
+        <span class="patch-name">RHSA-2024:0898 — glibc security update</span>
+      </div>
+      <div class="patch-meta-row">
+        <span class="patch-meta-item">Version: <strong>2.35-0ubuntu3.6</strong></span>
+        <span class="patch-meta-item">Size: <strong>8.1 MB</strong></span>
+        <span class="patch-meta-item">CVEs: <strong style="color:#f97316">2</strong></span>
+        <span class="patch-meta-item">Published: <strong>Feb 15, 2026</strong></span>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">CVSS</span>
+        <div class="cvss-bar-bg">
+          <div class="cvss-bar-fill" style="width:75%;background:linear-gradient(90deg,#ea580c,#f97316)"></div>
+        </div>
+        <span class="cvss-score" style="color:#f97316">7.5</span>
+      </div>
+      <div class="status-row">
+        <span class="status-badge queued">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          Queued
+        </span>
+        <span class="queue-time">Queued 2h 55m ago</span>
+      </div>
+      <div class="cve-block">
+        <div class="cve-summary">
+          <span class="cve-pill high">CVE-2023-6246 (7.5)</span>
+          <span class="cve-pill medium">CVE-2023-6779 (5.7)</span>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-teal">Install Now</button>
+        <button class="btn btn-danger-ghost">Skip</button>
+        <button class="btn-expand" onclick="toggleDetails(this)">Details <span>▾</span></button>
+      </div>
+      <div class="details-expanded">
+        <table class="cve-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#f97316">CVE-2023-6246</td><td style="color:#f97316">7.5</td><td><span style="color:#f97316">High</span></td><td style="color:#94a3b8;font-family:system-ui">Heap-based buffer overflow in __vsyslog_internal</td></tr>
+            <tr><td style="color:#eab308">CVE-2023-6779</td><td style="color:#eab308">5.7</td><td><span style="color:#eab308">Medium</span></td><td style="color:#94a3b8;font-family:system-ui">Off-by-one in __vsyslog_internal</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="patch-card" data-sev="high" data-status="queued">
+    <div class="severity-bar high"></div>
+    <div class="patch-main">
+      <div class="patch-top">
+        <span class="sev-badge high">HIGH</span>
+        <span class="patch-name">USN-6609-1 — libssl security update</span>
+      </div>
+      <div class="patch-meta-row">
+        <span class="patch-meta-item">Version: <strong>3.0.2-0ubuntu1.15</strong></span>
+        <span class="patch-meta-item">Size: <strong>3.2 MB</strong></span>
+        <span class="patch-meta-item">CVEs: <strong style="color:#f97316">2</strong></span>
+        <span class="patch-meta-item">Published: <strong>Jan 22, 2026</strong></span>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">CVSS</span>
+        <div class="cvss-bar-bg">
+          <div class="cvss-bar-fill" style="width:72%;background:linear-gradient(90deg,#ea580c,#f97316)"></div>
+        </div>
+        <span class="cvss-score" style="color:#f97316">7.2</span>
+      </div>
+      <div class="status-row">
+        <span class="status-badge queued">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          Queued
+        </span>
+        <span class="queue-time">Queued 1h 20m ago</span>
+      </div>
+      <div class="cve-block">
+        <div class="cve-summary">
+          <span class="cve-pill high">CVE-2024-0727 (7.2)</span>
+          <span class="cve-pill medium">CVE-2023-6129 (6.5)</span>
+        </div>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-teal">Install Now</button>
+        <button class="btn btn-danger-ghost">Skip</button>
+        <button class="btn-expand" onclick="toggleDetails(this)">Details <span>▾</span></button>
+      </div>
+      <div class="details-expanded">
+        <table class="cve-table">
+          <thead><tr><th>CVE ID</th><th>CVSS</th><th>Severity</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#f97316">CVE-2024-0727</td><td style="color:#f97316">7.2</td><td><span style="color:#f97316">High</span></td><td style="color:#94a3b8;font-family:system-ui">PKCS12 file null pointer dereference</td></tr>
+            <tr><td style="color:#eab308">CVE-2023-6129</td><td style="color:#eab308">6.5</td><td><span style="color:#eab308">Medium</span></td><td style="color:#94a3b8;font-family:system-ui">POLY1305 MAC on PowerPC architecture</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEDIUM PATCHES (12) -->
+  <script>
+  const mediumPatches=[
+    {id:'USN-6618-1',name:'apt security update',ver:'2.4.11',size:'1.8 MB',cve:'CVE-2024-3094 (5.9)',cvss:5.9,queued:'4h 10m'},
+    {id:'USN-6629-1',name:'bash security update',ver:'5.1-6ubuntu1.1',size:'890 KB',cve:'CVE-2022-3715 (5.3)',cvss:5.3,queued:'5h 22m'},
+    {id:'USN-6635-1',name:'sudo security update',ver:'1.9.9-1ubuntu2.4',size:'1.1 MB',cve:'CVE-2023-42465 (6.4)',cvss:6.4,queued:'3h 55m'},
+    {id:'RHSA-2024:0346',name:'systemd security update',ver:'249.11-0ubuntu3.12',size:'16.3 MB',cve:'CVE-2023-7008 (5.5)',cvss:5.5,queued:'6h 01m'},
+    {id:'USN-6651-1',name:'openssh security update',ver:'1:8.9p1-3ubuntu0.6',size:'2.2 MB',cve:'CVE-2023-51385 (6.5)',cvss:6.5,queued:'7h 30m'},
+    {id:'USN-6656-1',name:'vim security update',ver:'2:9.0.0749-4ubuntu0.1',size:'5.7 MB',cve:'CVE-2024-22667 (5.5)',cvss:5.5,queued:'8h 12m'},
+    {id:'USN-6659-1',name:'less security update',ver:'590-2ubuntu0.22.04.2',size:'360 KB',cve:'CVE-2024-32487 (5.8)',cvss:5.8,queued:'9h 05m'},
+    {id:'USN-6663-1',name:'git security update',ver:'1:2.34.1-1ubuntu1.10',size:'4.8 MB',cve:'CVE-2024-32002 (6.0)',cvss:6.0,queued:'10h 20m'},
+    {id:'USN-6667-1',name:'expat security update',ver:'2.4.7-1ubuntu0.3',size:'640 KB',cve:'CVE-2024-28757 (5.9)',cvss:5.9,queued:'11h 44m'},
+    {id:'USN-6671-1',name:'libxml2 security update',ver:'2.9.13+dfsg-1ubuntu0.4',size:'1.5 MB',cve:'CVE-2024-25062 (5.5)',cvss:5.5,queued:'12h 01m'},
+    {id:'USN-6677-1',name:'sqlite3 security update',ver:'3.37.2-2ubuntu0.3',size:'2.1 MB',cve:'CVE-2023-7104 (6.3)',cvss:6.3,queued:'13h 15m'},
+    {id:'USN-6682-1',name:'zlib security update',ver:'1:1.2.11.dfsg-2ubuntu9.2',size:'520 KB',cve:'CVE-2023-45853 (5.9)',cvss:5.9,queued:'14h 30m'},
+  ];
+  const page=document.getElementById('page');
+  mediumPatches.forEach(function(p){
+    const pct=Math.round(p.cvss/10*100);
+    const html=`<div class="patch-card" data-sev="medium" data-status="queued">
+      <div class="severity-bar medium"></div>
+      <div class="patch-main">
+        <div class="patch-top">
+          <span class="sev-badge medium">MEDIUM</span>
+          <span class="patch-name">${p.id} — ${p.name}</span>
+        </div>
+        <div class="patch-meta-row">
+          <span class="patch-meta-item">Version: <strong>${p.ver}</strong></span>
+          <span class="patch-meta-item">Size: <strong>${p.size}</strong></span>
+          <span class="patch-meta-item">CVEs: <strong style="color:#eab308">1</strong></span>
+        </div>
+        <div class="cvss-row">
+          <span class="cvss-label">CVSS</span>
+          <div class="cvss-bar-bg">
+            <div class="cvss-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,#ca8a04,#eab308)"></div>
+          </div>
+          <span class="cvss-score" style="color:#eab308">${p.cvss}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-badge queued">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+            Queued
+          </span>
+          <span class="queue-time">Queued ${p.queued} ago</span>
+        </div>
+        <div class="cve-block"><div class="cve-summary"><span class="cve-pill medium">${p.cve}</span></div></div>
+        <div class="actions-row">
+          <button class="btn btn-teal">Install Now</button>
+          <button class="btn btn-danger-ghost">Skip</button>
+          <button class="btn-expand" onclick="toggleDetails(this)">Details <span>▾</span></button>
+        </div>
+        <div class="details-expanded"><div style="font-size:12px;color:var(--muted)">No additional details available.</div></div>
+      </div>
+    </div>`;
+    page.insertAdjacentHTML('beforeend',html);
+  });
+  </script>
+
+  <div class="load-more-wrap">
+    <button class="btn-load-more">Load More Patches</button>
+  </div>
+
+</main>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  if(h.classList.contains('dark')){h.classList.replace('dark','light');localStorage.setItem('theme','light');document.getElementById('sun-icon').style.display='block';document.getElementById('moon-icon').style.display='none';}
+  else{h.classList.replace('light','dark');localStorage.setItem('theme','dark');document.getElementById('sun-icon').style.display='none';document.getElementById('moon-icon').style.display='block';}
+}
+(function(){const t=localStorage.getItem('theme')||'dark';document.documentElement.classList.add(t);if(t==='light'){document.getElementById('sun-icon').style.display='block';document.getElementById('moon-icon').style.display='none';}})();
+
+let sevFilter='all', statusFilter='all';
+function setFilter(btn,type){
+  const pills=document.querySelectorAll(`[data-filter="${type}"]`);
+  pills.forEach(function(p){p.classList.remove('active')});
+  btn.classList.add('active');
+  if(type==='sev')sevFilter=btn.getAttribute('data-val');
+  else statusFilter=btn.getAttribute('data-val');
+  filterPatches();
+}
+function filterPatches(){
+  document.querySelectorAll('.patch-card').forEach(function(card){
+    const sev=card.getAttribute('data-sev');
+    const status=card.getAttribute('data-status');
+    const sevOk=sevFilter==='all'||sev===sevFilter;
+    const statusOk=statusFilter==='all'||status===statusFilter;
+    card.style.display=(sevOk&&statusOk)?'':'none';
+  });
+}
+function sortPatches(val){/* visual only */}
+function toggleDetails(btn){
+  const card=btn.closest('.patch-main');
+  const det=card.querySelector('.details-expanded');
+  const open=det.classList.toggle('open');
+  btn.querySelector('span').textContent=open?'▴':'▾';
+}
+</script>
+</body>
+</html>

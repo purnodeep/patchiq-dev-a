@@ -1,0 +1,12 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - complementary [ref=e5]:
+        - generic [ref=e6]
+        - navigation [ref=e11]
+        - generic [ref=e137]
+      - generic [ref=e140]:
+        - banner [ref=e141]
+        - generic [ref=e163]
+    - region "Notifications alt+T"
+  - generic [ref=e356]: 40%

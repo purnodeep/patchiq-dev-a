@@ -1,0 +1,163 @@
+{
+  "url": "http://localhost:3001/deployments",
+  "date": "2026-04-03",
+  "verdict": "FAIL",
+  "perspectives": ["QA Engineer", "CTO / Technical Architect"],
+  "summary": {
+    "critical": 3,
+    "major": 5,
+    "minor": 4,
+    "nitpick": 3,
+    "total": 15
+  },
+  "findings": [
+    {
+      "id": "C-01",
+      "severity": "critical",
+      "element": "Browser address bar / direct URL navigation",
+      "observation": "Navigating directly to http://localhost:3001/deployments via address bar redirects to /endpoints instead of rendering the Deployments page. The route only works when clicked from the sidebar within an already-loaded SPA session. This breaks bookmarks, browser refresh (F5), and shared deep-links entirely.",
+      "suggestion": "Investigate the React Router v7 route definition for /deployments — likely a catch-all or route ordering issue is intercepting the direct navigation. Ensure the SPA handles cold-start navigations to all routes correctly. Test with `navigate_page` from a fresh tab.",
+      "perspectives": ["QA Engineer"]
+    },
+    {
+      "id": "C-02",
+      "severity": "critical",
+      "element": "Deployment row f99b…4c4a — status=Running, targets=0/0",
+      "observation": "A deployment is shown as 'Running' with 0 target endpoints and a progress of '—'. The progress bar renders '—' but the status badge shows a live pulsing 'Running' dot. This is a corrupt/zombie deployment state with no explanation surfaced to the user. The operator cannot tell if this is an inflight error, a cancelled wave, or a backend bug. Duration shows '9d 10h' — the deployment has apparently been 'running' for over 9 days with no targets.",
+      "suggestion": "Surface a warning state when target_count=0 and status=running: 'No targets enrolled — check policy configuration'. Backend should detect and auto-cancel zero-target running deployments. UI should differentiate this from a normal running state.",
+      "perspectives": ["QA Engineer", "CTO / Technical Architect"]
+    },
+    {
+      "id": "C-03",
+      "severity": "critical",
+      "element": "Deployment Detail — PATCHES APPLIED stat",
+      "observation": "The deployment detail stats panel shows 'PATCHES APPLIED: 40%' alongside 'SUCCESS RATE: 40%'. Both values are identical and both are percentages. 'Patches Applied' should be an integer count (e.g. '4 patches') not a duplicate success rate percentage. An operator viewing this cannot determine how many distinct patches were actually installed.",
+      "suggestion": "Change 'Patches Applied' to show the actual count of patch packages applied (from the patches tab data), not the success rate percentage. If patch count isn't tracked separately, rename this stat 'Completion Rate' to avoid confusion.",
+      "perspectives": ["QA Engineer", "CTO / Technical Architect"]
+    },
+    {
+      "id": "M-01",
+      "severity": "major",
+      "element": "Deployments list — running deployment duration calculation",
+      "observation": "The computeDuration() function calls elapsed(d.created_at) for running deployments, not elapsed(d.started_at). The running deployment f100…0004 shows '16d 21h' — this is the time since creation, not since the deployment actually started running. If a deployment was queued (created status) for 12 hours before starting, the reported duration is 12+ hours over-stated. This is misleading for SLA calculations.",
+      "suggestion": "Change computeDuration() to use d.started_at instead of d.created_at when computing elapsed time for running/rolling_back status. Fall back to created_at only if started_at is null.",
+      "perspectives": ["QA Engineer", "CTO / Technical Architect"]
+    },
+    {
+      "id": "M-02",
+      "severity": "major",
+      "element": "Filter pills — no URL state persistence",
+      "observation": "Clicking a status filter (e.g. 'Failed 8') applies the filter client-side but the URL stays at /deployments with no query params. Refreshing the page or sharing the URL loses the filter selection. An operator working an incident cannot share 'show me all failed deployments' as a link with a colleague.",
+      "suggestion": "Sync status filter, search query, and date range to URL search params (e.g. ?status=failed&q=weekly). Use useSearchParams() from react-router to read/write state so filter state survives refresh and is shareable.",
+      "perspectives": ["QA Engineer", "CTO / Technical Architect"]
+    },
+    {
+      "id": "M-03",
+      "severity": "major",
+      "element": "Page heading count badge — does not update on filter",
+      "observation": "The '27' badge next to the 'Deployments' heading remains '27' when a status filter is active (e.g. 'Running 2' filter shows only 2 rows, but the heading still says '27'). This creates an inconsistency: the pill says '2', the table shows 2 rows, but the heading claims 27. Confusing for QA reviewing filtered results.",
+      "suggestion": "When a filter is active, update the heading count to reflect the filtered count (e.g. show '2' when Running filter is active). Alternatively hide the heading count entirely when a filter is active and show 'Showing 2 of 27'.",
+      "perspectives": ["QA Engineer"]
+    },
+    {
+      "id": "M-04",
+      "severity": "major",
+      "element": "Deployment Detail — Endpoint Dot Map shows duplicate endpoints",
+      "observation": "The ENDPOINT STATUS MAP on the detail page for f100…0004 lists the same endpoint hostname multiple times in the 'pending' category (prod-web-01 × 3, db-replica-02 × 2, dmz-proxy-01 × 2, dmz-waf-01 × 3, etc.). The legend says '31 pending' but target_count=10. This means the map is rendering from a different data source than the deployment targets, or there is a data fan-out bug in how targets are indexed. An operator cannot trust this map to reflect actual deployment state.",
+      "suggestion": "Investigate the API source for the dot map — it appears to be reading from a different endpoint than /api/v1/deployments/{id}/waves. Deduplicate by endpoint_id before rendering. Ensure dot map count matches targets summary count.",
+      "perspectives": ["QA Engineer", "CTO / Technical Architect"]
+    },
+    {
+      "id": "M-05",
+      "severity": "major",
+      "element": "List page — no real-time data freshness indicator",
+      "observation": "The deployments list polls every 30 seconds (refetchInterval: 30_000) but there is no visible indicator of when data was last refreshed. An operator watching a running deployment cannot tell if the progress they see (4/10) is current or 29 seconds stale. There is no 'last updated' timestamp, no spinner on background refresh, and no way to manually force a refresh.",
+      "suggestion": "Add a 'Last updated X seconds ago' or an auto-refresh countdown indicator near the table header for running deployments. Show a subtle spinner on the running row during in-flight refetch. Alternatively add a manual 'Refresh' button that triggers queryClient.invalidateQueries.",
+      "perspectives": ["QA Engineer", "CTO / Technical Architect"]
+    },
+    {
+      "id": "N-01",
+      "severity": "minor",
+      "element": "DeploymentDetailPage.tsx line 171 — any cast on target",
+      "observation": "TargetRow uses `const targetAny = target as any` with an eslint-disable comment to access target.started_at. This indicates the OpenAPI-generated DeploymentTarget schema is missing the started_at field. The cast silences the type error without fixing the underlying schema gap. This is technical debt that will cause runtime errors if the field name changes.",
+      "suggestion": "Add started_at to the DeploymentTarget schema in the OpenAPI spec, regenerate types, and remove the any cast. If started_at is optional, type it as string | null | undefined.",
+      "perspectives": ["QA Engineer"]
+    },
+    {
+      "id": "N-02",
+      "severity": "minor",
+      "element": "Filter bar — date range inputs lack accessible labels",
+      "observation": "The two date picker <input type='date'> elements have no associated <label> elements. The browser console reports '[issue] A form field element should have an id or name attribute'. Screen readers and assistive technology cannot identify these inputs. A keyboard-only user cannot tell which date is 'from' and which is 'to' without visual context.",
+      "suggestion": "Add visible labels ('From' / 'To') above or inline with each date input. Add id attributes and matching htmlFor on labels. Consider using aria-label='Filter from date' and aria-label='Filter to date' as a minimum.",
+      "perspectives": ["QA Engineer"]
+    },
+    {
+      "id": "N-03",
+      "severity": "minor",
+      "element": "Filter pills — 'Rolled Back' status not filterable",
+      "observation": "The status filter pills cover: All, Running, Completed, Failed, Created, Scheduled, Cancelled. The 'rolled_back' status exists (visible in the list as 'Rolled Back' on row f100…000c) but has no dedicated filter pill. Users cannot efficiently find all rolled-back deployments. The statusFilters config in DeploymentsPage.tsx omits rolled_back.",
+      "suggestion": "Add a 'Rolled Back' filter pill to the statusFilters array. Also add 'rollback_failed' if that state is reachable. Update the status_counts response to include these counts.",
+      "perspectives": ["QA Engineer"]
+    },
+    {
+      "id": "N-04",
+      "severity": "minor",
+      "element": "Cancelled deployment e1d6…f819 — duration shows '0m 13s'",
+      "observation": "A Cancelled deployment shows a duration of '0m 13s'. The computeDuration function falls through to computing started_at/completed_at difference for cancelled status, but a deployment cancelled before actually doing work shouldn't show a duration — it's misleading and implies work was done. The spec shows cancelled should return '—'.",
+      "suggestion": "Add 'cancelled' to the terminal statuses that return '—' in computeDuration(), or only show duration if success_count > 0 or if the deployment actually started executing.",
+      "perspectives": ["QA Engineer"]
+    },
+    {
+      "id": "P-01",
+      "severity": "nitpick",
+      "element": "Table — ID column shows shortId (8 chars of 36)",
+      "observation": "The ID column shows truncated IDs like 'f100…0003' (4 leading + 4 trailing chars). These are not copy-friendly — clicking the ID navigates away instead of copying. Correlating with server logs requires the full UUID. The shortId format is also visually identical between many seed deployments.",
+      "suggestion": "Make the ID copyable on click (copy full UUID to clipboard, show a brief 'Copied!' toast). Optionally show the full UUID in a tooltip on hover. This is critical for operators who need to correlate UI with backend logs.",
+      "perspectives": ["CTO / Technical Architect"]
+    },
+    {
+      "id": "P-02",
+      "severity": "nitpick",
+      "element": "BY column — shows only 'System' or 'Admin'",
+      "observation": "The 'By' column displays either 'System' for null created_by or 'Admin' for IDs starting with 'cc000000'. All other user IDs are truncated to 8 chars + ellipsis. In a real enterprise deployment with multiple operators, this column is useless for audit — you cannot tell which human triggered a deployment.",
+      "suggestion": "Resolve user IDs to display names via the users API or OIDC token cache. At minimum, show the full user ID in a tooltip. For the POC demo, map known IDs to human names (Admin, System, etc.).",
+      "perspectives": ["CTO / Technical Architect"]
+    },
+    {
+      "id": "P-03",
+      "severity": "nitpick",
+      "element": "New Deployment wizard — Step 1 shows patches without endpoint count",
+      "observation": "The patch selection step in the New Deployment wizard shows patches labeled 'CVE-XXXX HIGH · v 0 ep'. The '0 ep' (0 endpoints) means no endpoints are matched to these patches yet, but the user is presented them as valid deployment candidates. This will result in empty deployments if selected.",
+      "suggestion": "Show patches with 0 matching endpoints in a dimmed/disabled state with a tooltip: 'No enrolled endpoints are missing this patch'. Or hide them by default and show a 'Show all patches' toggle.",
+      "perspectives": ["QA Engineer", "CTO / Technical Architect"]
+    }
+  ],
+  "lighthouse": {
+    "note": "Lighthouse audit not run — page requires sidebar navigation from authenticated SPA session; direct URL navigation redirects (C-01 blocks automated lighthouse testing)"
+  },
+  "console_errors": 0,
+  "console_warnings": 0,
+  "console_issues": 1,
+  "console_issue_detail": "A form field element should have an id or name attribute (date range inputs)",
+  "network_errors": 0,
+  "network_4xx": 0,
+  "network_5xx": 0,
+  "api_calls_observed": [
+    "GET /api/v1/deployments?limit=25 [200]",
+    "GET /api/v1/policies?limit=200 [200]",
+    "GET /api/v1/deployments?limit=25&status=running [200]"
+  ],
+  "screenshots": [
+    ".omniprod/screenshots/current/deployments-01.png",
+    ".omniprod/screenshots/current/deployments-02.png",
+    ".omniprod/screenshots/current/deployments-03-running-filter.png",
+    ".omniprod/screenshots/current/deployments-04-expanded-row.png",
+    ".omniprod/screenshots/current/deployments-05-detail.png",
+    ".omniprod/screenshots/current/deployments-06-responsive-1024.png",
+    ".omniprod/screenshots/current/deployments-07-new-wizard.png"
+  ],
+  "comparison": {
+    "previous_review_date": null,
+    "note": "First review — no prior baseline."
+  }
+}

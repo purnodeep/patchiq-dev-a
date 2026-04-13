@@ -1,0 +1,30 @@
+version: "2"
+sql:
+  - schema: "internal/server/store/migrations"
+    queries: "internal/server/store/queries"
+    engine: "postgresql"
+    gen:
+      go:
+        package: "sqlcgen"
+        out: "internal/server/store/sqlcgen"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_empty_slices: true
+        rename:
+          cfe: CVE
+          patch_cfe: PatchCVE
+          deployment_wafe: DeploymentWave
+          endpoint_cfe: EndpointCVE
+  - schema: "internal/hub/store/migrations"
+    queries: "internal/hub/store/queries"
+    engine: "postgresql"
+    gen:
+      go:
+        package: "sqlcgen"
+        out: "internal/hub/store/sqlcgen"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_empty_slices: true
+        rename:
+          cfe: CVE
+          cve_feed: CVEFeed

@@ -1,0 +1,42 @@
+Package: bash
+Status: install ok installed
+Priority: required
+Section: shells
+Installed-Size: 6460
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Architecture: amd64
+Version: 5.1-6ubuntu1.1
+Depends: base-files (>= 2.1.12), debianutils (>= 2.15)
+Description: GNU Bourne Again SHell
+
+Package: curl
+Status: install ok installed
+Priority: optional
+Section: web
+Architecture: amd64
+Version: 7.81.0-1ubuntu1.16
+Description: command line tool for transferring data with URL syntax
+
+Package: libssl3
+Status: install ok installed
+Priority: important
+Section: libs
+Architecture: amd64
+Version: 3.0.2-0ubuntu1.15
+Description: Secure Sockets Layer toolkit
+
+Package: linux-headers-5.15.0-91
+Status: deinstall ok config-files
+Priority: optional
+Section: devel
+Architecture: amd64
+Version: 5.15.0-91.101
+Description: Linux kernel headers
+
+Package: dpkg
+Status: install ok installed
+Priority: required
+Section: admin
+Architecture: amd64
+Version: 1.21.1ubuntu2.3
+Description: Debian package management system

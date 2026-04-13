@@ -1,0 +1,469 @@
+{
+  "review_id": "2026-04-03-compliance",
+  "url": "http://localhost:3001/compliance",
+  "date": "2026-04-03T00:00:00Z",
+  "overall_verdict": "FAIL",
+  "perspectives": {
+    "ux-designer": {
+      "verdict": "FAIL",
+      "findings_count": { "critical": 2, "major": 8, "minor": 5, "nitpick": 3 }
+    },
+    "product-manager": {
+      "verdict": "FAIL",
+      "findings_count": { "critical": 2, "major": 5, "minor": 4, "nitpick": 4 }
+    },
+    "qa-engineer": {
+      "verdict": "FAIL",
+      "findings_count": { "critical": 2, "major": 7, "minor": 5, "nitpick": 2 }
+    },
+    "enterprise-buyer": {
+      "verdict": "FAIL",
+      "findings_count": { "critical": 2, "major": 5, "minor": 4, "nitpick": 2 }
+    },
+    "end-user": {
+      "verdict": "FAIL",
+      "findings_count": { "critical": 3, "major": 7, "minor": 7, "nitpick": 1 }
+    },
+    "accessibility-expert": {
+      "verdict": "FAIL",
+      "findings_count": { "critical": 3, "major": 9, "minor": 4, "nitpick": 1 }
+    },
+    "sales-engineer": {
+      "verdict": "FAIL",
+      "findings_count": { "critical": 2, "major": 6, "minor": 5, "nitpick": 0 }
+    },
+    "cto-architect": {
+      "verdict": "FAIL",
+      "findings_count": { "critical": 2, "major": 5, "minor": 4, "nitpick": 1 }
+    }
+  },
+  "findings": [
+    {
+      "id": "PO-001",
+      "severity": "critical",
+      "element": "Overdue Controls table, FRAMEWORK column, row 2",
+      "observation": "Raw UUID bbb41940-3cd2-4dc3-8805-f680f0f85422 rendered as framework name instead of human-readable test-001",
+      "suggestion": "Fix data join in overdue controls query to resolve framework UUID to display name",
+      "standard_violated": "enterprise.md — UUIDs must never appear in primary display",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "qa-engineer",
+        "enterprise-buyer",
+        "end-user",
+        "accessibility-expert",
+        "sales-engineer",
+        "cto-architect"
+      ],
+      "screenshot": "full-page.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-002",
+      "severity": "critical",
+      "element": "Overdue Controls table, CONTROL NAME column, row 2",
+      "observation": "CONTROL NAME shows SW-001 — identical to CONTROL ID. Name not resolved.",
+      "suggestion": "Populate control name from definition or show em dash if unavailable",
+      "standard_violated": "data-integrity.md — never show duplicated ID in name field",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "qa-engineer",
+        "enterprise-buyer",
+        "end-user",
+        "sales-engineer",
+        "cto-architect"
+      ],
+      "screenshot": "full-page.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-003",
+      "severity": "critical",
+      "element": "Overdue Controls table — inactive framework rows",
+      "observation": "Table shows controls from ISO 27001, HIPAA, SOC 2 which are not among the 2 active frameworks",
+      "suggestion": "Scope to active frameworks or add filter/label for inactive",
+      "standard_violated": "data-integrity.md — scope of data must be consistent with context",
+      "perspectives": ["end-user"],
+      "screenshot": "full-page.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-004",
+      "severity": "critical",
+      "element": "Compliance Trend chart",
+      "observation": "Chart exposed as opaque application role with no data table alternative. Completely inaccessible to screen readers.",
+      "suggestion": "Add visually-hidden data table or role=img with descriptive aria-label",
+      "standard_violated": "accessibility.md — charts need text alternative",
+      "perspectives": ["accessibility-expert"],
+      "screenshot": "full-page.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-005",
+      "severity": "critical",
+      "element": "Sidebar Alerts link",
+      "observation": "Badge count 80 concatenated into accessible name as 'Alerts 80' — no semantic separation",
+      "suggestion": "Use aria-label='Alerts, 80 unread' with aria-hidden on visible badge",
+      "standard_violated": "accessibility.md — links must have descriptive context-independent labels",
+      "perspectives": ["accessibility-expert"],
+      "screenshot": "00-snapshot.txt",
+      "status": "open"
+    },
+    {
+      "id": "PO-006",
+      "severity": "major",
+      "element": "Browser tab favicon",
+      "observation": "favicon.ico returns 404. No product icon in browser tab.",
+      "suggestion": "Add favicon.ico and apple-touch-icon to web/public/",
+      "standard_violated": "enterprise.md — Favicon must be set",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "qa-engineer",
+        "enterprise-buyer",
+        "end-user",
+        "sales-engineer",
+        "cto-architect"
+      ],
+      "screenshot": "00-console.txt",
+      "status": "open"
+    },
+    {
+      "id": "PO-007",
+      "severity": "major",
+      "element": "All primary/secondary buttons",
+      "observation": "No perceptible hover state change on Evaluate All, Manage Frameworks, Evaluate, More Actions buttons",
+      "suggestion": "Add 10-15% lightness shift on hover to button component globally",
+      "standard_violated": "interaction.md — every clickable element must have distinct hover state",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "qa-engineer",
+        "sales-engineer",
+        "cto-architect"
+      ],
+      "screenshot": "btn-evaluate-all-hover.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-008",
+      "severity": "major",
+      "element": "View Details links",
+      "observation": "No underline or color shift on hover. Indistinguishable from static text.",
+      "suggestion": "Add underline on hover and color shift",
+      "standard_violated": "interaction.md — hover states required",
+      "perspectives": ["ux-designer", "sales-engineer"],
+      "screenshot": "link-view-details-hover.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-009",
+      "severity": "major",
+      "element": "Compliance Trend chart title",
+      "observation": "Title says Last 90 Days but X-axis spans only ~10 days (Mar 25 to Apr 3). Misleading.",
+      "suggestion": "Dynamically set title to match actual data range or populate full 90 days",
+      "standard_violated": "data-integrity.md — charts must be labeled honestly",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "qa-engineer",
+        "enterprise-buyer",
+        "end-user",
+        "sales-engineer",
+        "cto-architect"
+      ],
+      "screenshot": "chart-hover.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-010",
+      "severity": "major",
+      "element": "Framework name test-001",
+      "observation": "Test/seed artifact name appears throughout page. Unprofessional for client POC.",
+      "suggestion": "Rename seed data to realistic names",
+      "standard_violated": "enterprise.md — no placeholder content visible to users",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "qa-engineer",
+        "enterprise-buyer",
+        "end-user",
+        "sales-engineer",
+        "cto-architect"
+      ],
+      "screenshot": "00-initial.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-011",
+      "severity": "major",
+      "element": "Overdue Controls table",
+      "observation": "Table is entirely read-only. No row actions, no View, no Remediate path.",
+      "suggestion": "Add row-level actions: View Control link to framework detail filtered to that control",
+      "standard_violated": "enterprise.md — action paths; interaction.md — table actions",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "end-user",
+        "sales-engineer",
+        "cto-architect"
+      ],
+      "screenshot": "full-page.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-012",
+      "severity": "major",
+      "element": "Overall Compliance ring gauge",
+      "observation": "Ring gauge uses green/teal at 75% but status is NON-COMPLIANT. Green signals passing — contradicts the status.",
+      "suggestion": "Apply semantic color: green for 95%+, amber for 80-94%, red for <80%",
+      "standard_violated": "visual.md — semantic color mapping; consistency.md — color meaning",
+      "perspectives": ["end-user"],
+      "screenshot": "00-initial.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-013",
+      "severity": "major",
+      "element": "Overall Compliance status",
+      "observation": "75% labeled NON-COMPLIANT with no threshold context. Users cannot determine what score qualifies as compliant.",
+      "suggestion": "Add threshold indicator: 'NON-COMPLIANT (threshold: 95%)' or threshold marker on ring gauge",
+      "standard_violated": "enterprise.md — compliance data must explain methodology",
+      "perspectives": ["product-manager", "enterprise-buyer", "sales-engineer"],
+      "screenshot": "00-initial.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-014",
+      "severity": "major",
+      "element": "More actions dropdown",
+      "observation": "Dropdown contains only Export Report. Single-item dropdown is an antipattern.",
+      "suggestion": "Promote Export Report to standalone button. Remove dropdown.",
+      "standard_violated": "consistency.md — button hierarchy",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "qa-engineer",
+        "enterprise-buyer",
+        "end-user",
+        "sales-engineer",
+        "cto-architect"
+      ],
+      "screenshot": "dropdown-more-actions-open.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-015",
+      "severity": "major",
+      "element": "Summary card vs table count",
+      "observation": "Summary shows '1 OVERDUE CONTROLS' but table header shows 4. Different metrics (1 framework vs 4 controls) without label clarity.",
+      "suggestion": "Change label to '1 FRAMEWORK WITH OVERDUE CONTROLS' or match the count",
+      "standard_violated": "data-integrity.md — counts must be unambiguous",
+      "perspectives": ["qa-engineer"],
+      "screenshot": "00-initial.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-016",
+      "severity": "major",
+      "element": "View Details links (both cards)",
+      "observation": "Two identical 'View Details' accessible names — screen readers cannot distinguish them",
+      "suggestion": "Add aria-label='View details for {framework name}'",
+      "standard_violated": "accessibility.md — links must be distinguishable",
+      "perspectives": ["accessibility-expert", "product-manager"],
+      "screenshot": "00-snapshot.txt",
+      "status": "open"
+    },
+    {
+      "id": "PO-017",
+      "severity": "major",
+      "element": "Evaluate buttons (both cards)",
+      "observation": "Two identical 'Evaluate' accessible names — screen readers cannot distinguish them",
+      "suggestion": "Add aria-label='Evaluate {framework name}'",
+      "standard_violated": "accessibility.md — buttons must be distinguishable",
+      "perspectives": ["accessibility-expert"],
+      "screenshot": "00-snapshot.txt",
+      "status": "open"
+    },
+    {
+      "id": "PO-018",
+      "severity": "major",
+      "element": "Sidebar nav group labels",
+      "observation": "OVERVIEW, ASSETS, SECURITY etc. are plain StaticText with no semantic grouping role",
+      "suggestion": "Wrap each group in <ul> with aria-label matching section name",
+      "standard_violated": "accessibility.md — landmark regions",
+      "perspectives": ["accessibility-expert", "ux-designer"],
+      "screenshot": "nav-sidebar-active.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-019",
+      "severity": "minor",
+      "element": "Sidebar nav hover state",
+      "observation": "Hover background barely perceptible on non-active items",
+      "suggestion": "Increase hover background contrast one step",
+      "standard_violated": "interaction.md — hover must be visually distinct",
+      "perspectives": ["ux-designer"],
+      "screenshot": "nav-sidebar-hover.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-020",
+      "severity": "minor",
+      "element": "Overall Compliance NON-COMPLIANT text",
+      "observation": "Rendered as plain text, not badge component. Framework cards use colored badges for same status.",
+      "suggestion": "Apply same badge component to overall status",
+      "standard_violated": "consistency.md — same data type same format everywhere",
+      "perspectives": ["ux-designer"],
+      "screenshot": "00-initial.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-021",
+      "severity": "minor",
+      "element": "Responsive layout at 768px",
+      "observation": "Chart and overdue table below fold with no scroll affordance. Card CTAs cramped.",
+      "suggestion": "Verify chart height, ensure table scrolls horizontally with visible affordance",
+      "standard_violated": "visual.md — responsive degradation",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "enterprise-buyer",
+        "sales-engineer",
+        "cto-architect"
+      ],
+      "screenshot": "responsive-768.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-022",
+      "severity": "minor",
+      "element": "Overdue Controls count badge '4'",
+      "observation": "Count badge lacks qualifying label — '4 what?'",
+      "suggestion": "Add text qualifier: '4 overdue controls'",
+      "standard_violated": "data-integrity.md — show total with context",
+      "perspectives": ["ux-designer", "qa-engineer"],
+      "screenshot": "full-page.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-023",
+      "severity": "minor",
+      "element": "Framework Management panel sections",
+      "observation": "Built-in and custom framework sections have completely different row anatomy",
+      "suggestion": "Unify card anatomy across both sections",
+      "standard_violated": "consistency.md — same type same anatomy",
+      "perspectives": ["ux-designer", "enterprise-buyer", "sales-engineer"],
+      "screenshot": "modal-manage-frameworks.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-024",
+      "severity": "minor",
+      "element": "Edit/delete icon buttons in framework drawer",
+      "observation": "No tooltips on hover, no red danger state on delete hover",
+      "suggestion": "Add tooltips and danger-color hover to delete button",
+      "standard_violated": "visual.md — icons must pair with label or tooltip",
+      "perspectives": ["ux-designer", "end-user", "accessibility-expert"],
+      "screenshot": "modal-edit-framework-hover.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-025",
+      "severity": "minor",
+      "element": "Evaluate buttons — loading state",
+      "observation": "No spinner, disabled state, or Evaluating... feedback when async evaluation is triggered",
+      "suggestion": "Disabled+spinner state on click until job response returns",
+      "standard_violated": "interaction.md — async operations must show loading indicator",
+      "perspectives": ["qa-engineer", "enterprise-buyer", "cto-architect"],
+      "screenshot": "btn-evaluate-hover.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-026",
+      "severity": "minor",
+      "element": "Chart Y-axis",
+      "observation": "No axis label identifying what is measured",
+      "suggestion": "Add rotated Y-axis label: 'Compliance Score (%)'",
+      "standard_violated": "data-integrity.md — axes must be labeled",
+      "perspectives": ["ux-designer", "enterprise-buyer", "sales-engineer", "cto-architect"],
+      "screenshot": "chart-hover.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-027",
+      "severity": "minor",
+      "element": "Sidebar user avatar",
+      "observation": "Shows 'U' / 'User' placeholder instead of actual username",
+      "suggestion": "Wire auth user display name to sidebar avatar",
+      "standard_violated": "enterprise.md — no placeholder content",
+      "perspectives": ["ux-designer", "enterprise-buyer", "accessibility-expert"],
+      "screenshot": "nav-sidebar-active.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-028",
+      "severity": "nitpick",
+      "element": "Table column headers",
+      "observation": "ALL-CAPS in HTML may cause screen readers to spell out letters",
+      "suggestion": "Use Title Case in HTML with text-transform: uppercase in CSS",
+      "standard_violated": "consistency.md — table header casing; accessibility.md",
+      "perspectives": [
+        "ux-designer",
+        "product-manager",
+        "qa-engineer",
+        "enterprise-buyer",
+        "end-user",
+        "accessibility-expert"
+      ],
+      "screenshot": "full-page.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-029",
+      "severity": "nitpick",
+      "element": "AI Assistant (coming soon) button",
+      "observation": "Coming-soon feature button visible in POC demo topbar",
+      "suggestion": "Remove or style as unavailable for POC",
+      "standard_violated": "enterprise.md — no placeholder content",
+      "perspectives": ["product-manager"],
+      "screenshot": "nav-sidebar-active.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-030",
+      "severity": "nitpick",
+      "element": "Status badge text casing",
+      "observation": "COMPLIANT/NON-COMPLIANT/FAIL all use all-caps — must verify consistency across app",
+      "suggestion": "Audit all status badge casing across all pages",
+      "standard_violated": "consistency.md — same format everywhere",
+      "perspectives": ["product-manager", "qa-engineer"],
+      "screenshot": "00-initial.png",
+      "status": "open"
+    },
+    {
+      "id": "PO-031",
+      "severity": "nitpick",
+      "element": "Framework detail URLs",
+      "observation": "URLs use raw UUIDs — functional but unfriendly for sharing",
+      "suggestion": "Consider slug-based routing",
+      "standard_violated": "professional judgment",
+      "perspectives": ["cto-architect"],
+      "screenshot": "link-view-details-hover.png",
+      "status": "open"
+    }
+  ],
+  "lighthouse": {
+    "accessibility": 94,
+    "best_practices": 100,
+    "seo": 60
+  },
+  "stats": {
+    "critical": 5,
+    "major": 13,
+    "minor": 9,
+    "nitpick": 4,
+    "total": 31
+  }
+}

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Agent — Logs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --teal:#14b8a6;--teal-dim:#0d9488;
+  --bg:#0f172a;--card:#1e293b;--card2:#162032;--border:#2d3f52;
+  --text:#e2e8f0;--muted:#64748b;
+  --topbar-h:64px;--tabbar-h:48px;--ctrlbar-h:auto;
+}
+html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+body{min-height:100vh;background:var(--bg)}
+html.light{background:#f1f5f9;color:#0f172a}
+html.light body{background:#f1f5f9;color:#0f172a}
+html.light #topbar,html.light #tabbar,html.light #ctrlbar{background:#fff;border-color:#e2e8f0}
+html.light .filter-select{border-color:#e2e8f0;color:#0f172a;background:#fff}
+html.light .filter-select:hover{border-color:#94a3b8}
+html.light .filter-select:focus{border-color:var(--teal);outline:none}
+html.light .time-select{border-color:#e2e8f0;color:#0f172a;background:#fff}
+html.light .time-select:hover{border-color:#94a3b8}
+html.light .time-select:focus{border-color:var(--teal);outline:none}
+html.light .search-input{background:#f8fafc;border-color:#e2e8f0;color:#0f172a}
+html.light .ctrl-btn{border-color:#e2e8f0;color:#64748b}
+html.light .ctrl-btn:hover{border-color:#94a3b8;color:#0f172a}
+/* Log viewer stays dark always */
+
+#topbar{height:var(--topbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:fixed;top:0;left:0;right:0;z-index:100}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-name{font-size:16px;font-weight:700;color:var(--teal);letter-spacing:-.3px}
+.hostname{font-family:monospace;font-size:13px;color:var(--muted);background:#ffffff08;padding:3px 10px;border-radius:20px;border:1px solid var(--border)}
+.status-dot-wrap{display:flex;align-items:center;gap:6px;font-size:12px;color:#10b981}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;position:relative}
+.status-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:#10b981;opacity:.4;animation:pulse-ring 2s ease-out infinite}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.4}70%{transform:scale(1.8);opacity:0}100%{transform:scale(1.8);opacity:0}}
+.topbar-right{margin-left:auto}
+.toggle-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:.15s}
+.toggle-btn:hover{background:#ffffff0d;color:var(--text)}
+.toggle-btn svg{width:18px;height:18px}
+
+#tabbar{height:var(--tabbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 24px;gap:2px;position:fixed;top:var(--topbar-h);left:0;right:0;z-index:99}
+.tab{padding:0 18px;display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;position:relative;transition:.15s;white-space:nowrap;border-bottom:2px solid transparent}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.tab-inactive:hover{background:rgba(20,184,166,.08);color:var(--teal)}
+.tab-badge{background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;border:1px solid #ef444430}
+.tab-dot{width:7px;height:7px;border-radius:50%;background:#10b981}
+
+#ctrlbar{background:#0d1b2e;border-bottom:1px solid var(--border);padding:10px 24px;position:sticky;top:calc(var(--topbar-h) + var(--tabbar-h));z-index:98;display:flex;flex-direction:column;gap:8px}
+.ctrl-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.filter-select{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:.15s;font-family:monospace}
+.filter-select:hover{border-color:#3d5168}
+.filter-select:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 2px rgba(20,184,166,.2)}
+.filter-select option{background:var(--card);color:var(--text)}
+.time-select{padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:.15s;font-family:system-ui}
+.time-select:hover{border-color:#3d5168}
+.time-select:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 2px rgba(20,184,166,.2)}
+.time-select option{background:var(--card);color:var(--text)}
+
+.search-wrap{flex:1;position:relative;max-width:400px}
+.search-input{width:100%;background:#0f1e30;border:1px solid var(--border);color:var(--text);padding:6px 10px 6px 34px;border-radius:7px;font-size:12px;outline:none;font-family:system-ui;transition:.15s}
+.search-input::placeholder{color:var(--muted)}
+.search-input:focus{border-color:var(--teal)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search-icon svg{width:14px;height:14px}
+
+.time-pill{padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:.15s}
+.time-pill.active{border-color:var(--teal);background:rgba(20,184,166,.12);color:var(--teal)}
+.time-pill:hover{border-color:#3d5168;color:var(--text)}
+
+.live-wrap{display:flex;align-items:center;gap:8px;margin-left:auto}
+.live-label{font-size:12px;color:var(--muted)}
+.live-toggle{position:relative;width:36px;height:20px;background:#1e293b;border-radius:10px;cursor:pointer;transition:.2s;border:1px solid var(--border)}
+.live-toggle.on{background:var(--teal);border-color:var(--teal)}
+.live-toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.2s}
+.live-toggle.on::after{transform:translateX(16px)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.live-dot.on{background:#10b981;animation:live-blink 1.5s ease-in-out infinite}
+@keyframes live-blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.ctrl-btn{padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:.15s}
+.ctrl-btn:hover{border-color:#3d5168;color:var(--text)}
+
+#page{padding:calc(var(--topbar-h) + var(--tabbar-h) + 100px) 0 0;max-width:1400px;margin:0 auto}
+
+/* Log viewer — always dark */
+#log-viewer{background:#0a0d12;margin:0 24px 24px;border-radius:10px;border:1px solid #1a2535;overflow:hidden;font-family:'SF Mono','Fira Code','Cascadia Code',monospace}
+.log-load-older{display:block;width:100%;padding:10px;text-align:center;font-size:12px;color:#4a5568;background:#0c1017;border-bottom:1px solid #1a2535;cursor:pointer;transition:.15s;font-family:system-ui}
+.log-load-older:hover{color:#14b8a6;background:#0d1520}
+
+.log-list{padding:4px 0;min-height:400px;max-height:calc(100vh - 280px);overflow-y:auto}
+.log-list::-webkit-scrollbar{width:6px}
+.log-list::-webkit-scrollbar-thumb{background:#1e2d3d;border-radius:3px}
+.log-list::-webkit-scrollbar-track{background:#0a0d12}
+
+.log-line{display:flex;align-items:stretch;position:relative;min-height:28px;transition:.1s}
+.log-line:hover{background:#0d1520}
+.log-gutter{width:4px;flex-shrink:0}
+.log-gutter.debug{background:#3b82f640}
+.log-gutter.info{background:#10b98140}
+.log-gutter.warn{background:#f59e0b60}
+.log-gutter.error{background:#ef4444}
+.log-content{display:flex;align-items:baseline;gap:8px;padding:4px 12px 4px 8px;flex:1;min-width:0}
+.log-ts{font-size:11px;color:#4a6075;flex-shrink:0;user-select:none}
+.log-level{font-size:11px;font-weight:700;min-width:46px;flex-shrink:0}
+.log-level.debug{color:#3b82f6}
+.log-level.info{color:#10b981}
+.log-level.warn{color:#f59e0b}
+.log-level.error{color:#ef4444}
+.log-msg{font-size:12px;color:#cbd5e1;flex:1;white-space:pre-wrap;word-break:break-all;line-height:1.5}
+.log-msg .highlight{background:#fbbf2460;color:#fde68a;border-radius:2px;padding:0 2px}
+.log-copy{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:#0f1e30;border:1px solid #1e2d3d;border-radius:4px;padding:2px 7px;font-size:10px;color:#64748b;cursor:pointer;opacity:0;transition:.1s;font-family:system-ui}
+.log-line:hover .log-copy{opacity:1}
+.log-copy:hover{color:#14b8a6;border-color:#14b8a640}
+
+/* New entry animation */
+@keyframes log-flash{0%{background:#14b8a615}100%{background:transparent}}
+.log-line.new-entry{animation:log-flash .6s ease-out}
+
+/* Faded for search non-match */
+.log-line.faded{opacity:.3}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">
+    <span class="brand-name">PatchIQ Agent</span>
+    <span class="hostname">prod-web-01</span>
+    <div class="status-dot-wrap">
+      <div class="status-dot"></div>
+      <span>Healthy</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="toggle-btn" onclick="toggleTheme()" title="Toggle dark/light">
+      <svg id="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<nav id="tabbar">
+  <a href="index.html" class="tab tab-inactive">
+    <div class="tab-dot"></div>
+    Overview
+  </a>
+  <a href="patches.html" class="tab tab-inactive">
+    Patches
+    <span class="tab-badge">20</span>
+  </a>
+  <a href="history.html" class="tab tab-inactive">History</a>
+  <a href="logs.html" class="tab active">Logs</a>
+  <a href="settings.html" class="tab tab-inactive">Settings</a>
+</nav>
+
+<div id="ctrlbar">
+  <div class="ctrl-row">
+    <select id="levelFilter" class="filter-select" onchange="toggleLevel(this.value)">
+      <option value="all" selected>ALL</option>
+      <option value="debug">DEBUG</option>
+      <option value="info">INFO</option>
+      <option value="warn">WARN</option>
+      <option value="error">ERROR</option>
+    </select>
+
+    <div class="search-wrap">
+      <div class="search-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <input class="search-input" id="search-input" type="text" placeholder="Search logs..." oninput="handleSearch(this.value)">
+    </div>
+
+    <div class="live-wrap">
+      <span class="live-label">Live Tail</span>
+      <div class="live-dot on" id="live-dot"></div>
+      <div class="live-toggle on" id="live-toggle" onclick="toggleLive()"></div>
+    </div>
+
+    <button class="ctrl-btn" onclick="clearLogs()">Clear</button>
+    <button class="ctrl-btn" onclick="exportLogs()">Export</button>
+  </div>
+
+  <div class="ctrl-row">
+    <select id="timeFilter" class="time-select" onchange="setTime(this.value)">
+      <option value="1h" selected>Last 1h</option>
+      <option value="6h">Last 6h</option>
+      <option value="24h">Last 24h</option>
+      <option value="all">All</option>
+    </select>
+  </div>
+</div>
+
+<main id="page">
+  <div id="log-viewer">
+    <button class="log-load-older" onclick="loadOlder()">Load older logs...</button>
+    <div class="log-list" id="log-list"></div>
+  </div>
+</main>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  if(h.classList.contains('dark')){h.classList.replace('dark','light');localStorage.setItem('theme','light');document.getElementById('sun-icon').style.display='block';document.getElementById('moon-icon').style.display='none';}
+  else{h.classList.replace('light','dark');localStorage.setItem('theme','dark');document.getElementById('sun-icon').style.display='none';document.getElementById('moon-icon').style.display='block';}
+}
+(function(){const t=localStorage.getItem('theme')||'dark';document.documentElement.classList.add(t);if(t==='light'){document.getElementById('sun-icon').style.display='block';document.getElementById('moon-icon').style.display='none';}})();
+
+// Initial log data
+const INIT_LOGS=[
+  {ts:'2026-03-10T14:32:01.234Z',level:'debug',msg:'agent.heartbeat: sending heartbeat to pm.acme.com'},
+  {ts:'2026-03-10T14:32:01.456Z',level:'info', msg:'agent.heartbeat: heartbeat acknowledged, latency=12ms'},
+  {ts:'2026-03-10T14:31:55.123Z',level:'debug',msg:'agent.connection: polling server for pending commands'},
+  {ts:'2026-03-10T14:31:55.128Z',level:'info', msg:'agent.connection: no pending commands'},
+  {ts:'2026-03-10T14:31:48.890Z',level:'warn', msg:'agent.scan: package openssl-3.0.2 has known CVE-2024-5535 (CVSS 9.5)'},
+  {ts:'2026-03-10T14:31:48.567Z',level:'info', msg:'agent.scan: scanned 342 packages in 3.4s'},
+  {ts:'2026-03-10T14:31:45.123Z',level:'info', msg:'agent.scan: starting package scan'},
+  {ts:'2026-03-10T14:31:44.900Z',level:'debug',msg:'agent.scan: initializing apt cache'},
+  {ts:'2026-03-10T14:31:44.780Z',level:'debug',msg:'agent.scheduler: scan triggered by interval timer'},
+  {ts:'2026-03-10T14:30:46.123Z',level:'info', msg:'agent.patch: checksum verified, queuing installation for KB5034441'},
+  {ts:'2026-03-10T14:30:45.678Z',level:'info', msg:'agent.patch: download complete, verifying sha256 checksum'},
+  {ts:'2026-03-10T14:30:12.345Z',level:'info', msg:'agent.patch: downloading KB5034441 (45MB) from cdn.patchiq.io'},
+  {ts:'2026-03-10T14:30:12.100Z',level:'debug',msg:'agent.patch: received install instruction for KB5034441 from server'},
+  {ts:'2026-03-10T14:25:33.789Z',level:'error',msg:'agent.patch: stderr: E: Unable to locate package linux-headers-6.5.0-44-generic'},
+  {ts:'2026-03-10T14:25:33.456Z',level:'error',msg:'agent.patch: installation failed for RHSA-2024:0012: dpkg returned exit code 1'},
+  {ts:'2026-03-10T14:25:21.234Z',level:'debug',msg:'agent.patch: running pre-install hook for RHSA-2024:0012'},
+  {ts:'2026-03-10T14:25:20.890Z',level:'info', msg:'agent.patch: starting installation of RHSA-2024:0012'},
+  {ts:'2026-03-10T14:22:15.567Z',level:'info', msg:'agent.patch: checksum verified for RHSA-2024:0012'},
+  {ts:'2026-03-10T14:22:14.123Z',level:'info', msg:'agent.patch: download complete for RHSA-2024:0012'},
+  {ts:'2026-03-10T14:21:00.456Z',level:'info', msg:'agent.patch: downloading RHSA-2024:0012 (12MB) from cdn.patchiq.io'},
+  {ts:'2026-03-10T14:20:00.123Z',level:'warn', msg:'agent.connection: server connection latency spike: 450ms (threshold: 200ms)'},
+  {ts:'2026-03-10T14:19:58.789Z',level:'debug',msg:'agent.connection: reconnecting to pm.acme.com:8443 (attempt 1/3)'},
+  {ts:'2026-03-10T14:19:55.456Z',level:'warn', msg:'agent.connection: connection timeout after 5000ms'},
+  {ts:'2026-03-10T14:15:00.456Z',level:'info', msg:'agent.sync: catalog sync complete, 1128 entries'},
+  {ts:'2026-03-10T14:14:59.789Z',level:'debug',msg:'agent.sync: processing delta: 3 new, 12 updated, 0 deleted'},
+  {ts:'2026-03-10T14:14:58.234Z',level:'debug',msg:'agent.sync: fetching catalog delta from server'},
+  {ts:'2026-03-10T14:14:57.100Z',level:'info', msg:'agent.sync: starting catalog synchronization'},
+  {ts:'2026-03-10T14:02:01.234Z',level:'debug',msg:'agent.heartbeat: sending heartbeat to pm.acme.com'},
+  {ts:'2026-03-10T14:02:01.345Z',level:'info', msg:'agent.heartbeat: heartbeat acknowledged, latency=11ms'},
+  {ts:'2026-03-10T14:00:00.000Z',level:'info', msg:'agent.scheduler: maintenance window check: not in window'},
+  {ts:'2026-03-10T13:55:44.678Z',level:'debug',msg:'agent.telemetry: flushing metrics buffer (48 points)'},
+  {ts:'2026-03-10T13:55:44.901Z',level:'info', msg:'agent.telemetry: metrics flushed to pm.acme.com'},
+  {ts:'2026-03-10T13:50:12.456Z',level:'warn', msg:'agent.disk: disk usage on /data exceeded 70% threshold (currently 72%)'},
+  {ts:'2026-03-10T13:32:01.234Z',level:'debug',msg:'agent.heartbeat: sending heartbeat to pm.acme.com'},
+  {ts:'2026-03-10T13:32:01.567Z',level:'info', msg:'agent.heartbeat: heartbeat acknowledged, latency=13ms'},
+  {ts:'2026-03-10T13:25:33.890Z',level:'info', msg:'agent.patch: USN-6587-1 installation complete in 45s'},
+  {ts:'2026-03-10T13:25:33.456Z',level:'info', msg:'agent.patch: running post-install hook for USN-6587-1'},
+  {ts:'2026-03-10T13:24:48.123Z',level:'info', msg:'agent.patch: starting installation of USN-6587-1'},
+  {ts:'2026-03-10T13:24:47.789Z',level:'debug',msg:'agent.patch: verifying checksum for USN-6587-1: sha256=7f3a...'},
+  {ts:'2026-03-10T13:23:15.456Z',level:'info', msg:'agent.patch: download complete for USN-6587-1 (2.8MB)'},
+  {ts:'2026-03-10T13:23:14.678Z',level:'debug',msg:'agent.patch: initiating download for USN-6587-1'},
+  {ts:'2026-03-10T13:00:00.000Z',level:'info', msg:'agent.scheduler: scheduled scan triggered'},
+  {ts:'2026-03-10T12:32:01.234Z',level:'debug',msg:'agent.heartbeat: sending heartbeat to pm.acme.com'},
+  {ts:'2026-03-10T12:32:01.567Z',level:'info', msg:'agent.heartbeat: heartbeat acknowledged, latency=9ms'},
+  {ts:'2026-03-10T12:15:22.345Z',level:'info', msg:'agent.patch: KB5034441 installation complete in 2m 34s'},
+  {ts:'2026-03-10T12:13:00.456Z',level:'info', msg:'agent.patch: starting installation of KB5034441'},
+  {ts:'2026-03-10T12:12:59.789Z',level:'debug',msg:'agent.patch: lock acquired: /var/lib/dpkg/lock-frontend'},
+  {ts:'2026-03-10T12:07:00.123Z',level:'info', msg:'agent.patch: download verified, queuing KB5034441 for installation'},
+  {ts:'2026-03-10T12:02:01.234Z',level:'debug',msg:'agent.heartbeat: sending heartbeat to pm.acme.com'},
+];
+
+let activeLevel='all';
+let activeLevels=new Set(['debug','info','warn','error']);
+let searchQuery='';
+let liveEnabled=true;
+let liveInterval=null;
+const listEl=document.getElementById('log-list');
+
+function renderLog(entry,prepend=false,isNew=false){
+  const div=document.createElement('div');
+  div.className='log-line'+(isNew?' new-entry':'');
+  div.setAttribute('data-level',entry.level);
+  div.setAttribute('data-msg',entry.msg.toLowerCase());
+
+  const gutterClass=entry.level;
+  const levelTag={'debug':'[DEBUG]','info':'[INFO] ','warn':'[WARN] ','error':'[ERROR]'}[entry.level]||'[INFO] ';
+  const msgText=searchQuery?highlightText(entry.msg,searchQuery):escapeHtml(entry.msg);
+
+  div.innerHTML=`<div class="log-gutter ${gutterClass}"></div>
+<div class="log-content">
+  <span class="log-ts">${entry.ts}</span>
+  <span class="log-level ${entry.level}">${levelTag}</span>
+  <span class="log-msg">${msgText}</span>
+</div>
+<button class="log-copy" onclick="copyLine('${entry.ts} ${levelTag} ${entry.msg.replace(/'/g,"\\'")}')">Copy</button>`;
+
+  applyVisibility(div);
+  if(prepend)listEl.insertBefore(div,listEl.firstChild);
+  else listEl.appendChild(div);
+  return div;
+}
+
+function escapeHtml(str){return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function highlightText(str,q){
+  const esc=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const re=new RegExp(`(${esc})`,'gi');
+  return escapeHtml(str).replace(re,'<span class="highlight">$1</span>');
+}
+
+function applyVisibility(el){
+  const level=el.getAttribute('data-level');
+  const msg=el.getAttribute('data-msg');
+  const levelOk=activeLevel==='all'||level===activeLevel;
+  const searchOk=!searchQuery||msg.includes(searchQuery.toLowerCase());
+  el.style.display=levelOk?'':'none';
+  if(levelOk&&searchQuery){el.classList.toggle('faded',!searchOk);}
+  else{el.classList.remove('faded');}
+}
+
+function init(){
+  INIT_LOGS.slice().reverse().forEach(function(e){renderLog(e,false,false)});
+  scrollToBottom();
+}
+
+function scrollToBottom(){
+  listEl.scrollTop=listEl.scrollHeight;
+}
+
+function toggleLevel(lvl){
+  activeLevel=lvl;
+  document.querySelectorAll('.log-line').forEach(applyVisibility);
+}
+
+function handleSearch(val){
+  searchQuery=val.trim().toLowerCase();
+  document.querySelectorAll('.log-line').forEach(function(el){
+    const msg=el.getAttribute('data-msg')||'';
+    const msgEl=el.querySelector('.log-msg');
+    if(msgEl){
+      const orig=el._origMsg||(el._origMsg=msgEl.textContent);
+      el.setAttribute('data-msg',orig.toLowerCase());
+      msgEl.innerHTML=searchQuery?highlightText(orig,searchQuery):escapeHtml(orig);
+    }
+    applyVisibility(el);
+  });
+}
+
+function toggleLive(){
+  liveEnabled=!liveEnabled;
+  const tog=document.getElementById('live-toggle');
+  const dot=document.getElementById('live-dot');
+  if(liveEnabled){tog.classList.add('on');dot.classList.add('on');}
+  else{tog.classList.remove('on');dot.classList.remove('on');}
+}
+
+const FAKE_LOGS=[
+  ['debug','agent.heartbeat: sending heartbeat to pm.acme.com'],
+  ['info','agent.heartbeat: heartbeat acknowledged, latency=11ms'],
+  ['info','agent.patch: download progress KB5034441 73% (33.2MB / 45MB)'],
+  ['debug','agent.connection: polling server for new commands'],
+  ['info','agent.connection: no pending commands'],
+  ['debug','agent.telemetry: cpu_usage=0.3%, memory_rss=42MB'],
+  ['warn','agent.patch: download retry 1/3 for KB5034441: connection reset'],
+  ['info','agent.sync: checking for catalog updates'],
+  ['debug','agent.scheduler: next scan in 3h 59m'],
+  ['info','agent.patch: download progress KB5034441 80% (36.0MB / 45MB)'],
+  ['info','agent.heartbeat: heartbeat acknowledged, latency=14ms'],
+  ['error','agent.patch: checksum mismatch for fragment 192/256, retrying'],
+  ['info','agent.patch: download resumed KB5034441 from byte 36864000'],
+  ['debug','agent.connection: tls handshake complete, session reused'],
+];
+let fakeIdx=0;
+function addFakeLog(){
+  if(!liveEnabled)return;
+  const now=new Date();
+  const ts=now.toISOString().replace(/\.(\d{3})/,function(m,ms){return`.${String(Math.floor(Math.random()*999)).padStart(3,'0')}`});
+  const pair=FAKE_LOGS[fakeIdx%FAKE_LOGS.length];fakeIdx++;
+  const entry={ts,level:pair[0],msg:pair[1]};
+  const el=renderLog(entry,false,true);
+  listEl.scrollTop=listEl.scrollHeight;
+}
+liveInterval=setInterval(addFakeLog,3000);
+
+function clearLogs(){
+  listEl.innerHTML='';
+}
+function exportLogs(){
+  let text='';
+  document.querySelectorAll('.log-line').forEach(function(el){
+    const ts=el.querySelector('.log-ts');
+    const lv=el.querySelector('.log-level');
+    const msg=el.querySelector('.log-msg');
+    if(ts&&lv&&msg)text+=`${ts.textContent} ${lv.textContent.trim()} ${msg.textContent}\n`;
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+  a.download='patchiq-agent-logs.txt';a.click();
+}
+function loadOlder(){
+  const older=[
+    {ts:'2026-03-10T11:32:01.234Z',level:'debug',msg:'agent.heartbeat: sending heartbeat to pm.acme.com'},
+    {ts:'2026-03-10T11:32:01.456Z',level:'info',msg:'agent.heartbeat: heartbeat acknowledged, latency=10ms'},
+    {ts:'2026-03-10T11:00:00.000Z',level:'info',msg:'agent.scheduler: scheduled scan triggered'},
+    {ts:'2026-03-10T10:55:44.678Z',level:'debug',msg:'agent.telemetry: flushing metrics buffer (52 points)'},
+    {ts:'2026-03-10T10:32:01.234Z',level:'debug',msg:'agent.heartbeat: sending heartbeat to pm.acme.com'},
+  ];
+  older.forEach(function(e){renderLog(e,true,false)});
+}
+function setTime(val){
+  // Time filtering logic would be implemented here if needed
+}
+function copyLine(txt){
+  navigator.clipboard.writeText(txt).catch(function(){});
+  // Show brief tooltip via title
+  event.target.textContent='Copied!';
+  setTimeout(function(){event.target.textContent='Copy';},1200);
+}
+
+init();
+</script>
+</body>
+</html>

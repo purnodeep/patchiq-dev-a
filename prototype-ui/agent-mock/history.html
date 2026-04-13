@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Agent — History</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --teal:#14b8a6;--teal-dim:#0d9488;
+  --bg:#0f172a;--card:#1e293b;--card2:#162032;--border:#2d3f52;
+  --text:#e2e8f0;--muted:#64748b;
+  --success:#10b981;--warn:#f59e0b;--danger:#ef4444;
+  --topbar-h:64px;--tabbar-h:48px;
+}
+html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+body{min-height:100vh;background:var(--bg)}
+html.light{background:#f1f5f9;color:#0f172a}
+html.light body{background:#f1f5f9;color:#0f172a}
+html.light #topbar,html.light #tabbar,html.light #filterbar{background:#fff;border-color:#e2e8f0}
+html.light .event-card{background:#fff;border-color:#e2e8f0}
+html.light .event-card:hover{border-color:#94a3b8}
+html.light .error-block{background:#fef2f2;border-color:#fecaca}
+html.light .error-code{background:#fff1f2;color:#dc2626}
+html.light .filter-select{border-color:#e2e8f0;color:#64748b;background:#fff}
+html.light .filter-select:hover{border-color:#94a3b8}
+html.light .filter-select:focus{border-color:var(--teal);outline:none}
+html.light .date-sep{color:#64748b}
+html.light .date-sep-line{background:#e2e8f0}
+html.light .timeline-line{background:#e2e8f0}
+html.light .event-meta{color:#64748b}
+html.light .event-detail{color:#64748b}
+
+#topbar{height:var(--topbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:fixed;top:0;left:0;right:0;z-index:100}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-name{font-size:16px;font-weight:700;color:var(--teal);letter-spacing:-.3px}
+.hostname{font-family:monospace;font-size:13px;color:var(--muted);background:#ffffff08;padding:3px 10px;border-radius:20px;border:1px solid var(--border)}
+.status-dot-wrap{display:flex;align-items:center;gap:6px;font-size:12px;color:#10b981}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;position:relative}
+.status-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:#10b981;opacity:.4;animation:pulse-ring 2s ease-out infinite}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.4}70%{transform:scale(1.8);opacity:0}100%{transform:scale(1.8);opacity:0}}
+.topbar-right{margin-left:auto}
+.toggle-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:.15s}
+.toggle-btn:hover{background:#ffffff0d;color:var(--text)}
+.toggle-btn svg{width:18px;height:18px}
+
+#tabbar{height:var(--tabbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 24px;gap:2px;position:fixed;top:var(--topbar-h);left:0;right:0;z-index:99}
+.tab{padding:0 18px;display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;position:relative;transition:.15s;white-space:nowrap;border-bottom:2px solid transparent}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.tab-inactive:hover{background:rgba(20,184,166,.08);color:var(--teal)}
+.tab-badge{background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;border:1px solid #ef444430}
+.tab-dot{width:7px;height:7px;border-radius:50%;background:#10b981}
+
+#filterbar{background:#0d1b2e;border-bottom:1px solid var(--border);padding:10px 24px;position:sticky;top:calc(var(--topbar-h) + var(--tabbar-h));z-index:98;display:flex;flex-direction:column;gap:8px}
+.filter-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.filter-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;min-width:48px}
+.filter-select{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:.15s;font-family:system-ui,-apple-system,sans-serif}
+.filter-select:hover{border-color:#3d5168}
+.filter-select:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 2px rgba(20,184,166,.2)}
+.filter-select option{background:var(--card);color:var(--text)}
+
+#page{padding:calc(var(--topbar-h) + var(--tabbar-h) + 88px) 24px 40px;max-width:900px;margin:0 auto}
+
+/* Timeline */
+.timeline{position:relative;padding-left:60px}
+.timeline-line{position:absolute;left:79px;top:0;bottom:0;width:2px;background:var(--border)}
+
+/* Date separator */
+.date-sep{display:flex;align-items:center;gap:12px;margin:28px 0 16px;position:relative}
+.date-sep-line{flex:1;height:1px;background:var(--border)}
+.date-sep-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:var(--bg);padding:0 10px;white-space:nowrap}
+html.light .date-sep-label{background:#f1f5f9}
+
+/* Event row */
+.event-row{display:flex;gap:16px;align-items:flex-start;margin-bottom:16px;position:relative}
+.event-timestamp{width:52px;flex-shrink:0;text-align:right;padding-top:10px}
+.event-date{font-size:10px;color:var(--muted);font-family:monospace;line-height:1.4}
+.event-time{font-size:11px;color:var(--text);font-family:monospace;font-weight:500}
+
+/* Node */
+.event-node{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;margin-top:6px}
+.event-node.green{background:#10b98120;border:2px solid #10b981}
+.event-node.red{background:#ef444420;border:2px solid #ef4444}
+.event-node.blue{background:#3b82f620;border:2px solid #3b82f6}
+.event-node.amber{background:#f59e0b20;border:2px solid #f59e0b}
+.event-node svg{width:13px;height:13px}
+.event-node.green svg{color:#10b981}
+.event-node.red svg{color:#ef4444}
+.event-node.blue svg{color:#3b82f6}
+.event-node.amber svg{color:#f59e0b}
+
+/* Event card */
+.event-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;transition:.15s}
+.event-card:hover{border-color:#3d5168}
+.event-card.red-event{border-color:#ef444430;background:#ef444408}
+html.light .event-card.red-event{background:#fef2f2;border-color:#fecaca}
+.event-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.event-meta{font-size:11px;color:var(--muted);margin-bottom:6px}
+.event-detail{font-size:11px;color:var(--muted);line-height:1.6}
+.event-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600}
+.event-tag.green{background:#10b98115;color:#10b981;border:1px solid #10b98125}
+.event-tag.red{background:#ef444415;color:#ef4444;border:1px solid #ef444425}
+.event-tag.blue{background:#3b82f615;color:#3b82f6;border:1px solid #3b82f625}
+.event-tag.amber{background:#f59e0b15;color:#f59e0b;border:1px solid #f59e0b25}
+
+/* Error block */
+.error-block{background:#ef44440a;border:1px solid #ef444430;border-radius:6px;padding:10px 12px;margin-top:8px;display:none}
+.error-block.open{display:block}
+.error-code{font-family:monospace;font-size:11px;color:#ef4444;line-height:1.7;white-space:pre-wrap}
+.btn-expand-err{background:transparent;border:none;cursor:pointer;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;transition:.15s;padding:0}
+.btn-expand-err:hover{color:var(--text)}
+
+/* Buttons */
+.btn{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.btn-teal{background:rgba(20,184,166,.15);color:var(--teal);border:1px solid rgba(20,184,166,.3)}
+.btn-teal:hover{background:rgba(20,184,166,.25)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.event-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">
+    <span class="brand-name">PatchIQ Agent</span>
+    <span class="hostname">prod-web-01</span>
+    <div class="status-dot-wrap">
+      <div class="status-dot"></div>
+      <span>Healthy</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="toggle-btn" onclick="toggleTheme()" title="Toggle dark/light">
+      <svg id="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<nav id="tabbar">
+  <a href="index.html" class="tab tab-inactive">
+    <div class="tab-dot"></div>
+    Overview
+  </a>
+  <a href="patches.html" class="tab tab-inactive">
+    Patches
+    <span class="tab-badge">20</span>
+  </a>
+  <a href="history.html" class="tab active">History</a>
+  <a href="logs.html" class="tab tab-inactive">Logs</a>
+  <a href="settings.html" class="tab tab-inactive">Settings</a>
+</nav>
+
+<div id="filterbar">
+  <div class="filter-row">
+    <span class="filter-label">Action</span>
+    <select id="actionFilter" class="filter-select" onchange="filterEvents()">
+      <option value="all" selected>All</option>
+      <option value="installed">Installed</option>
+      <option value="failed">Failed</option>
+      <option value="skipped">Skipped</option>
+      <option value="scanned">Scanned</option>
+      <option value="rolled_back">Rolled Back</option>
+    </select>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Date</span>
+    <select id="dateFilter" class="filter-select" onchange="filterEvents()">
+      <option value="all" selected>All</option>
+      <option value="24h">Last 24h</option>
+      <option value="7d">Last 7d</option>
+      <option value="30d">Last 30d</option>
+    </select>
+  </div>
+</div>
+
+<main id="page">
+  <div class="timeline">
+    <div class="timeline-line"></div>
+
+    <!-- ── March 10, 2026 ── -->
+    <div class="date-sep">
+      <div class="date-sep-line"></div>
+      <div class="date-sep-label">March 10, 2026</div>
+      <div class="date-sep-line"></div>
+    </div>
+
+    <!-- Event 1: Green — installed -->
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">14:32</div>
+        <div class="event-date">Mar 10</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          KB5034441 installed successfully
+          <span class="event-tag green">Installed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 3 hours ago</div>
+        <div class="event-detail">Duration: 2m 34s &nbsp;·&nbsp; Size: 45 MB &nbsp;·&nbsp; Reboot: Not required</div>
+      </div>
+    </div>
+
+    <!-- Event 2: Green — installed -->
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">12:15</div>
+        <div class="event-date">Mar 10</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          USN-6587-1 installed successfully
+          <span class="event-tag green">Installed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 5 hours ago</div>
+        <div class="event-detail">Duration: 45s &nbsp;·&nbsp; Size: 2.8 MB &nbsp;·&nbsp; Reboot: Not required</div>
+      </div>
+    </div>
+
+    <!-- Event 3: Blue — scan -->
+    <div class="event-row" data-act="scanned">
+      <div class="event-timestamp">
+        <div class="event-time">10:00</div>
+        <div class="event-date">Mar 10</div>
+      </div>
+      <div class="event-node blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          System scan completed
+          <span class="event-tag blue">Scanned</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 7 hours ago</div>
+        <div class="event-detail">342 packages scanned &nbsp;·&nbsp; 3 new CVEs found &nbsp;·&nbsp; 2 new patches available &nbsp;·&nbsp; Duration: 3.4s</div>
+      </div>
+    </div>
+
+    <!-- Event 4: Amber — skipped -->
+    <div class="event-row" data-act="skipped">
+      <div class="event-timestamp">
+        <div class="event-time">08:30</div>
+        <div class="event-date">Mar 10</div>
+      </div>
+      <div class="event-node amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          RHSA-2024:0013 patch skipped
+          <span class="event-tag amber">Skipped</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 8 hours ago</div>
+        <div class="event-detail">Reason: Outside maintenance window (policy: weekdays 02:00–04:00 UTC) &nbsp;·&nbsp; Will retry next window</div>
+      </div>
+    </div>
+
+    <!-- ── March 9, 2026 ── -->
+    <div class="date-sep">
+      <div class="date-sep-line"></div>
+      <div class="date-sep-label">March 9, 2026</div>
+      <div class="date-sep-line"></div>
+    </div>
+
+    <!-- Event 5: Red — failed -->
+    <div class="event-row" data-act="failed">
+      <div class="event-timestamp">
+        <div class="event-time">22:48</div>
+        <div class="event-date">Mar 9</div>
+      </div>
+      <div class="event-node red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="event-card red-event">
+        <div class="event-title">
+          RHSA-2024:0012 installation FAILED
+          <span class="event-tag red">Failed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 1 day ago</div>
+        <div class="event-detail">Attempt 1 of 3 &nbsp;·&nbsp; Exit code: 1 &nbsp;·&nbsp; Duration: 12s</div>
+        <div class="event-actions">
+          <button class="btn-expand-err" onclick="toggleError(this)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
+            Show error details
+          </button>
+        </div>
+        <div class="error-block">
+          <div class="error-code">E: Unable to locate package linux-headers-6.5.0-44-generic
+dpkg: error processing package linux-headers-6.5.0-44-generic (--configure):
+ installed linux-headers-6.5.0-44-generic package post-installation script subprocess
+ returned error exit status 1
+Errors were encountered while processing:
+ linux-headers-6.5.0-44-generic
+E: Sub-process /usr/bin/dpkg returned an error code (1)</div>
+        </div>
+        <div class="event-actions" style="margin-top:8px">
+          <button class="btn btn-teal">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            Retry
+          </button>
+          <button class="btn btn-ghost">View Details</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event 6: Green — installed -->
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">14:20</div>
+        <div class="event-date">Mar 9</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          USN-6598-1 installed successfully
+          <span class="event-tag green">Installed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 1 day ago</div>
+        <div class="event-detail">Duration: 1m 12s &nbsp;·&nbsp; Size: 612 KB &nbsp;·&nbsp; Reboot: Not required</div>
+      </div>
+    </div>
+
+    <!-- Event 7: Blue — scan -->
+    <div class="event-row" data-act="scanned">
+      <div class="event-timestamp">
+        <div class="event-time">10:00</div>
+        <div class="event-date">Mar 9</div>
+      </div>
+      <div class="event-node blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          System scan completed
+          <span class="event-tag blue">Scanned</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 1 day ago</div>
+        <div class="event-detail">342 packages scanned &nbsp;·&nbsp; 0 new CVEs found &nbsp;·&nbsp; 5 patches still pending &nbsp;·&nbsp; Duration: 3.1s</div>
+      </div>
+    </div>
+
+    <!-- ── March 8, 2026 ── -->
+    <div class="date-sep">
+      <div class="date-sep-line"></div>
+      <div class="date-sep-label">March 8, 2026</div>
+      <div class="date-sep-line"></div>
+    </div>
+
+    <!-- Event 8: Green — installed -->
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">03:12</div>
+        <div class="event-date">Mar 8</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          USN-6640-1 installed successfully
+          <span class="event-tag green">Installed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 2 days ago</div>
+        <div class="event-detail">Duration: 3m 05s &nbsp;·&nbsp; Size: 5.4 MB &nbsp;·&nbsp; Reboot: Not required</div>
+      </div>
+    </div>
+
+    <!-- Event 9: Amber — skipped -->
+    <div class="event-row" data-act="skipped">
+      <div class="event-timestamp">
+        <div class="event-time">02:55</div>
+        <div class="event-date">Mar 8</div>
+      </div>
+      <div class="event-node amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          KB5034440 skipped (manual skip)
+          <span class="event-tag amber">Skipped</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 2 days ago</div>
+        <div class="event-detail">Reason: Manually skipped by admin@acme.com via Patch Manager policy &nbsp;·&nbsp; Expiry: None</div>
+      </div>
+    </div>
+
+    <!-- Event 10: Green — agent updated -->
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">02:01</div>
+        <div class="event-date">Mar 8</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          Agent updated to v1.2.3
+          <span class="event-tag green">Updated</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 2 days ago</div>
+        <div class="event-detail">Previous: v1.2.2 &nbsp;·&nbsp; New: v1.2.3 &nbsp;·&nbsp; Auto-restart completed successfully</div>
+      </div>
+    </div>
+
+    <!-- ── March 7, 2026 ── -->
+    <div class="date-sep">
+      <div class="date-sep-line"></div>
+      <div class="date-sep-label">March 7, 2026</div>
+      <div class="date-sep-line"></div>
+    </div>
+
+    <!-- Event 11: Red — failed -->
+    <div class="event-row" data-act="failed">
+      <div class="event-timestamp">
+        <div class="event-time">03:45</div>
+        <div class="event-date">Mar 7</div>
+      </div>
+      <div class="event-node red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="event-card red-event">
+        <div class="event-title">
+          USN-6648-1 installation FAILED
+          <span class="event-tag red">Failed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 3 days ago</div>
+        <div class="event-detail">Attempt 2 of 3 &nbsp;·&nbsp; Exit code: 100 &nbsp;·&nbsp; Duration: 8s</div>
+        <div class="event-actions">
+          <button class="btn-expand-err" onclick="toggleError(this)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
+            Show error details
+          </button>
+        </div>
+        <div class="error-block">
+          <div class="error-code">E: Could not get lock /var/lib/dpkg/lock-frontend
+E: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend),
+   is another process using it?
+agent.patch: dpkg returned exit code 100</div>
+        </div>
+        <div class="event-actions" style="margin-top:8px">
+          <button class="btn btn-teal">Retry</button>
+          <button class="btn btn-ghost">View Details</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event 12: Green — installed -->
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">03:08</div>
+        <div class="event-date">Mar 7</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          RHSA-2024:0346 installed successfully
+          <span class="event-tag green">Installed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 3 days ago</div>
+        <div class="event-detail">Duration: 4m 22s &nbsp;·&nbsp; Size: 16.3 MB &nbsp;·&nbsp; Reboot: Not required</div>
+      </div>
+    </div>
+
+    <!-- Event 13: Blue — scan -->
+    <div class="event-row" data-act="scanned">
+      <div class="event-timestamp">
+        <div class="event-time">10:00</div>
+        <div class="event-date">Mar 7</div>
+      </div>
+      <div class="event-node blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          System scan completed
+          <span class="event-tag blue">Scanned</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 3 days ago</div>
+        <div class="event-detail">341 packages scanned &nbsp;·&nbsp; 2 new CVEs found &nbsp;·&nbsp; 7 patches pending &nbsp;·&nbsp; Duration: 3.3s</div>
+      </div>
+    </div>
+
+    <!-- ── March 5, 2026 ── -->
+    <div class="date-sep">
+      <div class="date-sep-line"></div>
+      <div class="date-sep-label">March 5, 2026</div>
+      <div class="date-sep-line"></div>
+    </div>
+
+    <!-- Event 14: Green — installed (rolled back from) -->
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">03:02</div>
+        <div class="event-date">Mar 5</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          USN-6651-1 installed successfully
+          <span class="event-tag green">Installed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 5 days ago</div>
+        <div class="event-detail">Duration: 55s &nbsp;·&nbsp; Size: 2.2 MB &nbsp;·&nbsp; Reboot: Not required</div>
+      </div>
+    </div>
+
+    <!-- Event 15: Amber — rolled back -->
+    <div class="event-row" data-act="rolled_back">
+      <div class="event-timestamp">
+        <div class="event-time">04:15</div>
+        <div class="event-date">Mar 5</div>
+      </div>
+      <div class="event-node amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          USN-6656-1 rolled back
+          <span class="event-tag amber">Rolled Back</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 5 days ago</div>
+        <div class="event-detail">Reason: Service vim.service failed to restart post-install &nbsp;·&nbsp; Reverted to: v2:8.2.3995-1ubuntu2.19 &nbsp;·&nbsp; Duration: 30s</div>
+      </div>
+    </div>
+
+    <!-- ── February 28, 2026 ── -->
+    <div class="date-sep">
+      <div class="date-sep-line"></div>
+      <div class="date-sep-label">February 28, 2026</div>
+      <div class="date-sep-line"></div>
+    </div>
+
+    <!-- Events 16-20 -->
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">03:05</div>
+        <div class="event-date">Feb 28</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          USN-6609-1 installed successfully
+          <span class="event-tag green">Installed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 10 days ago</div>
+        <div class="event-detail">Duration: 1m 02s &nbsp;·&nbsp; Size: 3.2 MB &nbsp;·&nbsp; Reboot: Not required</div>
+      </div>
+    </div>
+
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">03:03</div>
+        <div class="event-date">Feb 28</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          RHSA-2024:0898 installed successfully
+          <span class="event-tag green">Installed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 10 days ago</div>
+        <div class="event-detail">Duration: 2m 48s &nbsp;·&nbsp; Size: 8.1 MB &nbsp;·&nbsp; Reboot: Not required</div>
+      </div>
+    </div>
+
+    <div class="event-row" data-act="scanned">
+      <div class="event-timestamp">
+        <div class="event-time">10:00</div>
+        <div class="event-date">Feb 28</div>
+      </div>
+      <div class="event-node blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          System scan completed
+          <span class="event-tag blue">Scanned</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 10 days ago</div>
+        <div class="event-detail">340 packages scanned &nbsp;·&nbsp; 5 new CVEs found &nbsp;·&nbsp; 9 new patches available &nbsp;·&nbsp; Duration: 2.9s</div>
+      </div>
+    </div>
+
+    <div class="event-row" data-act="installed">
+      <div class="event-timestamp">
+        <div class="event-time">04:12</div>
+        <div class="event-date">Feb 28</div>
+      </div>
+      <div class="event-node green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      </div>
+      <div class="event-card">
+        <div class="event-title">
+          USN-6618-1 installed successfully
+          <span class="event-tag green">Installed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 10 days ago</div>
+        <div class="event-detail">Duration: 38s &nbsp;·&nbsp; Size: 1.8 MB &nbsp;·&nbsp; Reboot: Not required</div>
+      </div>
+    </div>
+
+    <div class="event-row" data-act="failed">
+      <div class="event-timestamp">
+        <div class="event-time">04:09</div>
+        <div class="event-date">Feb 28</div>
+      </div>
+      <div class="event-node red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="event-card red-event">
+        <div class="event-title">
+          USN-6629-1 installation FAILED
+          <span class="event-tag red">Failed</span>
+        </div>
+        <div class="event-meta">prod-web-01 · 10 days ago</div>
+        <div class="event-detail">Attempt 1 of 3 &nbsp;·&nbsp; Exit code: 2 &nbsp;·&nbsp; Duration: 4s</div>
+        <div class="event-actions">
+          <button class="btn-expand-err" onclick="toggleError(this)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
+            Show error details
+          </button>
+        </div>
+        <div class="error-block">
+          <div class="error-code">bash: line 1: /var/lib/dpkg/info/bash.preinst: Permission denied
+dpkg: error processing package bash (--configure):
+ installed bash package pre-installation script subprocess returned error exit status 126
+dpkg: dependency problems prevent configuration of bash:
+ bash depends on base-files (>= 2.1.12); however:
+E: Sub-process /usr/bin/dpkg returned an error code (2)</div>
+        </div>
+        <div class="event-actions" style="margin-top:8px">
+          <button class="btn btn-teal">Retry</button>
+          <button class="btn btn-ghost">View Details</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+</main>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  if(h.classList.contains('dark')){h.classList.replace('dark','light');localStorage.setItem('theme','light');document.getElementById('sun-icon').style.display='block';document.getElementById('moon-icon').style.display='none';}
+  else{h.classList.replace('light','dark');localStorage.setItem('theme','dark');document.getElementById('sun-icon').style.display='none';document.getElementById('moon-icon').style.display='block';}
+}
+(function(){const t=localStorage.getItem('theme')||'dark';document.documentElement.classList.add(t);if(t==='light'){document.getElementById('sun-icon').style.display='block';document.getElementById('moon-icon').style.display='none';}})();
+
+function filterEvents(){
+  const actVal=document.getElementById('actionFilter').value;
+  const dateVal=document.getElementById('dateFilter').value;
+  document.querySelectorAll('.event-row').forEach(function(row){
+    const act=row.getAttribute('data-act')||'';
+    const show=(actVal==='all'||act===actVal);
+    row.style.display=show?'':'none';
+  });
+}
+function toggleError(btn){
+  const block=btn.closest('.event-card').querySelector('.error-block');
+  const open=block.classList.toggle('open');
+  btn.innerHTML=open
+    ?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18,15 12,9 6,15"/></svg> Hide error details'
+    :'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg> Show error details';
+}
+</script>
+</body>
+</html>

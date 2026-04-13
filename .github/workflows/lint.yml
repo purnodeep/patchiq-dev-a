@@ -1,0 +1,147 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: self-hosted-ci
+  cancel-in-progress: false
+
+jobs:
+  go-lint:
+    name: Go Lint
+    runs-on: self-hosted
+    timeout-minutes: 10
+    steps:
+      - name: Check disk space
+        run: |
+          USAGE=$(df / --output=pcent | tail -1 | tr -d ' %')
+          echo "Disk usage: ${USAGE}%"
+          if [ "$USAGE" -gt 85 ]; then
+            echo "::error::Disk usage at ${USAGE}% — aborting to prevent filling disk"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.10.1
+
+  frontend-lint:
+    name: Frontend Lint
+    runs-on: self-hosted
+    timeout-minutes: 10
+    steps:
+      - name: Check disk space
+        run: |
+          USAGE=$(df / --output=pcent | tail -1 | tr -d ' %')
+          echo "Disk usage: ${USAGE}%"
+          if [ "$USAGE" -gt 85 ]; then
+            echo "::error::Disk usage at ${USAGE}% — aborting to prevent filling disk"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Prettier
+        run: pnpm prettier --check "**/*.{ts,tsx,js,jsx,json}" --ignore-path .prettierignore
+
+      - name: ESLint
+        run: pnpm eslint "**/*.{ts,tsx}"
+
+      - name: TypeScript
+        run: pnpm -r lint
+
+  codegen-check:
+    name: Codegen Drift Check
+    runs-on: self-hosted
+    timeout-minutes: 10
+    steps:
+      - name: Check disk space
+        run: |
+          USAGE=$(df / --output=pcent | tail -1 | tr -d ' %')
+          echo "Disk usage: ${USAGE}%"
+          if [ "$USAGE" -gt 85 ]; then
+            echo "::error::Disk usage at ${USAGE}% — aborting to prevent filling disk"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0
+
+      - name: Install buf
+        run: go install github.com/bufbuild/buf/cmd/buf@v1.66.1
+
+      - name: Check sqlc drift
+        run: |
+          sqlc generate
+          if ! git diff --exit-code internal/*/store/sqlcgen/; then
+            echo "::error::Generated sqlc code is out of sync. Run 'make sqlc' and commit."
+            exit 1
+          fi
+
+      - name: Check buf drift
+        run: |
+          buf generate
+          if ! git diff --exit-code gen/; then
+            echo "::error::Generated protobuf code is out of sync. Run 'make proto' and commit."
+            exit 1
+          fi
+
+  proto-lint:
+    name: Protobuf Lint
+    runs-on: self-hosted
+    timeout-minutes: 5
+    steps:
+      - name: Check disk space
+        run: |
+          USAGE=$(df / --output=pcent | tail -1 | tr -d ' %')
+          echo "Disk usage: ${USAGE}%"
+          if [ "$USAGE" -gt 85 ]; then
+            echo "::error::Disk usage at ${USAGE}% — aborting to prevent filling disk"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: bufbuild/buf-action@v1
+        with:
+          lint: true
+          breaking: false
+          push: false

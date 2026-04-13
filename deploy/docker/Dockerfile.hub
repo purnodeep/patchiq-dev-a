@@ -1,0 +1,22 @@
+FROM node:24-bookworm-slim AS frontend
+WORKDIR /src
+RUN corepack enable && corepack prepare pnpm@10 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ui/package.json packages/ui/
+COPY web-hub/package.json web-hub/
+RUN pnpm install --frozen-lockfile
+COPY packages/ui/ packages/ui/
+COPY web-hub/ web-hub/
+RUN pnpm --filter=@patchiq/ui build && pnpm --filter=@patchiq/web-hub build
+
+FROM golang:1.25.0-bookworm AS builder
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o /bin/hub ./cmd/hub
+
+FROM gcr.io/distroless/static-debian12:nonroot
+COPY --from=frontend /src/web-hub/dist /web-hub/dist
+COPY --from=builder /bin/hub /hub
+ENTRYPOINT ["/hub"]

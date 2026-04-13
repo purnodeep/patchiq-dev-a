@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Hub — Feeds</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#141c2e;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#6366f1;--primary-dark:#4f46e5;
+  --secondary:#8b5cf6;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --radius:8px;--sidebar-w:260px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:13px}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+#sidebar{width:var(--sidebar-w);min-height:100vh;background:#0d1120;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:width .2s}
+#sidebar.collapsed{width:64px}
+.sidebar-brand{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;overflow:hidden}
+.sidebar-brand-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sidebar-brand-text{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.sidebar-brand-sub{font-size:10px;color:var(--muted);display:block}
+.sidebar-nav{flex:1;padding:10px 0;overflow-y:auto;overflow-x:hidden}
+.nav-group-label{padding:8px 16px 3px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 16px;cursor:pointer;color:var(--muted);transition:all .15s;position:relative;font-size:12.5px;white-space:nowrap;text-decoration:none}
+.nav-item:hover{color:var(--text);background:rgba(99,102,241,.07)}
+.nav-item.active{color:var(--primary);background:rgba(99,102,241,.12)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--primary);border-radius:0 2px 2px 0}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--warning);color:#000;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.nav-badge.primary{background:var(--primary);color:#fff}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.collapse-btn{position:absolute;top:50%;right:-12px;transform:translateY(-50%);width:24px;height:24px;background:var(--card);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:var(--muted);z-index:101}
+#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .2s}
+#main.sidebar-collapsed{margin-left:64px}
+#topbar{height:52px;background:#0d1120;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:90}
+.topbar-brand{font-size:13px;font-weight:700;color:var(--primary)}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.breadcrumb span.active{color:var(--text)}
+.breadcrumb .sep{color:var(--border)}
+.client-switcher{margin-left:auto;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:16px}
+.topbar-icon-btn{width:32px;height:32px;border-radius:6px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.topbar-icon-btn:hover{border-color:var(--primary);color:var(--primary)}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--danger);border-radius:50%;font-size:8px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center}
+.page-body{padding:24px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.page-count{font-size:14px;font-weight:400;color:var(--muted)}
+.page-subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+.btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-danger-sm{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2);padding:5px 10px;font-size:11px;border-radius:6px;cursor:pointer}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.badge-success{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-warning{background:rgba(245,158,11,.15);color:var(--warning)}
+.badge-danger{background:rgba(239,68,68,.15);color:var(--danger)}
+.badge-primary{background:rgba(99,102,241,.15);color:var(--primary)}
+.badge-muted{background:rgba(100,116,139,.15);color:var(--muted)}
+/* FEED CARDS GRID */
+.feed-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.feed-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:border-color .2s,transform .15s;cursor:default}
+.feed-card:hover{border-color:rgba(99,102,241,.4);transform:translateY(-1px)}
+.feed-card.error-state{border-color:rgba(239,68,68,.4)}
+.feed-card.error-state:hover{border-color:rgba(239,68,68,.6)}
+.feed-card.disabled-state{opacity:.6}
+.feed-card-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.feed-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.feed-icon-blue{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.3)}
+.feed-icon-red{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3)}
+.feed-icon-purple{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.3)}
+.feed-icon-orange{background:rgba(249,115,22,.2);border:1px solid rgba(249,115,22,.3)}
+.feed-icon-gray{background:rgba(100,116,139,.15);border:1px solid rgba(100,116,139,.2)}
+.feed-name{font-size:13px;font-weight:700;margin-bottom:2px}
+.feed-full-name{font-size:11px;color:var(--muted)}
+.feed-status{display:flex;align-items:center;gap:5px;font-size:11px;margin-top:4px}
+.orb{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.orb-green{background:var(--success);box-shadow:0 0 0 2px rgba(16,185,129,.2)}
+.orb-red{background:var(--danger);box-shadow:0 0 0 2px rgba(239,68,68,.2)}
+.orb-amber{background:var(--warning);box-shadow:0 0 0 2px rgba(245,158,11,.2)}
+.orb-gray{background:var(--muted)}
+.orb-pulse{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.4)}}
+.feed-stats-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.feed-stat{background:rgba(255,255,255,.03);border-radius:6px;padding:9px 10px}
+.feed-stat-label{font-size:10px;color:var(--muted);margin-bottom:2px}
+.feed-stat-value{font-size:14px;font-weight:700}
+/* SPARKLINE */
+.sparkline-wrap{display:flex;align-items:flex-end;gap:1.5px;height:28px;margin-bottom:12px}
+.sp-bar{width:5px;border-radius:1px;transition:height .3s}
+/* TOGGLE SWITCH */
+.toggle-wrap{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted)}
+.toggle{width:36px;height:20px;border-radius:10px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--success)}
+.toggle.off{background:var(--border)}
+.toggle-thumb{position:absolute;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on .toggle-thumb{left:19px}
+.toggle.off .toggle-thumb{left:3px}
+/* ERROR BOX */
+.error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:11.5px;color:var(--danger);display:flex;align-items:flex-start;gap:8px}
+/* FEED ACTIONS */
+.feed-actions{display:flex;gap:6px;align-items:center;padding-top:12px;border-top:1px solid var(--border)}
+/* HEALTH SUMMARY */
+.health-summary{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.health-bar-container{display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px;margin:10px 0 8px}
+.health-seg{height:100%;border-radius:2px;transition:width .5s}
+.health-seg-label{font-size:10px;margin-top:2px}
+.health-legend{display:flex;gap:16px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div style="position:relative">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">H</div>
+      <div>
+        <div class="sidebar-brand-text">PatchIQ Hub</div>
+        <span class="sidebar-brand-sub">Control Plane</span>
+      </div>
+    </div>
+    <button class="collapse-btn" onclick="toggleSidebar()">◀</button>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="../hub-manager.html" class="nav-item"><span class="nav-icon">⬡</span> Dashboard</a>
+    <div class="nav-group-label">Fleet</div>
+    <a href="clients.html" class="nav-item"><span class="nav-icon">🖥</span> Clients <span class="nav-badge">8</span></a>
+    <a href="deployments.html" class="nav-item"><span class="nav-icon">🚀</span> Deployments <span class="nav-badge primary">2</span></a>
+    <div class="nav-group-label">Catalog</div>
+    <a href="catalog.html" class="nav-item"><span class="nav-icon">📦</span> Catalog</a>
+    <a href="feeds.html" class="nav-item active"><span class="nav-icon">⚡</span> Feeds</a>
+    <div class="nav-group-label">Licensing</div>
+    <a href="licenses.html" class="nav-item"><span class="nav-icon">🔑</span> Licenses</a>
+    <div class="nav-group-label">Configuration</div>
+    <a href="configuration.html" class="nav-item"><span class="nav-icon">⚙</span> Settings</a>
+  </div>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer">
+      <div class="avatar">HA</div>
+      <div style="overflow:hidden">
+        <div style="font-size:12px;font-weight:500;white-space:nowrap">hubadmin</div>
+        <div style="font-size:10px;color:var(--muted);white-space:nowrap">hubadmin@msp.com</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <span class="topbar-brand">PatchIQ Hub</span>
+    <div class="breadcrumb">
+      <span class="sep">/</span><span>Home</span>
+      <span class="sep">/</span><span>Catalog</span>
+      <span class="sep">/</span><span class="active">Feeds</span>
+    </div>
+    <div class="client-switcher" style="margin-left:auto" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'flex':'none'">🏢 All Clients ▾</div>
+    <div class="topbar-right">
+      <div style="position:relative">
+        <button class="topbar-icon-btn">🔔<div class="notif-badge">2</div></button>
+      </div>
+      <button class="topbar-icon-btn" onclick="toggleDark()">🌙</button>
+      <div class="avatar" style="width:30px;height:30px;font-size:11px;cursor:pointer">HA</div>
+    </div>
+  </div>
+
+  <div class="page-body">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Feeds <span class="page-count">(5)</span></div>
+        <div class="page-subtitle">Vulnerability and patch data sources ingested into the catalog</div>
+      </div>
+      <div>
+        <button class="btn btn-primary">+ Add Feed</button>
+      </div>
+    </div>
+
+    <!-- FEED CARDS GRID -->
+    <div class="feed-grid">
+
+      <!-- Card 1: NVD -->
+      <div class="feed-card">
+        <div class="feed-card-header">
+          <div class="feed-icon feed-icon-blue">🛡</div>
+          <div style="flex:1">
+            <div class="feed-name">NVD</div>
+            <div class="feed-full-name">National Vulnerability Database</div>
+            <div class="feed-status">
+              <div class="orb orb-green orb-pulse"></div>
+              <span style="color:var(--success)">Healthy</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--muted)">Last: 2h ago</span>
+            </div>
+          </div>
+          <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="sparkline-wrap" id="sp-nvd"></div>
+        <div class="feed-stats-row">
+          <div class="feed-stat">
+            <div class="feed-stat-label">Total Entries</div>
+            <div class="feed-stat-value" style="color:var(--text)">1,247</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">New This Week</div>
+            <div class="feed-stat-value" style="color:var(--success)">+23</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Next Sync</div>
+            <div class="feed-stat-value" style="font-size:12px;color:var(--muted)">in 4h</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Error Rate</div>
+            <div class="feed-stat-value" style="color:var(--success)">0%</div>
+          </div>
+        </div>
+        <div class="feed-actions">
+          <a href="feed-detail.html" class="btn btn-outline btn-sm">View Details</a>
+          <button class="btn btn-primary btn-sm" onclick="triggerSync(this,'nvd')">⚡ Sync Now</button>
+        </div>
+      </div>
+
+      <!-- Card 2: KEV -->
+      <div class="feed-card">
+        <div class="feed-card-header">
+          <div class="feed-icon feed-icon-red">🔴</div>
+          <div style="flex:1">
+            <div class="feed-name">KEV</div>
+            <div class="feed-full-name">CISA Known Exploited Vulnerabilities</div>
+            <div class="feed-status">
+              <div class="orb orb-green orb-pulse"></div>
+              <span style="color:var(--success)">Healthy</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--muted)">Last: 1h ago</span>
+            </div>
+          </div>
+          <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="sparkline-wrap" id="sp-kev"></div>
+        <div class="feed-stats-row">
+          <div class="feed-stat">
+            <div class="feed-stat-label">Total Entries</div>
+            <div class="feed-stat-value" style="color:var(--text)">892</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">New This Week</div>
+            <div class="feed-stat-value" style="color:var(--success)">+5</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Next Sync</div>
+            <div class="feed-stat-value" style="font-size:12px;color:var(--muted)">in 30m</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Error Rate</div>
+            <div class="feed-stat-value" style="color:var(--success)">0.2%</div>
+          </div>
+        </div>
+        <div class="feed-actions">
+          <a href="feed-detail.html" class="btn btn-outline btn-sm">View Details</a>
+          <button class="btn btn-primary btn-sm" onclick="triggerSync(this,'kev')">⚡ Sync Now</button>
+        </div>
+      </div>
+
+      <!-- Card 3: MSRC — ERROR -->
+      <div class="feed-card error-state">
+        <div class="feed-card-header">
+          <div class="feed-icon feed-icon-purple">🟣</div>
+          <div style="flex:1">
+            <div class="feed-name">MSRC</div>
+            <div class="feed-full-name">Microsoft Security Response Center</div>
+            <div class="feed-status">
+              <div class="orb orb-red orb-pulse"></div>
+              <span style="color:var(--danger)">Error</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--danger)">FAILED 2h ago</span>
+            </div>
+          </div>
+          <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="sparkline-wrap" id="sp-msrc"></div>
+        <div class="error-box">
+          ⚠ <div>
+            <div style="font-weight:600;margin-bottom:2px">Connection timeout</div>
+            <div style="color:var(--muted);font-size:11px">GET https://api.msrc.microsoft.com/cvrf — timeout after 30s (2 of 3 retries exhausted)</div>
+          </div>
+        </div>
+        <div class="feed-stats-row">
+          <div class="feed-stat">
+            <div class="feed-stat-label">Total Entries</div>
+            <div class="feed-stat-value" style="color:var(--text)">678</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">New This Week</div>
+            <div class="feed-stat-value" style="color:var(--muted)">+0 ⚠</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Last Success</div>
+            <div class="feed-stat-value" style="font-size:12px;color:var(--muted)">4d ago</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Error Rate</div>
+            <div class="feed-stat-value" style="color:var(--danger)">15%</div>
+          </div>
+        </div>
+        <div class="feed-actions">
+          <a href="feed-detail.html" class="btn btn-outline btn-sm">View Details</a>
+          <button class="btn btn-danger-sm" onclick="triggerRetry(this)">🔄 Retry</button>
+        </div>
+      </div>
+
+      <!-- Card 4: Ubuntu USN -->
+      <div class="feed-card">
+        <div class="feed-card-header">
+          <div class="feed-icon feed-icon-orange">🟠</div>
+          <div style="flex:1">
+            <div class="feed-name">Ubuntu USN</div>
+            <div class="feed-full-name">Ubuntu Security Notices</div>
+            <div class="feed-status">
+              <div class="orb orb-green orb-pulse"></div>
+              <span style="color:var(--success)">Healthy</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--muted)">Last: 3h ago</span>
+            </div>
+          </div>
+          <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="sparkline-wrap" id="sp-usn"></div>
+        <div class="feed-stats-row">
+          <div class="feed-stat">
+            <div class="feed-stat-label">Total Entries</div>
+            <div class="feed-stat-value" style="color:var(--text)">456</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">New This Week</div>
+            <div class="feed-stat-value" style="color:var(--success)">+8</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Next Sync</div>
+            <div class="feed-stat-value" style="font-size:12px;color:var(--muted)">in 9h</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Error Rate</div>
+            <div class="feed-stat-value" style="color:var(--success)">0%</div>
+          </div>
+        </div>
+        <div class="feed-actions">
+          <a href="feed-detail.html" class="btn btn-outline btn-sm">View Details</a>
+          <button class="btn btn-primary btn-sm" onclick="triggerSync(this,'usn')">⚡ Sync Now</button>
+        </div>
+      </div>
+
+      <!-- Card 5: Custom — Disabled -->
+      <div class="feed-card disabled-state">
+        <div class="feed-card-header">
+          <div class="feed-icon feed-icon-gray">⚙</div>
+          <div style="flex:1">
+            <div class="feed-name" style="color:var(--muted)">Custom Feed</div>
+            <div class="feed-full-name">Internal CVE Tracker v2</div>
+            <div class="feed-status">
+              <div class="orb orb-gray"></div>
+              <span style="color:var(--muted)">Disabled</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--muted)">Never synced</span>
+            </div>
+          </div>
+          <div class="toggle off" onclick="toggleSwitch(this)"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="sparkline-wrap" id="sp-custom"></div>
+        <div class="feed-stats-row">
+          <div class="feed-stat">
+            <div class="feed-stat-label">Total Entries</div>
+            <div class="feed-stat-value" style="color:var(--muted)">—</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">New This Week</div>
+            <div class="feed-stat-value" style="color:var(--muted)">—</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Next Sync</div>
+            <div class="feed-stat-value" style="font-size:12px;color:var(--muted)">Paused</div>
+          </div>
+          <div class="feed-stat">
+            <div class="feed-stat-label">Error Rate</div>
+            <div class="feed-stat-value" style="color:var(--muted)">—</div>
+          </div>
+        </div>
+        <div class="feed-actions">
+          <button class="btn btn-outline btn-sm">⚙ Configure</button>
+        </div>
+      </div>
+
+    </div><!-- end feed-grid -->
+
+    <!-- FEED HEALTH SUMMARY -->
+    <div class="health-summary">
+      <div class="card-title">📊 Feed Health Summary — 3,273 catalog entries from 4 active feeds</div>
+      <div class="health-bar-container">
+        <div class="health-seg" style="width:38%;background:#60a5fa" title="NVD: 1,247 entries"></div>
+        <div class="health-seg" style="width:27%;background:var(--success)" title="KEV: 892 entries"></div>
+        <div class="health-seg" style="width:21%;background:rgba(239,68,68,.5)" title="MSRC: 678 entries (stalled)"></div>
+        <div class="health-seg" style="width:14%;background:#fb923c" title="USN: 456 entries"></div>
+      </div>
+      <div class="health-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div>NVD: 1,247 entries (38%)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>KEV: 892 entries (27%)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(239,68,68,.6)"></div>MSRC: 678 entries — ⚠ stalled (21%)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div>USN: 456 entries (14%)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+if(localStorage.getItem('theme')==='light') document.documentElement.classList.remove('dark');
+function toggleDark(){ document.documentElement.classList.toggle('dark'); localStorage.setItem('theme',document.documentElement.classList.contains('dark')?'dark':'light'); }
+let sidebarCollapsed=false;
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed',sidebarCollapsed);
+  document.getElementById('main').classList.toggle('sidebar-collapsed',sidebarCollapsed);
+}
+
+function buildSparkline(id, data, colors){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.innerHTML = '';
+  const max = Math.max(...data.map(d=>d.v));
+  data.forEach(d=>{
+    const bar = document.createElement('div');
+    bar.className = 'sp-bar';
+    bar.style.height = Math.max(3, Math.round((d.v/max)*28))+'px';
+    bar.style.background = d.c||'var(--success)';
+    bar.style.flex = '1';
+    el.appendChild(bar);
+  });
+}
+
+// NVD sparkline — all healthy (green)
+const nvdData = [75,78,80,83,85,82,88,86,90,92,89,93,95,91,96,98,94,97,100,99,98,100,100,99,100,100,98,100,99,100].map(v=>({v,c:'var(--success)'}));
+buildSparkline('sp-nvd', nvdData);
+
+// KEV sparkline — mostly green with one amber dip
+const kevData = [80,82,85,83,88,90,87,92,89,94,91,96,88,95,90,97,93,98,95,91,97,96,94,98,100,97,98,100,97,100].map((v,i)=>({v,c:i===13||i===20?'var(--warning)':'var(--success)'}));
+buildSparkline('sp-kev', kevData);
+
+// MSRC sparkline — last 5 red
+const msrcData = [90,88,92,89,94,91,95,88,96,90,87,93,91,96,92,94,89,93,90,88,86,70,40,20,10,15,5,0,0,0].map((v,i)=>({v:Math.max(v,2),c:i>=24?'var(--danger)':i>=20?'var(--warning)':'var(--success)'}));
+buildSparkline('sp-msrc', msrcData);
+
+// USN sparkline — all green
+const usnData = [70,73,76,74,79,78,82,80,85,83,87,85,89,87,91,88,93,91,95,92,96,94,97,95,98,96,99,97,100,98].map(v=>({v,c:'var(--success)'}));
+buildSparkline('sp-usn', usnData);
+
+// Custom — all gray
+const customData = [50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50].map(v=>({v,c:'var(--muted)'}));
+buildSparkline('sp-custom', customData);
+
+function toggleSwitch(el){
+  el.classList.toggle('on');
+  el.classList.toggle('off');
+}
+
+function triggerSync(btn, feed){
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Syncing…';
+  btn.disabled = true;
+  setTimeout(()=>{
+    btn.innerHTML = '✓ Synced';
+    btn.style.background = 'var(--success)';
+    setTimeout(()=>{
+      btn.innerHTML = orig;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2500);
+  }, 2000);
+}
+
+function triggerRetry(btn){
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Retrying…';
+  btn.disabled = true;
+  setTimeout(()=>{
+    btn.innerHTML = '✓ Connected';
+    btn.style.background = 'rgba(16,185,129,.15)';
+    btn.style.color = 'var(--success)';
+    btn.style.borderColor = 'rgba(16,185,129,.3)';
+    setTimeout(()=>{
+      btn.innerHTML = orig;
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+      btn.disabled = false;
+    }, 3000);
+  }, 2500);
+}
+</script>
+</body>
+</html>

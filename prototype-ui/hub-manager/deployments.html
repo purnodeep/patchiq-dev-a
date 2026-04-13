@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fleet Deployments — PatchIQ Hub</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode: 'class', theme: { extend: { colors: { indigo: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' } } } } }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  :root { --sidebar-w: 260px; }
+  .sidebar-collapsed { --sidebar-w: 64px; }
+  #sidebar { width: var(--sidebar-w); transition: width 0.3s ease; overflow: hidden; }
+  #main-content { margin-left: var(--sidebar-w); transition: margin-left 0.3s ease; }
+  .nav-label, .group-label, .badge, .logo-text { transition: opacity 0.2s; white-space: nowrap; }
+  .sidebar-collapsed .nav-label, .sidebar-collapsed .group-label, .sidebar-collapsed .badge, .sidebar-collapsed .logo-text { opacity: 0; width: 0; overflow: hidden; }
+  .sidebar-collapsed .group-label { display: none; }
+  .sidebar-collapsed .badge { display: none; }
+  .view-panel { display: none; }
+  .view-panel.active { display: block; }
+  .view-btn.active { background: #6366f1; color: white; }
+  .expandable-dep { display: none; }
+  .expandable-dep.open { display: table-row; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-30">
+  <div class="h-14 flex items-center px-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
+    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+      <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+    </div>
+    <span class="logo-text ml-3 font-bold text-indigo-600 text-lg">PatchIQ Hub</span>
+    <button onclick="toggleSidebar()" class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+  </div>
+  <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-1">
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Overview</p>
+      <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+    </div>
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Fleet</p>
+      <a href="clients.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Clients</span>
+        <span class="badge ml-auto text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full">8</span>
+      </a>
+      <a href="deployments.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <span class="nav-label">Deployments</span>
+        <span class="badge ml-auto text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">2</span>
+      </a>
+    </div>
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Catalog</p>
+      <a href="catalog.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg><span class="nav-label">Catalog</span></a>
+      <a href="feeds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg><span class="nav-label">Feeds</span></a>
+    </div>
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Licensing</p>
+      <a href="licenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg><span class="nav-label">Licenses</span></a>
+    </div>
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Configuration</p>
+      <a href="configuration.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="nav-label">Settings</span></a>
+    </div>
+  </nav>
+</aside>
+
+<!-- Topbar -->
+<header id="topbar" class="fixed top-0 right-0 h-14 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center px-4 gap-4 z-20" style="left: var(--sidebar-w); transition: left 0.3s ease;">
+  <div class="flex items-center gap-2 text-sm text-slate-500">
+    <a href="index.html" class="hover:text-indigo-500">Home</a>
+    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <span>Fleet</span>
+    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <span class="text-slate-700 dark:text-slate-200 font-medium">Deployments</span>
+  </div>
+  <div class="mx-auto relative" id="clientSwitcherWrap">
+    <button onclick="toggleClientSwitcher()" class="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm font-medium hover:border-indigo-400 transition-colors">
+      <div class="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">A</div>
+      <span>Acme Corp</span>
+      <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    </button>
+    <div id="clientSwitcherMenu" class="hidden absolute top-full mt-2 left-1/2 -translate-x-1/2 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-xl z-50 py-2">
+      <p class="px-3 py-1 text-xs font-semibold text-slate-400 uppercase">Switch Client</p>
+      <div id="clientMenuItems"></div>
+    </div>
+  </div>
+  <div class="flex items-center gap-3 ml-auto">
+    <button class="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+    </button>
+    <button onclick="toggleTheme()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500">
+      <svg class="w-5 h-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      <svg class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    </button>
+    <div class="flex items-center gap-2 cursor-pointer">
+      <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold">H</div>
+      <span class="text-sm font-medium hidden sm:block">hubadmin@msp.com</span>
+    </div>
+  </div>
+</header>
+
+<main id="main-content" class="pt-14 min-h-screen">
+  <div class="p-6">
+    <!-- Page Header -->
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold">Fleet Deployments <span class="text-slate-400 font-normal text-lg">(8)</span></h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Coordinate patch deployments across all managed Patch Manager instances</p>
+      </div>
+      <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Create Fleet Deployment
+      </button>
+    </div>
+
+    <!-- View Toggle -->
+    <div class="flex items-center gap-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-1 w-fit mb-5">
+      <button onclick="switchView('deployment')" class="view-btn active px-4 py-1.5 rounded-md text-sm font-medium transition-colors" id="btn-deployment">By Deployment</button>
+      <button onclick="switchView('client')" class="view-btn px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" id="btn-client">By Client</button>
+    </div>
+
+    <!-- By Deployment View -->
+    <div class="view-panel active" id="view-deployment">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/30">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Patch / Catalog Entry</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Target Clients</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-52">Progress</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Duration</th>
+              <th class="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody id="depTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- By Client View -->
+    <div class="view-panel" id="view-client">
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4" id="clientCardsGrid"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+// Theme
+function toggleTheme() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); }
+(function(){ const t=localStorage.getItem('theme'); if(t==='light') document.documentElement.classList.remove('dark'); else document.documentElement.classList.add('dark'); })();
+// Sidebar
+function toggleSidebar() { document.documentElement.classList.toggle('sidebar-collapsed'); const w = document.documentElement.classList.contains('sidebar-collapsed') ? '64px' : '260px'; document.documentElement.style.setProperty('--sidebar-w', w); }
+// Client Switcher
+function toggleClientSwitcher() { document.getElementById('clientSwitcherMenu').classList.toggle('hidden'); }
+document.addEventListener('click',e=>{ if(!document.getElementById('clientSwitcherWrap').contains(e.target)) document.getElementById('clientSwitcherMenu').classList.add('hidden'); });
+const cms=[{n:'Acme Corp',c:'#6366f1',i:'A'},{n:'TechStart Inc',c:'#10b981',i:'T'},{n:'DataFlow Ltd',c:'#f59e0b',i:'D'},{n:'SecureBank',c:'#3b82f6',i:'S'},{n:'MedHealth',c:'#8b5cf6',i:'M'},{n:'GovTech',c:'#ef4444',i:'G'},{n:'EduNet',c:'#14b8a6',i:'E'},{n:'RetailPlus',c:'#f97316',i:'R'}];
+(function(){ const el=document.getElementById('clientMenuItems'); cms.forEach(c=>{ el.innerHTML+=`<a href="client-detail.html" class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700"><div class="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" style="background:${c.c}">${c.i}</div><span>${c.n}</span></a>`; }); })();
+
+// View toggle
+function switchView(name) {
+  document.querySelectorAll('.view-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.view-btn').forEach(b=>{
+    b.classList.remove('active','bg-indigo-600','text-white');
+    b.classList.add('text-slate-600','dark:text-slate-300');
+  });
+  document.getElementById('view-'+name).classList.add('active');
+  const btn = document.getElementById('btn-'+name);
+  btn.classList.add('active','bg-indigo-600','text-white');
+  btn.classList.remove('text-slate-600','dark:text-slate-300');
+}
+
+// ─── Deployment data ──────────────────────────────────────────────────────
+const clients = ['Acme Corp','TechStart Inc','DataFlow Ltd','SecureBank','MedHealth','GovTech','EduNet','RetailPlus'];
+const clientColors = ['#6366f1','#10b981','#f59e0b','#3b82f6','#8b5cf6','#ef4444','#14b8a6','#f97316'];
+
+const deployments = [
+  {
+    id:'DEP-2026-001',
+    patch:'CVE-2025-21400 — Windows Kernel RCE',
+    severity:'critical',
+    clients:[
+      {name:'Acme Corp',color:'#6366f1',status:'completed',pct:100,eps:247},
+      {name:'TechStart Inc',color:'#10b981',status:'completed',pct:100,eps:89},
+      {name:'SecureBank',color:'#3b82f6',status:'in_progress',pct:73,eps:312},
+      {name:'EduNet',color:'#14b8a6',status:'in_progress',pct:45,eps:123},
+      {name:'RetailPlus',color:'#f97316',status:'pending',pct:0,eps:67},
+    ],
+    created:'Mar 9, 2026',
+    duration:'4h 12m',
+    overall:'in_progress'
+  },
+  {
+    id:'DEP-2026-002',
+    patch:'MS-2026-008 — Exchange Server Security Update',
+    severity:'high',
+    clients:[
+      {name:'Acme Corp',color:'#6366f1',status:'completed',pct:100,eps:247},
+      {name:'SecureBank',color:'#3b82f6',status:'completed',pct:100,eps:312},
+      {name:'DataFlow Ltd',color:'#f59e0b',status:'failed',pct:0,eps:156},
+    ],
+    created:'Mar 8, 2026',
+    duration:'1h 55m',
+    overall:'partial_failure'
+  },
+  {
+    id:'DEP-2026-003',
+    patch:'CVE-2025-20190 — OpenSSL Heap Overflow',
+    severity:'critical',
+    clients:[
+      {name:'Acme Corp',color:'#6366f1',status:'completed',pct:100,eps:247},
+      {name:'TechStart Inc',color:'#10b981',status:'completed',pct:100,eps:89},
+      {name:'DataFlow Ltd',color:'#f59e0b',status:'completed',pct:100,eps:156},
+      {name:'SecureBank',color:'#3b82f6',status:'completed',pct:100,eps:312},
+      {name:'MedHealth',color:'#8b5cf6',status:'completed',pct:100,eps:78},
+      {name:'EduNet',color:'#14b8a6',status:'completed',pct:100,eps:123},
+      {name:'RetailPlus',color:'#f97316',status:'completed',pct:100,eps:67},
+    ],
+    created:'Mar 5, 2026',
+    duration:'2h 38m',
+    overall:'completed'
+  },
+  {
+    id:'DEP-2026-004',
+    patch:'KEV-2025-1024 — Apache Log4j RCE',
+    severity:'critical',
+    clients:[
+      {name:'Acme Corp',color:'#6366f1',status:'completed',pct:100,eps:247},
+      {name:'TechStart Inc',color:'#10b981',status:'completed',pct:100,eps:89},
+      {name:'SecureBank',color:'#3b82f6',status:'completed',pct:100,eps:312},
+      {name:'MedHealth',color:'#8b5cf6',status:'completed',pct:100,eps:78},
+      {name:'GovTech',color:'#ef4444',status:'skipped',pct:0,eps:45},
+    ],
+    created:'Mar 1, 2026',
+    duration:'3h 20m',
+    overall:'completed_with_skip'
+  },
+  {
+    id:'DEP-2026-005',
+    patch:'CVE-2025-19872 — Linux Kernel Privilege Escalation',
+    severity:'high',
+    clients:[
+      {name:'TechStart Inc',color:'#10b981',status:'completed',pct:100,eps:89},
+      {name:'DataFlow Ltd',color:'#f59e0b',status:'completed',pct:100,eps:156},
+      {name:'MedHealth',color:'#8b5cf6',status:'completed',pct:100,eps:78},
+      {name:'EduNet',color:'#14b8a6',status:'completed',pct:100,eps:123},
+    ],
+    created:'Feb 28, 2026',
+    duration:'1h 45m',
+    overall:'completed'
+  },
+  {
+    id:'DEP-2026-006',
+    patch:'MS-2026-007 — .NET Runtime Critical Update',
+    severity:'medium',
+    clients:[
+      {name:'Acme Corp',color:'#6366f1',status:'completed',pct:100,eps:247},
+      {name:'SecureBank',color:'#3b82f6',status:'completed',pct:100,eps:312},
+      {name:'RetailPlus',color:'#f97316',status:'completed',pct:100,eps:67},
+    ],
+    created:'Feb 25, 2026',
+    duration:'52m',
+    overall:'completed'
+  },
+  {
+    id:'DEP-2026-007',
+    patch:'CVE-2025-18440 — Chrome Browser RCE',
+    severity:'high',
+    clients:[
+      {name:'Acme Corp',color:'#6366f1',status:'completed',pct:100,eps:247},
+      {name:'TechStart Inc',color:'#10b981',status:'completed',pct:100,eps:89},
+      {name:'DataFlow Ltd',color:'#f59e0b',status:'completed',pct:100,eps:156},
+      {name:'SecureBank',color:'#3b82f6',status:'completed',pct:100,eps:312},
+      {name:'MedHealth',color:'#8b5cf6',status:'completed',pct:100,eps:78},
+      {name:'GovTech',color:'#ef4444',status:'skipped',pct:0,eps:45},
+      {name:'EduNet',color:'#14b8a6',status:'completed',pct:100,eps:123},
+      {name:'RetailPlus',color:'#f97316',status:'completed',pct:100,eps:67},
+    ],
+    created:'Feb 20, 2026',
+    duration:'3h 10m',
+    overall:'completed_with_skip'
+  },
+  {
+    id:'DEP-2026-008',
+    patch:'KEV-2025-0892 — Cisco IOS XE Authentication Bypass',
+    severity:'critical',
+    clients:[
+      {name:'GovTech',color:'#ef4444',status:'failed',pct:0,eps:45},
+      {name:'SecureBank',color:'#3b82f6',status:'completed',pct:100,eps:312},
+    ],
+    created:'Feb 15, 2026',
+    duration:'45m',
+    overall:'partial_failure'
+  }
+];
+
+const statusConfig = {
+  completed: { label:'Completed', color:'#22c55e', bg:'bg-green-100 dark:bg-green-900/30', text:'text-green-700 dark:text-green-400' },
+  in_progress: { label:'In Progress', color:'#6366f1', bg:'bg-indigo-100 dark:bg-indigo-900/30', text:'text-indigo-700 dark:text-indigo-400' },
+  pending: { label:'Pending', color:'#94a3b8', bg:'bg-slate-100 dark:bg-slate-700', text:'text-slate-600 dark:text-slate-400' },
+  failed: { label:'Failed', color:'#ef4444', bg:'bg-red-100 dark:bg-red-900/30', text:'text-red-700 dark:text-red-400' },
+  skipped: { label:'Skipped', color:'#f59e0b', bg:'bg-amber-100 dark:bg-amber-900/30', text:'text-amber-700 dark:text-amber-400' },
+  partial_failure: { label:'Partial Failure', color:'#f59e0b', bg:'bg-amber-100 dark:bg-amber-900/30', text:'text-amber-700 dark:text-amber-400' },
+  completed_with_skip: { label:'Completed (skip)', color:'#22c55e', bg:'bg-green-100 dark:bg-green-900/30', text:'text-green-700 dark:text-green-400' }
+};
+
+const severityBadge = {
+  critical: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+  high: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+  medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+};
+
+// ─── By Deployment Table ──────────────────────────────────────────────────
+function renderDeploymentTable() {
+  const tbody = document.getElementById('depTableBody');
+  deployments.forEach((dep, i) => {
+    const sc = statusConfig[dep.overall];
+    const totalClients = dep.clients.length;
+    const completedClients = dep.clients.filter(c=>c.status==='completed').length;
+    const totalEps = dep.clients.reduce((s,c)=>s+c.eps,0);
+    const doneEps = dep.clients.filter(c=>c.status==='completed').reduce((s,c)=>s+c.eps,0);
+    const overallPct = Math.round(doneEps/totalEps*100);
+
+    // Multi-segment progress bar
+    const segHtml = dep.clients.map(c => {
+      const w = Math.round((c.eps/totalEps)*100);
+      const col = { completed:'#22c55e', in_progress:'#6366f1', pending:'#cbd5e1', failed:'#ef4444', skipped:'#f59e0b' }[c.status];
+      const opacity = c.status === 'pending' ? 0.5 : 1;
+      const title = `${c.name}: ${c.status} (${c.eps} eps)`;
+      return `<div title="${title}" style="width:${w}%;background:${col};opacity:${opacity};height:100%;display:inline-block;"></div>`;
+    }).join('');
+
+    // Per-client expandable table
+    const clientRowsHtml = dep.clients.map(c => {
+      const cs = statusConfig[c.status];
+      const eps = c.status==='in_progress' ? Math.round(c.eps*c.pct/100) : c.status==='completed' ? c.eps : 0;
+      return `<tr class="border-b border-slate-50 dark:border-slate-700/50">
+        <td class="px-3 py-2">
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" style="background:${c.color}">${c.name[0]}</div>
+            <span class="text-xs">${c.name}</span>
+          </div>
+        </td>
+        <td class="px-3 py-2"><span class="px-2 py-0.5 rounded text-xs font-medium ${cs.bg} ${cs.text}">${cs.label}</span></td>
+        <td class="px-3 py-2 text-xs">${c.eps}</td>
+        <td class="px-3 py-2 text-xs">${eps} / ${c.eps}</td>
+        <td class="px-3 py-2">
+          <div class="flex items-center gap-2">
+            <div class="w-20 bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden"><div class="h-1.5 rounded-full" style="width:${c.pct}%;background:${statusConfig[c.status].color}"></div></div>
+            <span class="text-xs">${c.pct}%</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    tbody.innerHTML += `
+      <tr class="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 cursor-pointer transition-colors" onclick="toggleDepExpand('dep-${i}',this)">
+        <td class="px-4 py-3 text-xs font-mono text-slate-500 dark:text-slate-400">${dep.id}</td>
+        <td class="px-4 py-3">
+          <div class="font-medium text-sm">${dep.patch}</div>
+          <span class="text-xs px-1.5 py-0.5 rounded font-medium ${severityBadge[dep.severity]}">${dep.severity.toUpperCase()}</span>
+        </td>
+        <td class="px-4 py-3">
+          <div class="flex items-center gap-1 flex-wrap">
+            ${dep.clients.map(c=>`<div class="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" title="${c.name}" style="background:${c.color}">${c.name[0]}</div>`).join('')}
+          </div>
+          <div class="text-xs text-slate-400 mt-0.5">${totalClients} clients</div>
+        </td>
+        <td class="px-4 py-3"><span class="px-2 py-1 rounded-md text-xs font-medium ${sc.bg} ${sc.text}">${sc.label}</span></td>
+        <td class="px-4 py-3 w-52">
+          <div class="flex items-center gap-2">
+            <div class="flex-1 h-3 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-700 flex" style="min-width:100px;">${segHtml}</div>
+            <span class="text-xs font-medium w-8 text-right">${overallPct}%</span>
+          </div>
+          <div class="text-xs text-slate-400 mt-0.5">${completedClients}/${totalClients} clients done</div>
+        </td>
+        <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">${dep.created}</td>
+        <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">${dep.duration}</td>
+        <td class="px-4 py-3">
+          <svg class="w-4 h-4 text-slate-400 dep-icon transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </td>
+      </tr>
+      <tr class="expandable-dep" id="dep-${i}">
+        <td colspan="8" class="px-4 py-0">
+          <div class="py-4 border-t border-slate-100 dark:border-slate-700/50">
+            <p class="text-xs font-semibold text-slate-400 uppercase mb-3">Per-Client Status</p>
+            <table class="w-full">
+              <thead><tr class="text-xs text-slate-400">
+                <th class="px-3 py-1 text-left">Client</th>
+                <th class="px-3 py-1 text-left">Status</th>
+                <th class="px-3 py-1 text-left">Total Eps</th>
+                <th class="px-3 py-1 text-left">Patched</th>
+                <th class="px-3 py-1 text-left">Progress</th>
+              </tr></thead>
+              <tbody>${clientRowsHtml}</tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function toggleDepExpand(id, row) {
+  const r = document.getElementById(id);
+  const icon = row.querySelector('.dep-icon');
+  const isOpen = r.classList.contains('open');
+  document.querySelectorAll('.expandable-dep').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('.dep-icon').forEach(i=>i.style.transform='');
+  if (!isOpen) { r.classList.add('open'); if(icon) icon.style.transform='rotate(180deg)'; }
+}
+
+// ─── By Client Cards ──────────────────────────────────────────────────────
+function renderClientCards() {
+  const grid = document.getElementById('clientCardsGrid');
+  const clientDeployments = {};
+  cms.forEach(c => { clientDeployments[c.n] = []; });
+  deployments.forEach(dep => {
+    dep.clients.forEach(c => {
+      if (clientDeployments[c.name]) {
+        clientDeployments[c.name].push({ id:dep.id, patch:dep.patch, severity:dep.severity, status:c.status, pct:c.pct, overall:dep.overall });
+      }
+    });
+  });
+
+  cms.forEach(client => {
+    const cdeps = clientDeployments[client.n];
+    const activeDeps = cdeps.filter(d=>d.status==='in_progress');
+    const completedDeps = cdeps.filter(d=>d.status==='completed');
+    const successRate = cdeps.length > 0 ? Math.round((completedDeps.length / cdeps.filter(d=>d.status!=='pending').length)*100) : 0;
+
+    const activeHtml = activeDeps.map(d => {
+      const sc = statusConfig[d.status];
+      return `<div class="mb-2">
+        <div class="flex items-center justify-between text-xs mb-1">
+          <span class="truncate max-w-xs">${d.patch.split('—')[0].trim()}</span>
+          <span class="${sc.text} font-medium">${d.pct}%</span>
+        </div>
+        <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+          <div class="h-2 rounded-full bg-indigo-500" style="width:${d.pct}%"></div>
+        </div>
+      </div>`;
+    }).join('') || '<p class="text-xs text-slate-400">No active deployments</p>';
+
+    grid.innerHTML += `
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg" style="background:${client.c}">${client.i}</div>
+          <div>
+            <h3 class="font-semibold">${client.n}</h3>
+            <p class="text-xs text-slate-500">${cdeps.length} deployments total</p>
+          </div>
+          <div class="ml-auto text-right">
+            <p class="text-xs text-slate-500">Success rate</p>
+            <p class="font-bold text-lg ${successRate>=90?'text-green-500':successRate>=70?'text-amber-500':'text-red-500'}">${successRate||0}%</p>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="flex items-center gap-4 text-xs text-slate-500 mb-3">
+            <span><b class="text-slate-700 dark:text-slate-300">${activeDeps.length}</b> active</span>
+            <span><b class="text-slate-700 dark:text-slate-300">${completedDeps.length}</b> completed</span>
+            <span><b class="text-slate-700 dark:text-slate-300">${cdeps.filter(d=>d.status==='failed').length}</b> failed</span>
+          </div>
+          <p class="text-xs font-semibold text-slate-400 uppercase mb-2">Active Deployments</p>
+          ${activeHtml}
+        </div>
+        <div class="flex gap-2">
+          <a href="client-detail.html" class="text-xs px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg font-medium hover:bg-indigo-100">View Client</a>
+        </div>
+      </div>
+    `;
+  });
+}
+
+renderDeploymentTable();
+renderClientCards();
+</script>
+</body>
+</html>

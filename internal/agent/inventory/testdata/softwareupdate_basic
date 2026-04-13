@@ -1,0 +1,11 @@
+Software Update Tool
+
+Finding available software
+
+Software Update found the following new or updated software:
+* Label: macOS Ventura 13.6.1-13.6.1
+	Title: macOS Ventura 13.6.1, Version: 13.6.1, Size: 11283480KiB, Recommended: YES, Action: restart,
+* Label: Safari 17.1-17.1
+	Title: Safari, Version: 17.1, Size: 104200KiB, Recommended: YES,
+* Label: Command Line Tools for Xcode-15.1
+	Title: Command Line Tools for Xcode, Version: 15.1, Size: 714508KiB, Recommended: NO,

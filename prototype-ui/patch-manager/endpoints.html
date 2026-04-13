@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — Endpoints</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:260px;--topbar-h:56px;
+}
+html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+body{display:flex;height:100vh;overflow:hidden;background:var(--bg)}
+#sidebar{width:var(--sidebar-w);background:#0d1117;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s ease}
+#sidebar.collapsed{width:64px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-icon{width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.sb-logo-text{font-weight:700;font-size:14px;color:var(--text)}
+.sb-logo-sub{font-size:10px;color:var(--muted)}
+.sb-group{margin-top:6px}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.sb-group-label:hover{color:var(--text)}
+.sb-group-items{overflow:hidden}
+.sb-item{padding:7px 16px 7px 20px;display:flex;align-items:center;gap:9px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;text-decoration:none;font-size:12.5px}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:15px;height:15px;flex-shrink:0}
+.sb-badge{margin-left:auto;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.red{background:#ef444420;color:#ef4444}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+.sb-badge.amber{background:#f59e0b20;color:#f59e0b}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-breadcrumb a{color:var(--muted);text-decoration:none}.tb-breadcrumb a:hover{color:var(--text)}
+.tb-breadcrumb .current{color:var(--text);font-weight:500}
+.tb-sep{color:#374151}
+.tb-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb-icon-btn{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:17px;height:17px}
+.notif-badge{position:absolute;top:5px;right:5px;background:var(--danger);color:#fff;border-radius:10px;font-size:9px;font-weight:700;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid #0d1117;padding:0 3px}
+.tb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;color:#fff;flex-shrink:0}
+.tb-user{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border-radius:7px;transition:.15s}
+.tb-user:hover{background:#ffffff08}
+.tb-user-name{font-size:12px;font-weight:500}
+#page{flex:1;overflow-y:auto;overflow-x:hidden;padding:24px}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.page-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.ph-left{flex:1}
+.ph-bc{font-size:11px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.ph-bc a{color:var(--muted);text-decoration:none}.ph-bc a:hover{color:var(--primary)}
+.ph-title{font-size:22px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px}
+.ph-count{background:#3b82f620;color:var(--primary);border:1px solid #3b82f630;border-radius:20px;padding:2px 10px;font-size:13px;font-weight:600}
+.ph-actions{display:flex;gap:8px}
+.btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d;border-color:#374151}
+.btn-ghost{background:transparent;color:var(--muted);border-color:transparent}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:5px}
+.btn-danger{background:#ef444415;color:var(--danger);border-color:#ef444430}
+.btn-danger:hover{background:#ef444425}
+.btn-warn{background:#f59e0b15;color:var(--warn);border-color:#f59e0b30}
+.btn-warn:hover{background:#f59e0b25}
+.filter-section{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.filter-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.filter-pill{padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:.15s}
+.filter-pill:hover{border-color:#374151;color:var(--text)}
+.filter-pill.active{background:#3b82f620;border-color:#3b82f650;color:var(--primary)}
+.filter-pill .pill-count{background:#ffffff15;border-radius:10px;padding:0 5px;font-size:10px;margin-left:3px}
+.filter-pill.active .pill-count{background:#3b82f630;color:var(--primary)}
+.filter-pill.red.active{background:#ef444420;border-color:#ef444450;color:#ef4444}
+.filter-pill.red.active .pill-count{background:#ef444430}
+.filter-sep{width:1px;height:24px;background:var(--border);margin:0 4px}
+.search-input{background:#ffffff08;border:1px solid var(--border);border-radius:7px;padding:6px 12px;color:var(--text);font-size:12px;outline:none;transition:.15s;display:flex;align-items:center;gap:8px;cursor:text;min-width:220px}
+.search-input:focus-within{border-color:var(--primary);background:#3b82f608}
+.search-input input{background:transparent;border:none;outline:none;color:var(--text);font-size:12px;width:100%}
+.search-input input::placeholder{color:var(--muted)}
+.search-kbd{background:#1e293b;border-radius:3px;padding:1px 5px;font-size:10px;color:var(--muted);flex-shrink:0}
+.filter-select{background:#ffffff08;border:1px solid var(--border);border-radius:7px;padding:5px 10px;color:var(--text);font-size:11.5px;outline:none;cursor:pointer;appearance:none;padding-right:24px}
+.select-wrap{position:relative;display:inline-block}
+.select-wrap::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:10px;pointer-events:none}
+.active-chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#3b82f615;border:1px solid #3b82f630;border-radius:5px;padding:3px 8px;font-size:11px;color:var(--primary)}
+.chip .chip-x{cursor:pointer;color:var(--muted);transition:.15s;background:none;border:none;padding:0;line-height:1;font-size:13px}
+.chip .chip-x:hover{color:var(--danger)}
+.bulk-toolbar{background:var(--card);border:1px solid var(--primary);border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:12px;animation:fadeIn .15s ease}
+.bulk-count{font-size:12px;font-weight:600;color:var(--primary)}
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.table-scroll{overflow-x:auto}
+.table-scroll::-webkit-scrollbar{height:4px}
+.table-scroll::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.data-table{width:100%;border-collapse:collapse;min-width:1100px}
+.data-table th{padding:9px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:#0d1117}
+.data-table th.sortable{cursor:pointer;user-select:none}
+.data-table th.sortable:hover{color:var(--text)}
+.data-table td{padding:10px 12px;border-bottom:1px solid #1e293b50;font-size:12px;vertical-align:middle}
+.data-table tr:hover td{background:#ffffff03}
+.data-table tr:last-child td{border-bottom:none}
+.data-table input[type=checkbox]{accent-color:var(--primary);width:14px;height:14px;cursor:pointer}
+.hostname-link{color:var(--primary);font-weight:600;text-decoration:none;font-family:monospace;font-size:12px}
+.hostname-link:hover{text-decoration:underline}
+.os-cell{display:flex;align-items:center;gap:6px;font-size:12px}
+.os-icon{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.os-icon.win{background:#0078d420;color:#0078d4}
+.os-icon.ubuntu{background:#e95420;color:#fff}
+.os-icon.rhel{background:#cc000020;color:#cc0000}
+.status-cell{display:flex;align-items:center;gap:6px;font-size:12px}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-dot.online{background:var(--success);box-shadow:0 0 0 3px #10b98120;animation:pulse-dot 2s infinite}
+.status-dot.offline{background:#4b5563}
+.status-dot.pending{background:var(--warn);animation:pulse-dot 2s infinite}
+.status-dot.decommissioned{background:#374151}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 3px #10b98120}50%{box-shadow:0 0 0 5px #10b98110}}
+.hw-compact{font-size:11px;color:var(--muted);font-family:monospace}
+.patches-cell{display:flex;align-items:center;gap:3px}
+.patch-count{padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;cursor:default}
+.patch-count.crit{background:#ef444420;color:#ef4444;border:1px solid #ef444430}
+.patch-count.high{background:#f9731620;color:#f97316;border:1px solid #f9731630}
+.patch-count.med{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+.mini-ring{display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
+.group-chips{display:flex;gap:3px;flex-wrap:wrap}
+.group-chip{background:#ffffff10;border-radius:4px;padding:2px 6px;font-size:10px;color:var(--muted);border:1px solid var(--border)}
+.chevron-btn{background:none;border:none;cursor:pointer;color:var(--muted);transition:.2s;padding:2px 4px;border-radius:3px;display:flex;align-items:center}
+.chevron-btn:hover{color:var(--text);background:#ffffff10}
+.chevron-btn.open svg{transform:rotate(90deg)}
+.chevron-btn svg{width:13px;height:13px;transition:.2s}
+.exp-row{display:none}
+.exp-row.open{display:table-row}
+.exp-row td{padding:0!important;border-bottom:1px solid var(--border)!important}
+.exp-content{padding:16px 20px;background:#0a0e1a;animation:fadeIn .15s ease}
+.exp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.exp-section{}.exp-section-title{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.hw-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.hw-bar-label{font-size:11px;color:var(--muted);width:36px;flex-shrink:0}
+.hw-bar-track{flex:1;height:6px;background:#ffffff10;border-radius:3px;overflow:hidden}
+.hw-bar-fill{height:100%;border-radius:3px;transition:.6s ease}
+.hw-bar-val{font-size:10px;color:var(--muted);width:30px;text-align:right;flex-shrink:0}
+.mini-patch-table{width:100%;border-collapse:collapse}
+.mini-patch-table td{padding:4px 6px;font-size:11px;border-bottom:1px solid #1e293b40}
+.mini-patch-table tr:last-child td{border-bottom:none}
+.fw-badges{display:flex;gap:8px;flex-wrap:wrap}
+.fw-badge{display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 8px}
+.fw-badge-name{font-size:10px;color:var(--muted);font-weight:600}
+.fw-badge-val{font-size:12px;font-weight:700}
+.quick-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #1e293b50}
+.badge{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.badge-critical{background:#ef444420;color:#ef4444;border:1px solid #ef444430}
+.badge-high{background:#f9731620;color:#f97316;border:1px solid #f9731630}
+.badge-medium{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+.badge-low{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-info{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630}
+.badge-muted{background:#ffffff10;color:var(--muted);border:1px solid var(--border)}
+.pagination-row{display:flex;align-items:center;justify-content:between;padding:12px 16px;border-top:1px solid var(--border);background:#0d1117;gap:8px}
+.page-info{font-size:11px;color:var(--muted);flex:1}
+.page-btns{display:flex;gap:4px;align-items:center}
+.page-btn{padding:4px 10px;border-radius:5px;font-size:11px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;transition:.15s}
+.page-btn:hover{background:#ffffff0d}
+.page-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.page-btn:disabled{opacity:.4;cursor:not-allowed}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* Dark mode compatibility */
+.dark body,.dark #sidebar,.dark #topbar,.dark #page{background:var(--bg);color:var(--text)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div>
+      <div class="sb-logo-text">PatchIQ</div>
+      <div class="sb-logo-sub">Patch Manager</div>
+    </div>
+  </div>
+
+  <div class="sb-group">
+    <div class="sb-group-label">Overview</div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="../patch-manager.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+    </div>
+  </div>
+
+  <div class="sb-group">
+    <div class="sb-group-label">Inventory</div>
+    <div class="sb-group-items">
+      <a class="sb-item active" href="endpoints.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Endpoints
+        <span class="sb-badge blue">247</span>
+      </a>
+      <a class="sb-item" href="patches.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Patches
+        <span class="sb-badge red">12</span>
+      </a>
+      <a class="sb-item" href="cves.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        CVEs
+      </a>
+    </div>
+  </div>
+
+  <div class="sb-group">
+    <div class="sb-group-label">Operations</div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Policies
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        Deployments
+        <span class="sb-badge amber">3</span>
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Workflows
+      </a>
+    </div>
+  </div>
+
+  <div class="sb-group">
+    <div class="sb-group-label">Reports</div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Compliance
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Audit
+      </a>
+    </div>
+  </div>
+
+  <div class="sb-group">
+    <div class="sb-group-label">Configuration</div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M21 12h-2M5 12H3M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M12 21v-2M12 5V3"/></svg>
+        Settings
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Roles
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Notifications
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <button class="tb-icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-breadcrumb">
+      <a href="#">Home</a><span class="tb-sep">/</span>
+      <a href="#">Inventory</a><span class="tb-sep">/</span>
+      <span class="current">Endpoints</span>
+    </div>
+    <div class="tb-icons">
+      <button class="tb-icon-btn" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-badge">3</span>
+      </button>
+      <button class="tb-icon-btn" onclick="toggleDark()" title="Toggle theme" id="themeBtn">
+        <svg id="sunIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <div class="tb-user">
+        <div class="tb-avatar">A</div>
+        <span class="tb-user-name">admin@acme.com</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE -->
+  <div id="page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="ph-left">
+        <div class="ph-bc">
+          <a href="#">Home</a><span>/</span>
+          <a href="#">Inventory</a><span>/</span>
+          <span>Endpoints</span>
+        </div>
+        <div class="ph-title">
+          Endpoints
+          <span class="ph-count">247</span>
+        </div>
+      </div>
+      <div class="ph-actions">
+        <button class="btn btn-outline btn-sm" onclick="">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Import
+        </button>
+        <button class="btn btn-outline btn-sm">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Export
+        </button>
+        <button class="btn btn-primary btn-sm">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Register Endpoint
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="filter-row">
+        <button class="filter-pill active" onclick="setFilter(this,'all')">All <span class="pill-count">247</span></button>
+        <button class="filter-pill" onclick="setFilter(this,'online')">Online <span class="pill-count">189</span></button>
+        <button class="filter-pill" onclick="setFilter(this,'offline')">Offline <span class="pill-count">34</span></button>
+        <button class="filter-pill" onclick="setFilter(this,'pending')">Pending <span class="pill-count">18</span></button>
+        <button class="filter-pill" onclick="setFilter(this,'decommissioned')">Decommissioned <span class="pill-count">6</span></button>
+        <div class="filter-sep"></div>
+        <div class="search-input">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search endpoints..." id="searchInput">
+          <span class="search-kbd">/</span>
+        </div>
+        <div class="select-wrap">
+          <select class="filter-select" onchange="addChip('OS: '+this.options[this.selectedIndex].text,this)">
+            <option value="">OS Family</option>
+            <option>Windows</option>
+            <option>Ubuntu</option>
+            <option>RHEL</option>
+            <option>Debian</option>
+            <option>Amazon Linux</option>
+          </select>
+        </div>
+        <div class="select-wrap">
+          <select class="filter-select" onchange="addChip('Compliance: '+this.options[this.selectedIndex].text,this)">
+            <option value="">Compliance</option>
+            <option>Compliant</option>
+            <option>Non-Compliant</option>
+            <option>Partial</option>
+          </select>
+        </div>
+        <div class="select-wrap">
+          <select class="filter-select" onchange="addChip('Group: '+this.options[this.selectedIndex].text,this)">
+            <option value="">Group</option>
+            <option>Production</option>
+            <option>Staging</option>
+            <option>Development</option>
+            <option>CI/CD</option>
+          </select>
+        </div>
+        <div class="select-wrap">
+          <select class="filter-select" onchange="addChip('Agent: '+this.options[this.selectedIndex].text,this)">
+            <option value="">Agent Version</option>
+            <option>1.2.3</option>
+            <option>1.2.2</option>
+            <option>1.1.5</option>
+          </select>
+        </div>
+      </div>
+      <div class="active-chips" id="chipContainer"></div>
+    </div>
+
+    <!-- Bulk Toolbar -->
+    <div class="bulk-toolbar" id="bulkToolbar" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      <span class="bulk-count" id="bulkCount">0 selected</span>
+      <button class="btn btn-primary btn-sm">Deploy Patches</button>
+      <button class="btn btn-outline btn-sm">Scan Now</button>
+      <button class="btn btn-outline btn-sm">Assign Group</button>
+      <button class="btn btn-outline btn-sm">Export</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Clear</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table class="data-table" id="endpointsTable">
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th>
+              <th class="sortable">Hostname ↕</th>
+              <th>OS</th>
+              <th>Status</th>
+              <th>Agent Ver</th>
+              <th>Hardware</th>
+              <th>Last Seen</th>
+              <th>Patches Pending</th>
+              <th>Compliance</th>
+              <th>Groups</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination-row">
+        <span class="page-info">Showing 1–20 of 247 endpoints</span>
+        <div class="page-btns">
+          <button class="page-btn" disabled>← Prev</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <span style="color:var(--muted);font-size:12px;padding:0 4px">…</span>
+          <button class="page-btn">13</button>
+          <button class="page-btn">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const endpoints = [
+  {id:1,hostname:'prod-web-01',os:'ubuntu',osName:'Ubuntu 22.04',status:'online',agent:'1.2.3',hw:'8C/32GB/240GB',lastSeen:'2m ago',patches:{crit:3,high:5,med:12},compliance:78,groups:['Production','Web Servers']},
+  {id:2,hostname:'prod-web-02',os:'ubuntu',osName:'Ubuntu 22.04',status:'online',agent:'1.2.3',hw:'8C/32GB/240GB',lastSeen:'1m ago',patches:{crit:3,high:5,med:9},compliance:80,groups:['Production','Web Servers']},
+  {id:3,hostname:'db-primary-01',os:'rhel',osName:'RHEL 8.7',status:'online',agent:'1.2.3',hw:'16C/64GB/2TB',lastSeen:'30s ago',patches:{crit:1,high:2,med:4},compliance:92,groups:['Production','Database']},
+  {id:4,hostname:'db-replica-02',os:'rhel',osName:'RHEL 8.7',status:'online',agent:'1.2.2',hw:'16C/64GB/2TB',lastSeen:'45s ago',patches:{crit:1,high:2,med:4},compliance:90,groups:['Production','Database']},
+  {id:5,hostname:'k8s-node-01',os:'ubuntu',osName:'Ubuntu 20.04',status:'online',agent:'1.2.3',hw:'32C/128GB/500GB',lastSeen:'10s ago',patches:{crit:0,high:1,med:3},compliance:95,groups:['Production','Kubernetes']},
+  {id:6,hostname:'k8s-node-02',os:'ubuntu',osName:'Ubuntu 20.04',status:'online',agent:'1.2.3',hw:'32C/128GB/500GB',lastSeen:'12s ago',patches:{crit:0,high:1,med:3},compliance:94,groups:['Production','Kubernetes']},
+  {id:7,hostname:'staging-app-01',os:'ubuntu',osName:'Ubuntu 22.04',status:'online',agent:'1.2.3',hw:'4C/16GB/120GB',lastSeen:'5m ago',patches:{crit:2,high:4,med:8},compliance:65,groups:['Staging']},
+  {id:8,hostname:'staging-db-01',os:'rhel',osName:'RHEL 9.1',status:'online',agent:'1.2.3',hw:'8C/32GB/500GB',lastSeen:'4m ago',patches:{crit:0,high:3,med:6},compliance:72,groups:['Staging','Database']},
+  {id:9,hostname:'ci-runner-01',os:'ubuntu',osName:'Ubuntu 22.04',status:'online',agent:'1.2.3',hw:'4C/8GB/100GB',lastSeen:'8m ago',patches:{crit:0,high:0,med:2},compliance:88,groups:['CI/CD']},
+  {id:10,hostname:'ci-runner-02',os:'ubuntu',osName:'Ubuntu 22.04',status:'online',agent:'1.2.3',hw:'4C/8GB/100GB',lastSeen:'9m ago',patches:{crit:0,high:0,med:2},compliance:88,groups:['CI/CD']},
+  {id:11,hostname:'monitoring-01',os:'ubuntu',osName:'Ubuntu 22.04',status:'online',agent:'1.2.3',hw:'8C/32GB/200GB',lastSeen:'15s ago',patches:{crit:0,high:1,med:2},compliance:91,groups:['Production','Monitoring']},
+  {id:12,hostname:'proxy-lb-01',os:'ubuntu',osName:'Ubuntu 22.04',status:'online',agent:'1.2.2',hw:'4C/8GB/60GB',lastSeen:'3m ago',patches:{crit:1,high:2,med:3},compliance:82,groups:['Production','Network']},
+  {id:13,hostname:'prod-worker-01',os:'win',osName:'Windows Server 2022',status:'online',agent:'1.2.3',hw:'8C/32GB/300GB',lastSeen:'7m ago',patches:{crit:5,high:8,med:15},compliance:58,groups:['Production']},
+  {id:14,hostname:'prod-worker-02',os:'win',osName:'Windows Server 2022',status:'offline',agent:'1.2.1',hw:'8C/32GB/300GB',lastSeen:'2h ago',patches:{crit:6,high:9,med:18},compliance:42,groups:['Production']},
+  {id:15,hostname:'dev-workstation-01',os:'ubuntu',osName:'Ubuntu 22.04',status:'offline',agent:'1.1.5',hw:'8C/16GB/512GB',lastSeen:'1d ago',patches:{crit:4,high:7,med:14},compliance:35,groups:['Development']},
+  {id:16,hostname:'dev-workstation-02',os:'win',osName:'Windows 11 22H2',status:'pending',agent:'1.2.3',hw:'4C/16GB/256GB',lastSeen:'3h ago',patches:{crit:2,high:3,med:8},compliance:61,groups:['Development']},
+  {id:17,hostname:'backup-srv-01',os:'rhel',osName:'RHEL 8.7',status:'online',agent:'1.2.3',hw:'4C/16GB/10TB',lastSeen:'20m ago',patches:{crit:0,high:0,med:1},compliance:97,groups:['Production','Backup']},
+  {id:18,hostname:'mail-srv-01',os:'win',osName:'Windows Server 2019',status:'pending',agent:'1.2.2',hw:'8C/32GB/500GB',lastSeen:'1h ago',patches:{crit:3,high:5,med:10},compliance:55,groups:['Production','Email']},
+  {id:19,hostname:'vpn-gw-01',os:'ubuntu',osName:'Ubuntu 22.04',status:'online',agent:'1.2.3',hw:'2C/4GB/40GB',lastSeen:'1m ago',patches:{crit:0,high:1,med:2},compliance:90,groups:['Network']},
+  {id:20,hostname:'legacy-app-01',os:'rhel',osName:'RHEL 7.9',status:'decommissioned',agent:'1.0.2',hw:'4C/8GB/120GB',lastSeen:'30d ago',patches:{crit:12,high:18,med:32},compliance:12,groups:['Decommissioned']}
+];
+
+const expandedData = {
+  cpu:[45,72,58,38,91,63,29,85,44,55],
+  ram:[72,45,88,61,37,79,52,67,41,83],
+  disk:[58,39,74,55,82,47,63,70,36,61],
+  patches:[
+    [{name:'USN-6587-1',sev:'Critical',cves:3},{name:'KB5034441',sev:'High',cves:2},{name:'RHSA-2024:0012',sev:'Medium',cves:1},{name:'USN-6544-1',sev:'Medium',cves:1},{name:'DSA-5570-1',sev:'Low',cves:0}],
+    [{name:'KB5034441',sev:'Critical',cves:4},{name:'USN-6587-1',sev:'High',cves:2},{name:'RHSA-2024:0142',sev:'Medium',cves:1},{name:'USN-6544-1',sev:'Low',cves:0},{name:'DSA-5571-1',sev:'Low',cves:0}]
+  ]
+};
+
+function osIcon(os){
+  const icons={
+    ubuntu:`<div class="os-icon ubuntu">U</div>`,
+    rhel:`<div class="os-icon rhel">R</div>`,
+    win:`<div class="os-icon win">W</div>`
+  };
+  return icons[os]||`<div class="os-icon">?</div>`;
+}
+
+function statusHtml(s){
+  const map={online:'Online',offline:'Offline',pending:'Pending',decommissioned:'Decommissioned'};
+  return `<div class="status-cell"><span class="status-dot ${s}"></span>${map[s]}</div>`;
+}
+
+function patchesHtml(p){
+  let h='<div class="patches-cell">';
+  if(p.crit>0) h+=`<span class="patch-count crit">${p.crit}</span>`;
+  if(p.high>0) h+=`<span class="patch-count high">${p.high}</span>`;
+  if(p.med>0) h+=`<span class="patch-count med">${p.med}</span>`;
+  if(!p.crit&&!p.high&&!p.med) h+=`<span style="color:var(--success);font-size:11px">✓ Up to date</span>`;
+  return h+'</div>';
+}
+
+function complianceHtml(pct){
+  const color=pct>=90?'#10b981':pct>=70?'#f59e0b':'#ef4444';
+  const circumference=2*Math.PI*9;
+  const dash=(pct/100)*circumference;
+  return `<div class="mini-ring">
+    <svg width="26" height="26" class="prog-ring">
+      <circle cx="13" cy="13" r="9" fill="none" stroke="#ffffff10" stroke-width="2.5"/>
+      <circle cx="13" cy="13" r="9" fill="none" stroke="${color}" stroke-width="2.5" stroke-dasharray="${dash.toFixed(1)} ${(circumference-dash).toFixed(1)}" stroke-linecap="round" transform="rotate(-90 13 13)"/>
+    </svg>
+    <span style="font-size:11px;font-weight:600;color:${color}">${pct}%</span>
+  </div>`;
+}
+
+function groupsHtml(groups){
+  return `<div class="group-chips">${groups.map(g=>`<span class="group-chip">${g}</span>`).join('')}</div>`;
+}
+
+function expandContent(ep, i){
+  const cpu=expandedData.cpu[i%10];
+  const ram=expandedData.ram[i%10];
+  const disk=expandedData.disk[i%10];
+  const patches=expandedData.patches[i%2];
+  const cpuColor=cpu>80?'#ef4444':cpu>60?'#f59e0b':'#10b981';
+  const ramColor=ram>80?'#ef4444':ram>60?'#f59e0b':'#10b981';
+  const diskColor=disk>80?'#ef4444':disk>60?'#f59e0b':'#10b981';
+  const nist=ep.compliance+2;const pci=Math.min(99,ep.compliance+14);const hipaa=Math.max(10,ep.compliance-13);
+  return `<div class="exp-content">
+    <div class="exp-grid">
+      <div class="exp-section">
+        <div class="exp-section-title">Hardware Snapshot</div>
+        <div class="hw-bar-row"><span class="hw-bar-label">CPU</span><div class="hw-bar-track"><div class="hw-bar-fill" style="width:${cpu}%;background:${cpuColor}"></div></div><span class="hw-bar-val">${cpu}%</span></div>
+        <div class="hw-bar-row"><span class="hw-bar-label">RAM</span><div class="hw-bar-track"><div class="hw-bar-fill" style="width:${ram}%;background:${ramColor}"></div></div><span class="hw-bar-val">${ram}%</span></div>
+        <div class="hw-bar-row"><span class="hw-bar-label">Disk</span><div class="hw-bar-track"><div class="hw-bar-fill" style="width:${disk}%;background:${diskColor}"></div></div><span class="hw-bar-val">${disk}%</span></div>
+      </div>
+      <div class="exp-section">
+        <div class="exp-section-title">Top 5 Pending Patches</div>
+        <table class="mini-patch-table">
+          ${patches.map(p=>`<tr><td style="font-family:monospace;color:var(--primary)">${p.name}</td><td><span class="badge badge-${p.sev.toLowerCase()}">${p.sev}</span></td><td style="color:var(--muted)">${p.cves} CVEs</td></tr>`).join('')}
+        </table>
+      </div>
+      <div class="exp-section">
+        <div class="exp-section-title">Compliance Frameworks</div>
+        <div class="fw-badges">
+          ${[['NIST',nist],['PCI DSS',pci],['HIPAA',hipaa]].map(([name,val])=>`<div class="fw-badge"><span class="fw-badge-name">${name}</span><span class="fw-badge-val" style="color:${val>=90?'#10b981':val>=70?'#f59e0b':'#ef4444'}">${val}%</span></div>`).join('')}
+        </div>
+        <div class="quick-actions">
+          <button class="btn btn-primary btn-sm">Scan Now</button>
+          <button class="btn btn-outline btn-sm">Deploy Patches</button>
+          <button class="btn btn-warn btn-sm">Isolate</button>
+          <button class="btn btn-danger btn-sm">Decommission</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTable(){
+  const tbody=document.getElementById('tableBody');
+  tbody.innerHTML='';
+  endpoints.forEach((ep,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="checkbox" class="row-cb" onchange="updateBulk()"></td>
+      <td><a class="hostname-link" href="endpoint-detail.html">${ep.hostname}</a></td>
+      <td><div class="os-cell">${osIcon(ep.os)}<span>${ep.osName}</span></div></td>
+      <td>${statusHtml(ep.status)}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--muted)">${ep.agent}</td>
+      <td><span class="hw-compact">${ep.hw}</span></td>
+      <td style="color:var(--muted);font-size:11px">${ep.lastSeen}</td>
+      <td>${patchesHtml(ep.patches)}</td>
+      <td>${complianceHtml(ep.compliance)}</td>
+      <td>${groupsHtml(ep.groups)}</td>
+      <td><button class="chevron-btn" onclick="toggleRow(this,${i})" data-idx="${i}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button></td>
+    `;
+    tbody.appendChild(tr);
+    const expTr=document.createElement('tr');
+    expTr.className='exp-row';
+    expTr.id=`exp-${i}`;
+    const expTd=document.createElement('td');
+    expTd.colSpan=11;
+    expTd.innerHTML=expandContent(ep,i);
+    expTr.appendChild(expTd);
+    tbody.appendChild(expTr);
+  });
+}
+
+function toggleRow(btn,idx){
+  btn.classList.toggle('open');
+  const expRow=document.getElementById(`exp-${idx}`);
+  expRow.classList.toggle('open');
+}
+
+// Filter pills
+function setFilter(el, val){
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Chips
+const chips=new Set();
+function addChip(label,sel){
+  if(!label||chips.has(label)){sel&&(sel.value='');return;}
+  chips.add(label);
+  renderChips();
+  if(sel)sel.value='';
+}
+function removeChip(label){
+  chips.delete(label);
+  renderChips();
+}
+function renderChips(){
+  const container=document.getElementById('chipContainer');
+  container.innerHTML=[...chips].map(c=>`<span class="chip">${c}<button class="chip-x" onclick="removeChip('${c}')">×</button></span>`).join('');
+}
+
+// Bulk selection
+function toggleAll(cb){
+  document.querySelectorAll('.row-cb').forEach(c=>c.checked=cb.checked);
+  updateBulk();
+}
+function updateBulk(){
+  const checked=document.querySelectorAll('.row-cb:checked').length;
+  const toolbar=document.getElementById('bulkToolbar');
+  toolbar.style.display=checked>0?'flex':'none';
+  document.getElementById('bulkCount').textContent=`${checked} selected`;
+}
+function clearSelection(){
+  document.querySelectorAll('.row-cb,#selectAll').forEach(c=>c.checked=false);
+  updateBulk();
+}
+
+// Dark/light toggle
+function toggleDark(){
+  document.documentElement.classList.toggle('dark');
+  const isDark=document.documentElement.classList.contains('dark');
+  localStorage.setItem('theme',isDark?'dark':'light');
+  updateTheme(isDark);
+}
+function updateTheme(isDark){
+  // Update CSS vars based on mode
+  const root=document.documentElement;
+  if(!isDark){
+    root.style.setProperty('--bg','#f8fafc');
+    root.style.setProperty('--card','#ffffff');
+    root.style.setProperty('--card2','#f1f5f9');
+    root.style.setProperty('--border','#e2e8f0');
+    root.style.setProperty('--text','#0f172a');
+    root.style.setProperty('--muted','#64748b');
+    document.getElementById('sidebar').style.background='#ffffff';
+    document.getElementById('sidebar').style.borderColor='#e2e8f0';
+    document.getElementById('topbar').style.background='#ffffff';
+    document.getElementById('topbar').style.borderColor='#e2e8f0';
+  } else {
+    root.style.setProperty('--bg','#0a0e1a');
+    root.style.setProperty('--card','#111827');
+    root.style.setProperty('--card2','#0f172a');
+    root.style.setProperty('--border','#1e293b');
+    root.style.setProperty('--text','#e2e8f0');
+    root.style.setProperty('--muted','#64748b');
+    document.getElementById('sidebar').style.background='#0d1117';
+    document.getElementById('sidebar').style.borderColor='#1e293b';
+    document.getElementById('topbar').style.background='#0d1117';
+    document.getElementById('topbar').style.borderColor='#1e293b';
+  }
+}
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+// Init
+(function(){
+  const saved=localStorage.getItem('theme');
+  if(saved==='light'){
+    document.documentElement.classList.remove('dark');
+    updateTheme(false);
+  }
+  renderTable();
+  // Keyboard shortcut
+  document.addEventListener('keydown',e=>{if(e.key==='/')document.getElementById('searchInput').focus();});
+})();
+</script>
+</body>
+</html>

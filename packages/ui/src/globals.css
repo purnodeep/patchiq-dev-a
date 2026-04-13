@@ -1,0 +1,111 @@
+@import 'tailwindcss';
+@import './theme/tokens.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-bg-page: var(--bg-page);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-canvas: var(--bg-canvas);
+  --color-bg-inset: var(--bg-inset);
+
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-border-strong: var(--border-strong);
+  --color-border-faint: var(--border-faint);
+
+  --color-text-emphasis: var(--text-emphasis);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+
+  --color-accent: var(--accent);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-border: var(--accent-border);
+
+  --color-signal-healthy: var(--signal-healthy);
+  --color-signal-critical: var(--signal-critical);
+  --color-signal-warning: var(--signal-warning);
+  --color-signal-critical-subtle: var(--signal-critical-subtle);
+  --color-signal-warning-subtle: var(--signal-warning-subtle);
+  --color-signal-healthy-subtle: var(--signal-healthy-subtle);
+
+  --color-skel-base: var(--skel-base);
+  --color-skel-highlight: var(--skel-highlight);
+
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-line: var(--chart-line);
+  --color-chart-axis-fill: var(--chart-axis-fill);
+
+  /* shadcn/ui compatibility — map old tokens to new */
+  --color-background: var(--bg-page);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--bg-card);
+  --color-card-foreground: var(--text-primary);
+  --color-popover: var(--bg-elevated);
+  --color-popover-foreground: var(--text-primary);
+  --color-primary: var(--accent);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--bg-card-hover);
+  --color-secondary-foreground: var(--text-primary);
+  --color-muted: var(--bg-card-hover);
+  --color-muted-foreground: var(--text-muted);
+  --color-accent-foreground: var(--text-primary);
+  --color-destructive: var(--signal-critical);
+  --color-destructive-foreground: #ffffff;
+  --color-input: var(--border);
+  --color-ring: var(--accent);
+
+  /* Sidebar compatibility */
+  --color-sidebar: var(--bg-page);
+  --color-sidebar-foreground: var(--text-primary);
+  --color-sidebar-primary: var(--accent);
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: var(--bg-card-hover);
+  --color-sidebar-accent-foreground: var(--text-primary);
+  --color-sidebar-border: var(--border);
+  --color-sidebar-ring: var(--accent);
+
+  /* Typography */
+  --font-sans: 'Geist', -apple-system, system-ui, sans-serif;
+  --font-mono: 'GeistMono', 'JetBrains Mono', monospace;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius: 6px;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+

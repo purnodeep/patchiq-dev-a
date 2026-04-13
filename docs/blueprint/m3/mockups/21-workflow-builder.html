@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Workflow Builder</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─── CSS Variables ──────────────────────────────── */
+    :root {
+      --brand: #10b981;
+      --brand-dim: rgba(16,185,129,0.12);
+      --brand-glow: rgba(16,185,129,0.3);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.12);
+      --red: #ef4444;
+      --red-dim: rgba(239,68,68,0.12);
+      --green: #22c55e;
+
+      --pg: #000000;
+      --card: #111113;
+      --border: #222222;
+      --canvas: #080808;
+      --dot-color: #1c1c1c;
+
+      --text-emphasis: #ffffff;
+      --text-primary: #d4d4d4;
+      --text-secondary: #a1a1a1;
+      --text-muted: #737373;
+      --text-faint: #525252;
+
+      --input-bg: #0d0d0d;
+      --input-border: #2a2a2a;
+      --hover-bg: #161616;
+      --node-bg: #141414;
+      --node-border: #2a2a2a;
+      --conn-line: #444444;
+      --scrollbar-thumb: #222222;
+      --shadow: 0 1px 2px rgba(0,0,0,0.5);
+      --node-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    [data-theme="light"] {
+      --brand: #7c3aed;
+      --brand-dim: rgba(124,58,237,0.08);
+      --brand-glow: rgba(124,58,237,0.25);
+
+      --pg: #f5f5f5;
+      --card: #ffffff;
+      --border: #e0e0e0;
+      --canvas: #eeeeee;
+      --dot-color: #d8d8d8;
+
+      --text-emphasis: #0a0a0a;
+      --text-primary: #1a1a1a;
+      --text-secondary: #525252;
+      --text-muted: #737373;
+      --text-faint: #a1a1a1;
+
+      --input-bg: #f8f8f8;
+      --input-border: #d4d4d4;
+      --hover-bg: #f0f0f0;
+      --node-bg: #ffffff;
+      --node-border: #d4d4d4;
+      --conn-line: #b0b0b0;
+      --scrollbar-thumb: #d4d4d4;
+      --shadow: 0 1px 2px rgba(0,0,0,0.08);
+      --node-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    html, body { height: 100%; background: var(--pg); color: var(--text-primary); font-family: 'Geist', -apple-system, sans-serif; font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+    /* ─── App Shell ──────────────────────────────────── */
+    .app { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ─── Sidebar ────────────────────────────────────── */
+    .sidebar {
+      width: 220px; flex-shrink: 0; background: var(--pg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; height: 100vh;
+      overflow-y: auto; overflow-x: hidden;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 18px 20px 16px; border-bottom: 1px solid var(--border);
+    }
+    .logo-mark {
+      width: 26px; height: 26px; border-radius: 7px;
+      background: var(--brand); display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-mark svg { width: 14px; height: 14px; color: #fff; }
+    .logo-text { font-size: 15px; font-weight: 700; color: var(--text-emphasis); letter-spacing: -0.02em; }
+    .logo-badge {
+      margin-left: auto; font-size: 9px; font-weight: 600;
+      background: var(--brand-dim); color: var(--brand);
+      border: 1px solid rgba(16,185,129,0.2); border-radius: 3px; padding: 1px 5px;
+    }
+    [data-theme="light"] .logo-badge { background: var(--brand-dim); border-color: rgba(124,58,237,0.2); }
+
+    .sidebar-nav { flex: 1; padding: 10px 0; }
+    .nav-section { margin-bottom: 2px; }
+    .nav-section-label {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-faint); padding: 8px 20px 3px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px; padding: 6px 20px;
+      cursor: pointer; color: var(--text-secondary); font-size: 13px;
+      transition: background 0.1s, color 0.1s; border-left: 2px solid transparent;
+    }
+    .nav-item:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .nav-item.active { color: var(--brand); border-left-color: var(--brand); background: var(--brand-dim); }
+    .nav-item svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      padding: 12px 20px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0;
+    }
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name { font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { font-size: 10px; color: var(--text-muted); }
+
+    /* ─── Main Content ───────────────────────────────── */
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+
+    /* ─── Topbar ─────────────────────────────────────── */
+    .topbar {
+      height: 44px; background: var(--pg); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 20px; gap: 12px;
+      flex-shrink: 0;
+    }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+    .breadcrumb-part { color: var(--text-muted); cursor: pointer; }
+    .breadcrumb-part:hover { color: var(--text-secondary); }
+    .breadcrumb-sep { color: var(--text-faint); }
+    .breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+    .theme-toggle {
+      width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border);
+      background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); transition: all 0.15s;
+    }
+    .theme-toggle:hover { background: var(--hover-bg); color: var(--text-primary); border-color: var(--text-faint); }
+    .theme-toggle svg { width: 14px; height: 14px; }
+
+    /* ─── View Tabs ──────────────────────────────────── */
+    .view-tabs {
+      height: 40px; background: var(--pg); border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-end; padding: 0 20px;
+      gap: 0; flex-shrink: 0;
+    }
+    .view-tab {
+      padding: 8px 16px; font-size: 13px; font-weight: 500;
+      color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent;
+      display: flex; align-items: center; gap: 6px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .view-tab:hover { color: var(--text-primary); }
+    .view-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+    .view-tab svg { width: 13px; height: 13px; }
+
+    /* ─── Content Area ───────────────────────────────── */
+    .content-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* ─── VIEW PANELS ────────────────────────────────── */
+    .view-panel { display: none; flex: 1; overflow: hidden; }
+    .view-panel.active { display: flex; flex-direction: column; }
+
+    /* ══════════════════════════════════════════════════ */
+    /* TAB 1: TEMPLATE GALLERY                           */
+    /* ══════════════════════════════════════════════════ */
+    .template-gallery {
+      flex: 1; overflow-y: auto; padding: 32px 40px;
+      background: var(--pg);
+    }
+    .gallery-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .gallery-title-group { }
+    .gallery-title { font-size: 22px; font-weight: 700; color: var(--text-emphasis); letter-spacing: -0.03em; }
+    .gallery-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+    .blank-link {
+      font-size: 13px; color: var(--brand); cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+      text-decoration: none;
+    }
+    .blank-link:hover { opacity: 0.8; }
+    .blank-link svg { width: 13px; height: 13px; }
+
+    .template-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .template-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px;
+      cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+      box-shadow: var(--shadow);
+    }
+    .template-card:hover {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 1px var(--brand), 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .template-card-header { margin-bottom: 10px; }
+    .template-card-name { font-size: 14px; font-weight: 600; color: var(--text-emphasis); margin-bottom: 4px; }
+    .template-card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* Mini flow diagram */
+    .mini-flow {
+      display: flex; align-items: center; gap: 0;
+      margin: 14px 0;
+    }
+    .mini-node {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .mini-dot {
+      width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
+    }
+    .mini-label { font-size: 8px; color: var(--text-faint); white-space: nowrap; font-family: 'GeistMono', monospace; }
+    .mini-arrow {
+      width: 16px; height: 1px; background: var(--border);
+      margin-bottom: 10px; position: relative; flex-shrink: 0;
+    }
+    .mini-arrow::after {
+      content: ''; position: absolute; right: -1px; top: -3px;
+      border-left: 4px solid var(--border); border-top: 3px solid transparent; border-bottom: 3px solid transparent;
+    }
+
+    .template-card-footer { display: flex; align-items: center; justify-content: space-between; }
+    .template-usage { font-size: 11px; color: var(--text-faint); }
+    .template-tags { display: flex; gap: 5px; }
+    .template-tag {
+      font-size: 10px; padding: 2px 7px; border-radius: 10px;
+      background: var(--hover-bg); border: 1px solid var(--border);
+      color: var(--text-muted); font-family: 'GeistMono', monospace;
+    }
+    .template-use-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--brand); color: var(--brand); background: var(--brand-dim);
+      cursor: pointer; transition: all 0.15s; margin-top: 14px;
+    }
+    .template-use-btn:hover { background: var(--brand); color: #fff; }
+
+    /* Blank card */
+    .blank-card {
+      background: var(--card); border: 1.5px dashed var(--border);
+      border-radius: 10px; padding: 24px; cursor: pointer;
+      display: flex; align-items: center; gap: 16px;
+      transition: border-color 0.15s;
+      box-shadow: var(--shadow);
+    }
+    .blank-card:hover { border-color: var(--brand); }
+    .blank-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center;
+      color: var(--text-faint);
+    }
+    .blank-icon svg { width: 18px; height: 18px; }
+    .blank-card-text { }
+    .blank-card-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+    .blank-card-desc { font-size: 12px; color: var(--text-muted); }
+
+    /* ══════════════════════════════════════════════════ */
+    /* TAB 2: EDITOR                                     */
+    /* ══════════════════════════════════════════════════ */
+    .editor-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+
+    /* Editor Toolbar */
+    .editor-toolbar {
+      height: 52px; background: var(--card); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 16px; gap: 8px;
+      flex-shrink: 0; box-shadow: var(--shadow);
+    }
+    .workflow-name-input {
+      background: transparent; border: none; outline: none;
+      font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 600;
+      color: var(--text-emphasis); min-width: 0; width: 220px;
+      padding: 4px 8px; border-radius: 5px;
+      transition: background 0.1s;
+    }
+    .workflow-name-input:hover { background: var(--hover-bg); }
+    .workflow-name-input:focus { background: var(--input-bg); outline: 1px solid var(--brand); }
+
+    .toolbar-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+
+    .toolbar-center { display: flex; align-items: center; gap: 2px; }
+
+    .tb-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: 500;
+      color: var(--text-secondary); background: transparent; border: none;
+      cursor: pointer; transition: all 0.1s;
+    }
+    .tb-btn:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .tb-btn.disabled { color: var(--text-faint); cursor: default; pointer-events: none; }
+    .tb-btn svg { width: 13px; height: 13px; }
+
+    .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+    .validate-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-primary); cursor: pointer; transition: all 0.15s;
+    }
+    .validate-btn:hover { border-color: var(--text-faint); background: var(--hover-bg); }
+    .validate-status-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--red); flex-shrink: 0;
+    }
+    .validate-status-dot.valid { background: var(--green); }
+    .validate-label { color: var(--red); font-size: 12px; }
+    .validate-label.valid { color: var(--green); }
+
+    .btn-ghost {
+      padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 500;
+      color: var(--text-secondary); background: transparent; border: none;
+      cursor: pointer; transition: all 0.1s;
+    }
+    .btn-ghost:hover { background: var(--hover-bg); color: var(--text-primary); }
+
+    .btn-brand {
+      padding: 5px 14px; border-radius: 5px; font-size: 12px; font-weight: 600;
+      color: #fff; background: var(--brand); border: none;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-brand:hover { opacity: 0.85; }
+
+    .draft-status { font-size: 11px; color: var(--text-faint); white-space: nowrap; }
+
+    /* Editor body: palette + canvas + properties */
+    .editor-body {
+      flex: 1; display: flex; overflow: hidden; position: relative;
+      min-height: 0;
+    }
+
+    /* ─── Node Palette ───────────────────────────────── */
+    .node-palette {
+      width: 200px; flex-shrink: 0;
+      background: var(--pg); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+      transition: width 0.2s;
+    }
+    .node-palette.collapsed { width: 0; }
+
+    .palette-header {
+      padding: 10px 12px 6px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .palette-search {
+      flex: 1; background: var(--input-bg); border: 1px solid var(--input-border);
+      border-radius: 5px; padding: 5px 8px; font-size: 11px;
+      color: var(--text-primary); font-family: 'Geist', sans-serif; outline: none;
+    }
+    .palette-search::placeholder { color: var(--text-faint); }
+    .palette-search:focus { border-color: var(--brand); }
+    .palette-toggle-btn {
+      width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--border);
+      background: transparent; cursor: pointer; color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.1s;
+    }
+    .palette-toggle-btn:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .palette-toggle-btn svg { width: 12px; height: 12px; }
+
+    .palette-body { flex: 1; overflow-y: auto; padding: 6px 0; }
+
+    .palette-section { margin-bottom: 2px; }
+    .palette-section-label {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-faint);
+      padding: 8px 12px 3px;
+    }
+
+    .palette-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 7px 12px; cursor: grab; position: relative;
+      transition: background 0.1s;
+    }
+    .palette-item:hover { background: var(--hover-bg); }
+    .palette-item:hover .palette-tooltip { opacity: 1; pointer-events: auto; }
+    .palette-item:active { cursor: grabbing; }
+
+    .palette-dot {
+      width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; margin-top: 3px;
+    }
+    .palette-item-icon { flex-shrink: 0; margin-top: 1px; }
+    .palette-item-icon svg { width: 13px; height: 13px; color: var(--text-muted); }
+    .palette-item-text { flex: 1; min-width: 0; }
+    .palette-item-name { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .palette-item-desc { font-size: 10px; color: var(--text-faint); line-height: 1.4; }
+
+    .palette-tooltip {
+      position: absolute; left: calc(100% + 8px); top: 50%; transform: translateY(-50%);
+      background: var(--card); border: 1px solid var(--border); border-radius: 5px;
+      padding: 6px 10px; font-size: 11px; color: var(--text-primary);
+      white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 100;
+    }
+
+    /* ─── Canvas ─────────────────────────────────────── */
+    .canvas-area {
+      flex: 1; position: relative; overflow: hidden;
+      background: var(--canvas);
+      background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .canvas-inner {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    }
+
+    /* SVG connections layer */
+    .connections-svg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; overflow: visible;
+    }
+
+    /* Animated dash keyframe */
+    @keyframes dashFlow {
+      to { stroke-dashoffset: -20; }
+    }
+
+    /* ─── Nodes ──────────────────────────────────────── */
+    .wf-node {
+      position: absolute; width: 200px;
+      background: var(--node-bg); border: 1px solid var(--node-border);
+      border-radius: 8px; cursor: pointer;
+      box-shadow: var(--node-shadow);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      overflow: visible;
+    }
+    .wf-node:hover { border-color: var(--text-faint); }
+    .wf-node.selected {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px var(--brand-glow), var(--node-shadow);
+    }
+    .wf-node.error {
+      border-color: var(--red);
+      box-shadow: 0 0 0 2px rgba(239,68,68,0.15), var(--node-shadow);
+    }
+
+    /* Top accent strip */
+    .node-accent {
+      height: 4px; border-radius: 7px 7px 0 0;
+    }
+    .accent-brand { background: var(--brand); }
+    .accent-gray { background: #555555; }
+    .accent-amber { background: var(--amber); }
+    .accent-red { background: var(--red); }
+    .accent-blue { background: #3b82f6; }
+    [data-theme="light"] .accent-gray { background: #a0a0a0; }
+
+    .node-body { padding: 10px 12px 11px; }
+
+    .node-row1 {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
+    }
+    .node-icon { color: var(--text-muted); flex-shrink: 0; }
+    .node-icon svg { width: 13px; height: 13px; }
+    .node-type-label {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .node-status-icons { margin-left: auto; display: flex; align-items: center; gap: 3px; }
+
+    .node-error-icon {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--red); display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .node-error-icon svg { width: 10px; height: 10px; color: #fff; }
+
+    .node-name {
+      font-size: 13px; font-weight: 600; color: var(--text-emphasis); margin-bottom: 4px;
+    }
+    .node-detail {
+      font-size: 10px; color: var(--text-muted); font-family: 'GeistMono', monospace;
+    }
+    .node-detail-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--hover-bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: 2px 6px;
+      font-size: 10px; font-family: 'GeistMono', monospace; color: var(--text-muted);
+    }
+
+    /* Connection ports */
+    .node-port {
+      position: absolute; width: 10px; height: 10px; border-radius: 50%;
+      background: var(--node-bg); border: 2px solid var(--brand);
+      transition: transform 0.1s;
+    }
+    .node-port:hover { transform: scale(1.3); }
+    .node-port-in { top: -5px; left: 50%; transform: translateX(-50%); }
+    .node-port-out { bottom: -5px; left: 50%; transform: translateX(-50%); }
+    .node-port-out-left { bottom: -5px; left: 30%; transform: translateX(-50%); }
+    .node-port-out-right { bottom: -5px; left: 70%; transform: translateX(-50%); }
+
+    /* Error label beneath node */
+    .node-error-label {
+      position: absolute; bottom: -22px; left: 0; right: 0;
+      text-align: center; font-size: 10px; color: var(--red);
+      font-family: 'GeistMono', monospace; white-space: nowrap;
+      pointer-events: none;
+    }
+
+    /* ─── Floating Validation Panel ──────────────────── */
+    .validation-panel {
+      position: absolute; top: 12px; right: 12px; z-index: 20;
+      background: var(--card); border: 1px solid var(--red);
+      border-radius: 8px; padding: 10px 12px; width: 220px;
+      box-shadow: 0 4px 16px rgba(239,68,68,0.15);
+      pointer-events: auto;
+    }
+    .validation-panel-header {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 9px;
+    }
+    .val-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+    .val-title { font-size: 13px; font-weight: 600; color: var(--text-emphasis); }
+    .val-close {
+      margin-left: auto; cursor: pointer; color: var(--text-faint);
+      width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+      border-radius: 3px;
+    }
+    .val-close:hover { color: var(--text-secondary); background: var(--hover-bg); }
+    .val-close svg { width: 12px; height: 12px; }
+    .val-issue {
+      display: flex; align-items: flex-start; gap: 7px;
+      padding: 6px 8px; border-radius: 5px; cursor: pointer;
+      margin-bottom: 3px; transition: background 0.1s;
+    }
+    .val-issue:hover { background: var(--hover-bg); }
+    .val-issue:last-child { margin-bottom: 0; }
+    .val-issue-icon { color: var(--amber); flex-shrink: 0; margin-top: 1px; }
+    .val-issue-icon svg { width: 12px; height: 12px; }
+    .val-issue-text { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ─── Zoom Controls ──────────────────────────────── */
+    .zoom-controls {
+      position: absolute; bottom: 14px; left: 14px; z-index: 20;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .zoom-btn-group {
+      display: flex; align-items: center;
+      background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+      overflow: hidden; box-shadow: var(--shadow);
+    }
+    .zoom-btn {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-secondary); background: transparent; border: none;
+      transition: all 0.1s;
+    }
+    .zoom-btn:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .zoom-btn svg { width: 13px; height: 13px; }
+    .zoom-sep { width: 1px; height: 20px; background: var(--border); }
+    .zoom-pct {
+      padding: 0 8px; font-size: 11px; font-family: 'GeistMono', monospace;
+      color: var(--text-muted); background: var(--card); border: 1px solid var(--border);
+      border-radius: 5px; height: 30px; line-height: 30px; box-shadow: var(--shadow);
+    }
+    .minimap-toggle {
+      background: var(--card); border: 1px solid var(--border); border-radius: 5px;
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-secondary); transition: all 0.1s;
+      box-shadow: var(--shadow);
+    }
+    .minimap-toggle:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .minimap-toggle svg { width: 13px; height: 13px; }
+
+    /* ─── Minimap ────────────────────────────────────── */
+    .minimap {
+      position: absolute; bottom: 14px; right: 278px; z-index: 20;
+      width: 150px; height: 100px;
+      background: rgba(17,17,19,0.92); border: 1px solid var(--border);
+      border-radius: 7px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    [data-theme="light"] .minimap { background: rgba(255,255,255,0.92); }
+    .minimap-viewport {
+      position: absolute; border: 1.5px solid var(--brand); border-radius: 2px;
+      background: var(--brand-dim);
+      top: 10px; left: 12px; width: 80px; height: 60px;
+    }
+
+    /* Mini nodes in minimap */
+    .mini-node-dot {
+      position: absolute; border-radius: 2px;
+    }
+
+    /* ─── Properties Panel ───────────────────────────── */
+    .properties-panel {
+      width: 260px; flex-shrink: 0;
+      background: var(--pg); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    .props-header {
+      padding: 14px 16px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .props-node-icon-wrap {
+      width: 32px; height: 32px; border-radius: 7px;
+      background: var(--brand-dim); border: 1px solid rgba(16,185,129,0.2);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    [data-theme="light"] .props-node-icon-wrap { background: var(--brand-dim); border-color: rgba(124,58,237,0.2); }
+    .props-node-icon-wrap svg { width: 15px; height: 15px; color: var(--brand); }
+    .props-header-text { flex: 1; }
+    .props-node-type {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--brand); margin-bottom: 1px;
+    }
+    .props-node-name { font-size: 14px; font-weight: 700; color: var(--text-emphasis); }
+    .props-close {
+      width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--border);
+      background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); transition: all 0.1s;
+    }
+    .props-close:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .props-close svg { width: 12px; height: 12px; }
+
+    .props-accent { height: 3px; background: var(--brand); }
+
+    .props-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+
+    .props-section { margin-bottom: 18px; }
+    .props-section-label {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.09em;
+      text-transform: uppercase; color: var(--text-faint);
+      margin-bottom: 10px; padding-bottom: 5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .props-field { margin-bottom: 10px; }
+    .props-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .props-input {
+      width: 100%; background: var(--input-bg); border: 1px solid var(--input-border);
+      border-radius: 5px; padding: 6px 9px; font-size: 12px;
+      color: var(--text-primary); font-family: 'Geist', sans-serif; outline: none;
+    }
+    .props-input:focus { border-color: var(--brand); }
+    .props-textarea {
+      width: 100%; background: var(--input-bg); border: 1px solid var(--input-border);
+      border-radius: 5px; padding: 6px 9px; font-size: 12px;
+      color: var(--text-primary); font-family: 'Geist', sans-serif; outline: none;
+      resize: none; height: 52px; line-height: 1.5;
+    }
+    .props-textarea:focus { border-color: var(--brand); }
+    .props-select {
+      width: 100%; background: var(--input-bg); border: 1px solid var(--input-border);
+      border-radius: 5px; padding: 6px 9px; font-size: 12px;
+      color: var(--text-primary); font-family: 'Geist', sans-serif; outline: none;
+      appearance: none; cursor: pointer;
+    }
+    .props-select:focus { border-color: var(--brand); }
+
+    /* Tag expression builder */
+    .tag-expr {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+      background: var(--input-bg); border: 1px solid var(--input-border);
+      border-radius: 5px; padding: 6px 8px; min-height: 34px;
+    }
+    .tag-pill {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: var(--hover-bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: 2px 8px;
+      font-size: 11px; font-family: 'GeistMono', monospace; color: var(--text-primary);
+    }
+    .tag-op {
+      font-size: 10px; font-weight: 700; color: var(--text-faint);
+      text-transform: uppercase; padding: 0 2px;
+    }
+    .tag-add {
+      font-size: 11px; color: var(--brand); cursor: pointer;
+    }
+    .tag-add:hover { opacity: 0.7; }
+
+    .matched-count {
+      display: flex; align-items: center; gap: 5px;
+      margin-top: 5px; font-size: 11px; color: var(--text-muted);
+    }
+    .matched-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--brand); }
+
+    /* Toggle */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+    .toggle-label { font-size: 12px; color: var(--text-secondary); }
+    .toggle-switch {
+      position: relative; width: 32px; height: 18px; flex-shrink: 0; cursor: pointer;
+    }
+    .toggle-switch input { display: none; }
+    .toggle-track {
+      position: absolute; inset: 0; border-radius: 9px;
+      background: var(--border); transition: background 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-track { background: var(--brand); }
+    .toggle-thumb {
+      position: absolute; top: 2px; left: 2px;
+      width: 14px; height: 14px; border-radius: 50%; background: #fff;
+      transition: left 0.2s; pointer-events: none;
+    }
+    .toggle-switch input:checked ~ .toggle-thumb { left: 16px; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .props-footer {
+      padding: 12px 16px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .props-node-id {
+      font-size: 10px; color: var(--text-faint); font-family: 'GeistMono', monospace;
+    }
+    .delete-node-btn {
+      font-size: 12px; color: var(--red); background: none; border: none;
+      cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: background 0.1s;
+    }
+    .delete-node-btn:hover { background: var(--red-dim); }
+
+    /* ─── Status Bar ─────────────────────────────────── */
+    .status-bar {
+      height: 28px; background: var(--card); border-top: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 20px; gap: 0;
+      flex-shrink: 0;
+    }
+    .status-item {
+      font-size: 11px; color: var(--text-muted); font-family: 'GeistMono', monospace;
+      padding: 0 10px; border-right: 1px solid var(--border);
+    }
+    .status-item:first-child { padding-left: 0; }
+    .status-item:last-child { border-right: none; }
+    .status-item.error { color: var(--red); }
+    .status-item.selected { color: var(--brand); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══════════ SIDEBAR ═══════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <span class="logo-text">PatchIQ</span>
+      <span class="logo-badge">M3</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Overview</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Infrastructure</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Endpoints
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Tags
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          Patches
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Operations</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+          Deployments
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Policies
+        </div>
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16 10,8"/></svg>
+          Workflows
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Security</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          CVEs
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Compliance
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Platform</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          Audit
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 19.07a10 10 0 010-14.14"/></svg>
+          Settings
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar">H</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Heramb S.</div>
+        <div class="sidebar-user-role">Admin</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════ MAIN ═══════════ -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span class="breadcrumb-part">Operations</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-part">Workflows</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current">Critical Patch Pipeline</span>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- View Tabs -->
+    <div class="view-tabs">
+      <div class="view-tab" id="tab-templates" onclick="switchTab('templates')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Templates
+      </div>
+      <div class="view-tab active" id="tab-editor" onclick="switchTab('editor')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16 10,8"/></svg>
+        Editor
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-area">
+
+      <!-- ────── TAB 1: TEMPLATE GALLERY ────── -->
+      <div class="view-panel" id="panel-templates">
+        <div class="template-gallery">
+          <div class="gallery-header">
+            <div class="gallery-title-group">
+              <div class="gallery-title">Start from a template</div>
+              <div class="gallery-subtitle">Choose a pre-built workflow or build from scratch</div>
+            </div>
+            <a class="blank-link" onclick="switchTab('editor')">
+              Start blank
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+            </a>
+          </div>
+
+          <div class="template-grid">
+
+            <!-- Template 1 -->
+            <div class="template-card">
+              <div class="template-card-header">
+                <div class="template-card-name">Standard Deployment</div>
+                <div class="template-card-desc">Filter patches → Get approval → Deploy in waves → Verify compliance</div>
+              </div>
+              <div class="mini-flow">
+                <div class="mini-node"><div class="mini-dot" style="background:var(--brand)"></div><div class="mini-label">Trigger</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Filter</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:var(--amber)"></div><div class="mini-label">Approve</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Wave 1</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Wave 2</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#22c55e"></div><div class="mini-label">Done</div></div>
+              </div>
+              <div class="template-card-footer">
+                <span class="template-usage">Used by 3 policies</span>
+                <div class="template-tags">
+                  <span class="template-tag">deployment</span>
+                  <span class="template-tag">approval</span>
+                </div>
+              </div>
+              <button class="template-use-btn" onclick="switchTab('editor')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+                Use Template
+              </button>
+            </div>
+
+            <!-- Template 2 -->
+            <div class="template-card">
+              <div class="template-card-header">
+                <div class="template-card-name">Critical Fast-Track</div>
+                <div class="template-card-desc">Auto-deploy critical patches without approval. Immediate notification.</div>
+              </div>
+              <div class="mini-flow">
+                <div class="mini-node"><div class="mini-dot" style="background:var(--brand)"></div><div class="mini-label">Trigger</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Filter</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Deploy</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Notify</div></div>
+              </div>
+              <div class="template-card-footer">
+                <span class="template-usage">Used by 1 policy</span>
+                <div class="template-tags">
+                  <span class="template-tag">critical</span>
+                  <span class="template-tag">auto-deploy</span>
+                </div>
+              </div>
+              <button class="template-use-btn" onclick="switchTab('editor')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+                Use Template
+              </button>
+            </div>
+
+            <!-- Template 3 -->
+            <div class="template-card">
+              <div class="template-card-header">
+                <div class="template-card-name">Canary Rollout</div>
+                <div class="template-card-desc">Deploy to 5% first, wait 24h, then deploy to the rest.</div>
+              </div>
+              <div class="mini-flow">
+                <div class="mini-node"><div class="mini-dot" style="background:var(--brand)"></div><div class="mini-label">Trigger</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Filter</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">5%</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:var(--amber)"></div><div class="mini-label">Gate</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">95%</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Verify</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#22c55e"></div><div class="mini-label">Done</div></div>
+              </div>
+              <div class="template-card-footer">
+                <span class="template-usage">Used by 0 policies</span>
+                <div class="template-tags">
+                  <span class="template-tag">staged</span>
+                  <span class="template-tag">safe</span>
+                </div>
+              </div>
+              <button class="template-use-btn" onclick="switchTab('editor')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+                Use Template
+              </button>
+            </div>
+
+            <!-- Template 4 -->
+            <div class="template-card">
+              <div class="template-card-header">
+                <div class="template-card-name">Compliance Remediation</div>
+                <div class="template-card-desc">Auto-fix failing compliance controls with targeted patches.</div>
+              </div>
+              <div class="mini-flow">
+                <div class="mini-node"><div class="mini-dot" style="background:var(--brand)"></div><div class="mini-label">Fail Evt</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Filter</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Deploy</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Re-eval</div></div>
+                <div class="mini-arrow"></div>
+                <div class="mini-node"><div class="mini-dot" style="background:#555"></div><div class="mini-label">Alert</div></div>
+              </div>
+              <div class="template-card-footer">
+                <span class="template-usage">Used by 2 policies</span>
+                <div class="template-tags">
+                  <span class="template-tag">compliance</span>
+                  <span class="template-tag">auto-fix</span>
+                </div>
+              </div>
+              <button class="template-use-btn" onclick="switchTab('editor')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+                Use Template
+              </button>
+            </div>
+
+          </div><!-- /template-grid -->
+
+          <!-- Blank card -->
+          <div class="blank-card" onclick="switchTab('editor')">
+            <div class="blank-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <div class="blank-card-text">
+              <div class="blank-card-name">Blank workflow</div>
+              <div class="blank-card-desc">Start from scratch with an empty canvas</div>
+            </div>
+          </div>
+
+        </div><!-- /template-gallery -->
+      </div><!-- /panel-templates -->
+
+      <!-- ────── TAB 2: EDITOR ────── -->
+      <div class="view-panel active" id="panel-editor">
+
+        <!-- Editor Toolbar -->
+        <div class="editor-toolbar">
+          <input class="workflow-name-input" type="text" value="Critical Patch Pipeline" />
+          <div class="toolbar-divider"></div>
+          <div class="toolbar-center">
+            <button class="tb-btn" onclick="switchTab('templates')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              Templates
+            </button>
+            <button class="tb-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Auto Layout
+            </button>
+            <button class="tb-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,14 4,14 4,19"/><path d="M20 9a9 9 0 00-9-9 9.75 9.75 0 00-6.74 2.74L4 14"/></svg>
+              Undo
+            </button>
+            <button class="tb-btn disabled">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,14 20,14 20,19"/><path d="M4 9a9 9 0 019-9 9.75 9.75 0 016.74 2.74L20 14"/></svg>
+              Redo
+            </button>
+          </div>
+          <div class="toolbar-right">
+            <button class="validate-btn">
+              <div class="validate-status-dot"></div>
+              <span class="validate-label">2 errors</span>
+            </button>
+            <div class="toolbar-divider"></div>
+            <button class="btn-ghost">Save Draft</button>
+            <button class="btn-brand">Publish</button>
+            <div class="toolbar-divider"></div>
+            <span class="draft-status">Draft · Saved 2m ago</span>
+          </div>
+        </div><!-- /editor-toolbar -->
+
+        <!-- Editor Body -->
+        <div class="editor-body">
+
+          <!-- ── Node Palette ── -->
+          <div class="node-palette" id="node-palette">
+            <div class="palette-header">
+              <input class="palette-search" type="text" placeholder="Search nodes…" />
+              <button class="palette-toggle-btn" onclick="togglePalette()" title="Collapse palette">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg>
+              </button>
+            </div>
+            <div class="palette-body">
+
+              <!-- TRIGGERS -->
+              <div class="palette-section">
+                <div class="palette-section-label">Triggers</div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:var(--brand)"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Schedule</div>
+                    <div class="palette-item-desc">Run on a schedule</div>
+                  </div>
+                  <div class="palette-tooltip">Run on a cron schedule</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:var(--brand)"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">CVE Trigger</div>
+                    <div class="palette-item-desc">When new CVEs detected</div>
+                  </div>
+                  <div class="palette-tooltip">Fires when CVE feeds update</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:var(--brand)"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 00-2-2v0a2 2 0 00-2 2v0M14 10V4a2 2 0 00-2-2v0a2 2 0 00-2 2v2M10 10.5V6a2 2 0 00-2-2v0a2 2 0 00-2 2v8"/><path d="M18 11a2 2 0 114 0v3a8 8 0 01-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 012.83-2.82L7 15"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Manual</div>
+                    <div class="palette-item-desc">Manually triggered</div>
+                  </div>
+                  <div class="palette-tooltip">Triggered by user action</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:var(--brand)"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Policy Trigger</div>
+                    <div class="palette-item-desc">When policy evaluates</div>
+                  </div>
+                  <div class="palette-tooltip">On policy evaluation event</div>
+                </div>
+              </div>
+
+              <!-- LOGIC -->
+              <div class="palette-section">
+                <div class="palette-section-label">Logic</div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:#666"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Filter</div>
+                    <div class="palette-item-desc">Narrow patch scope</div>
+                  </div>
+                  <div class="palette-tooltip">Filter patches by criteria</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:var(--amber)"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 01-9 9"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Decision</div>
+                    <div class="palette-item-desc">Branch on condition</div>
+                  </div>
+                  <div class="palette-tooltip">Conditional branching</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:var(--amber)"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Gate</div>
+                    <div class="palette-item-desc">Wait for condition/time</div>
+                  </div>
+                  <div class="palette-tooltip">Pause until condition met</div>
+                </div>
+              </div>
+
+              <!-- ACTIONS -->
+              <div class="palette-section">
+                <div class="palette-section-label">Actions</div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:#666"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Deploy Wave</div>
+                    <div class="palette-item-desc">Deploy to endpoint group</div>
+                  </div>
+                  <div class="palette-tooltip">Rolling deployment wave</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:#666"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16,18 22,12 16,6"/><polyline points="8,6 2,12 8,18"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Script</div>
+                    <div class="palette-item-desc">Run custom script</div>
+                  </div>
+                  <div class="palette-tooltip">Execute shell/PowerShell script</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:#666"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Reboot</div>
+                    <div class="palette-item-desc">Restart endpoints</div>
+                  </div>
+                  <div class="palette-tooltip">Graceful or forced reboot</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:#666"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9,12 11,14 15,10"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Compliance Check</div>
+                    <div class="palette-item-desc">Evaluate compliance</div>
+                  </div>
+                  <div class="palette-tooltip">Re-evaluate compliance state</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:#666"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Notification</div>
+                    <div class="palette-item-desc">Send alert</div>
+                  </div>
+                  <div class="palette-tooltip">Email, Slack, webhook</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:#666"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Tag Gate</div>
+                    <div class="palette-item-desc">Check endpoint tags</div>
+                  </div>
+                  <div class="palette-tooltip">Filter by tag expression</div>
+                </div>
+              </div>
+
+              <!-- TERMINAL -->
+              <div class="palette-section">
+                <div class="palette-section-label">Terminal</div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:#666"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Complete</div>
+                    <div class="palette-item-desc">End workflow</div>
+                  </div>
+                  <div class="palette-tooltip">Marks workflow as done</div>
+                </div>
+                <div class="palette-item">
+                  <div class="palette-dot" style="background:var(--red)"></div>
+                  <div class="palette-item-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2l18 20M9.6 9.6A3 3 0 0012 18a3 3 0 002.4-4.8"/><path d="M14 18v2a2 2 0 01-4 0v-2"/></svg>
+                  </div>
+                  <div class="palette-item-text">
+                    <div class="palette-item-name">Rollback</div>
+                    <div class="palette-item-desc">Undo deployment</div>
+                  </div>
+                  <div class="palette-tooltip">Reverts deployed patches</div>
+                </div>
+              </div>
+
+            </div><!-- /palette-body -->
+          </div><!-- /node-palette -->
+
+          <!-- ── Canvas ── -->
+          <div class="canvas-area" id="canvas">
+            <div class="canvas-inner" id="canvas-inner">
+
+              <!-- SVG Connections -->
+              <svg class="connections-svg" id="connections-svg">
+                <defs>
+                  <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L8,3 z" fill="var(--conn-line)"/>
+                  </marker>
+                  <marker id="arrow-brand" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L8,3 z" fill="var(--brand)"/>
+                  </marker>
+                </defs>
+                <!-- Connections rendered by JS -->
+              </svg>
+
+              <!-- ── NODES ── -->
+
+              <!-- Node 1: Schedule Trigger -->
+              <div class="wf-node" id="node-1" style="left:200px; top:50px" onclick="selectNode('node-1')">
+                <div class="node-accent accent-brand"></div>
+                <div class="node-body">
+                  <div class="node-row1">
+                    <div class="node-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                    </div>
+                    <span class="node-type-label">Schedule Trigger</span>
+                    <div class="node-status-icons">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>
+                    </div>
+                  </div>
+                  <div class="node-name">Run Schedule</div>
+                  <div class="node-detail">Every 6h · weekdays</div>
+                </div>
+                <div class="node-port node-port-out" data-node="node-1" data-side="out"></div>
+              </div>
+
+              <!-- Node 2: Filter -->
+              <div class="wf-node" id="node-2" style="left:200px; top:190px" onclick="selectNode('node-2')">
+                <div class="node-accent accent-gray"></div>
+                <div class="node-body">
+                  <div class="node-row1">
+                    <div class="node-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/></svg>
+                    </div>
+                    <span class="node-type-label">Filter</span>
+                  </div>
+                  <div class="node-name">Critical CVEs Only</div>
+                  <div class="node-detail">severity ≥ critical</div>
+                </div>
+                <div class="node-port node-port-in" data-node="node-2" data-side="in"></div>
+                <div class="node-port node-port-out" data-node="node-2" data-side="out"></div>
+              </div>
+
+              <!-- Node 3: Approval (ERROR) -->
+              <div class="wf-node error" id="node-3" style="left:200px; top:330px" onclick="selectNode('node-3')">
+                <div class="node-accent accent-amber"></div>
+                <div class="node-body">
+                  <div class="node-row1">
+                    <div class="node-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                    </div>
+                    <span class="node-type-label">Approval Gate</span>
+                    <div class="node-status-icons">
+                      <div class="node-error-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="node-name">Security Lead Approval</div>
+                  <div class="node-detail" style="color:var(--red)">No approver configured</div>
+                </div>
+                <div class="node-port node-port-in" data-node="node-3" data-side="in"></div>
+                <div class="node-port node-port-out-left" data-node="node-3" data-side="out-left"></div>
+                <div class="node-port node-port-out-right" data-node="node-3" data-side="out-right"></div>
+                <div class="node-error-label">Missing: approver not configured</div>
+              </div>
+
+              <!-- Node 4: Deploy Wave 1 (SELECTED) -->
+              <div class="wf-node selected" id="node-4" style="left:60px; top:490px" onclick="selectNode('node-4')">
+                <div class="node-accent accent-brand"></div>
+                <div class="node-body">
+                  <div class="node-row1">
+                    <div class="node-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                    <span class="node-type-label">Deploy Wave</span>
+                    <div class="node-status-icons">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--brand)"></div>
+                    </div>
+                  </div>
+                  <div class="node-name">Staging Rollout</div>
+                  <div class="node-detail">env:staging · 25% · rolling</div>
+                </div>
+                <div class="node-port node-port-in" data-node="node-4" data-side="in"></div>
+                <div class="node-port node-port-out" data-node="node-4" data-side="out"></div>
+              </div>
+
+              <!-- Node 5: Notification Slack -->
+              <div class="wf-node" id="node-5" style="left:350px; top:490px" onclick="selectNode('node-5')">
+                <div class="node-accent accent-gray"></div>
+                <div class="node-body">
+                  <div class="node-row1">
+                    <div class="node-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                    </div>
+                    <span class="node-type-label">Notification</span>
+                  </div>
+                  <div class="node-name">Slack Alert</div>
+                  <div class="node-detail">#security-ops channel</div>
+                </div>
+                <div class="node-port node-port-in" data-node="node-5" data-side="in"></div>
+              </div>
+
+              <!-- Node 6: Gate (ERROR) -->
+              <div class="wf-node error" id="node-6" style="left:60px; top:640px" onclick="selectNode('node-6')">
+                <div class="node-accent accent-amber"></div>
+                <div class="node-body">
+                  <div class="node-row1">
+                    <div class="node-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                    </div>
+                    <span class="node-type-label">Gate</span>
+                    <div class="node-status-icons">
+                      <div class="node-error-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="node-name">Soak Gate</div>
+                  <div class="node-detail" style="color:var(--red)">timeout not set</div>
+                </div>
+                <div class="node-port node-port-in" data-node="node-6" data-side="in"></div>
+                <div class="node-port node-port-out" data-node="node-6" data-side="out"></div>
+                <div class="node-error-label">Missing: timeout not set</div>
+              </div>
+
+              <!-- Node 7: Deploy Wave 2 -->
+              <div class="wf-node" id="node-7" style="left:60px; top:790px" onclick="selectNode('node-7')">
+                <div class="node-accent accent-gray"></div>
+                <div class="node-body">
+                  <div class="node-row1">
+                    <div class="node-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                    <span class="node-type-label">Deploy Wave</span>
+                  </div>
+                  <div class="node-name">Production Rollout</div>
+                  <div class="node-detail">env:production · 75%</div>
+                </div>
+                <div class="node-port node-port-in" data-node="node-7" data-side="in"></div>
+                <div class="node-port node-port-out" data-node="node-7" data-side="out"></div>
+              </div>
+
+              <!-- Node 8: Complete -->
+              <div class="wf-node" id="node-8" style="left:60px; top:940px" onclick="selectNode('node-8')">
+                <div class="node-accent accent-gray"></div>
+                <div class="node-body">
+                  <div class="node-row1">
+                    <div class="node-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                    </div>
+                    <span class="node-type-label">Terminal</span>
+                    <div class="node-status-icons">
+                      <div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>
+                    </div>
+                  </div>
+                  <div class="node-name">Workflow Complete</div>
+                  <div class="node-detail">emit completion event</div>
+                </div>
+                <div class="node-port node-port-in" data-node="node-8" data-side="in"></div>
+              </div>
+
+            </div><!-- /canvas-inner -->
+
+            <!-- Validation Panel (floating, top-right) -->
+            <div class="validation-panel" id="validation-panel">
+              <div class="validation-panel-header">
+                <div class="val-dot"></div>
+                <span class="val-title">2 Issues</span>
+                <div class="val-close" onclick="closeValidationPanel()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+              </div>
+              <div class="val-issue" onclick="selectNode('node-3')">
+                <div class="val-issue-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div class="val-issue-text"><strong>Approval node:</strong> No approver configured</div>
+              </div>
+              <div class="val-issue" onclick="selectNode('node-6')">
+                <div class="val-issue-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div class="val-issue-text"><strong>Gate node:</strong> Timeout not specified</div>
+              </div>
+            </div>
+
+            <!-- Zoom Controls (bottom-left) -->
+            <div class="zoom-controls">
+              <div class="zoom-btn-group">
+                <button class="zoom-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <div class="zoom-sep"></div>
+                <button class="zoom-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <div class="zoom-sep"></div>
+                <button class="zoom-btn" title="Fit to screen">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                </button>
+              </div>
+              <div class="zoom-pct">75%</div>
+              <div class="minimap-toggle" onclick="toggleMinimap()" title="Toggle minimap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+              </div>
+            </div>
+
+            <!-- Minimap (bottom-right of canvas, above status bar) -->
+            <div class="minimap" id="minimap">
+              <!-- Mini node dots -->
+              <div class="mini-node-dot" style="width:18px;height:6px;background:var(--brand);opacity:0.8;top:15px;left:22px;"></div>
+              <div class="mini-node-dot" style="width:18px;height:5px;background:#555;opacity:0.7;top:24px;left:22px;"></div>
+              <div class="mini-node-dot" style="width:18px;height:5px;background:var(--amber);opacity:0.8;top:33px;left:22px;border:1px solid var(--red);"></div>
+              <div class="mini-node-dot" style="width:15px;height:5px;background:#555;opacity:0.7;top:44px;left:15px;border:2px solid var(--brand);"></div>
+              <div class="mini-node-dot" style="width:15px;height:5px;background:#555;opacity:0.7;top:44px;left:50px;"></div>
+              <div class="mini-node-dot" style="width:15px;height:5px;background:var(--amber);opacity:0.8;top:54px;left:15px;border:1px solid var(--red);"></div>
+              <div class="mini-node-dot" style="width:15px;height:5px;background:#555;opacity:0.7;top:64px;left:15px;"></div>
+              <div class="mini-node-dot" style="width:15px;height:5px;background:#22c55e;opacity:0.8;top:74px;left:15px;"></div>
+              <!-- Viewport rect -->
+              <div class="minimap-viewport"></div>
+            </div>
+
+          </div><!-- /canvas-area -->
+
+          <!-- ── Properties Panel ── -->
+          <div class="properties-panel" id="properties-panel">
+            <div class="props-header">
+              <div class="props-node-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+              <div class="props-header-text">
+                <div class="props-node-type">Deploy Wave</div>
+                <div class="props-node-name">Staging Rollout</div>
+              </div>
+              <button class="props-close" onclick="deselectNode()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div class="props-accent"></div>
+
+            <div class="props-body">
+
+              <!-- CONFIGURATION -->
+              <div class="props-section">
+                <div class="props-section-label">Configuration</div>
+                <div class="props-field">
+                  <div class="props-label">Name</div>
+                  <input class="props-input" type="text" value="Staging Rollout" />
+                </div>
+                <div class="props-field">
+                  <div class="props-label">Description</div>
+                  <textarea class="props-textarea">Deploy to staging environment first</textarea>
+                </div>
+              </div>
+
+              <!-- TARGETING -->
+              <div class="props-section">
+                <div class="props-section-label">Targeting</div>
+                <div class="props-field">
+                  <div class="props-label">Tag Expression</div>
+                  <div class="tag-expr">
+                    <span class="tag-pill">env:staging</span>
+                    <span class="tag-op">AND</span>
+                    <span class="tag-pill">priority:critical</span>
+                    <span class="tag-add">+ Add</span>
+                  </div>
+                  <div class="matched-count">
+                    <div class="matched-dot"></div>
+                    47 endpoints matched
+                  </div>
+                </div>
+              </div>
+
+              <!-- DEPLOYMENT -->
+              <div class="props-section">
+                <div class="props-section-label">Deployment</div>
+                <div class="props-field">
+                  <div class="props-label">Strategy</div>
+                  <select class="props-select">
+                    <option selected>Rolling</option>
+                    <option>Big Bang</option>
+                    <option>Canary</option>
+                  </select>
+                </div>
+                <div class="two-col">
+                  <div class="props-field">
+                    <div class="props-label">Batch Size</div>
+                    <input class="props-input" type="text" value="25%" />
+                  </div>
+                  <div class="props-field">
+                    <div class="props-label">Timeout</div>
+                    <input class="props-input" type="text" value="4h" />
+                  </div>
+                </div>
+                <div class="props-field">
+                  <div class="toggle-row">
+                    <span class="toggle-label">Auto-rollback</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" checked />
+                      <div class="toggle-track"></div>
+                      <div class="toggle-thumb"></div>
+                    </label>
+                  </div>
+                </div>
+                <div class="props-field">
+                  <div class="props-label">Failure Threshold</div>
+                  <input class="props-input" type="text" value="10%" />
+                </div>
+              </div>
+
+              <!-- SCHEDULING -->
+              <div class="props-section">
+                <div class="props-section-label">Scheduling</div>
+                <div class="props-field">
+                  <div class="toggle-row">
+                    <span class="toggle-label">Maintenance Window</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" checked />
+                      <div class="toggle-track"></div>
+                      <div class="toggle-thumb"></div>
+                    </label>
+                  </div>
+                </div>
+                <div class="props-field">
+                  <div class="props-label">Window</div>
+                  <input class="props-input" type="text" value="Sat 02:00–06:00 UTC" style="font-family:'GeistMono',monospace;font-size:11px;" />
+                </div>
+              </div>
+
+            </div><!-- /props-body -->
+
+            <div class="props-footer">
+              <span class="props-node-id">wf-node-004</span>
+              <button class="delete-node-btn">Delete Node</button>
+            </div>
+          </div><!-- /properties-panel -->
+
+        </div><!-- /editor-body -->
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span class="status-item">9 nodes</span>
+          <span class="status-item">8 connections</span>
+          <span class="status-item error">2 errors</span>
+          <span class="status-item selected">Deploy Wave 1 selected</span>
+          <span class="status-item">Est. runtime: ~30h</span>
+        </div>
+
+      </div><!-- /panel-editor -->
+
+    </div><!-- /content-area -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+  /* ─── Theme Toggle ─────────────────────────────── */
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-icon-moon').style.display = isDark ? 'none' : '';
+    document.getElementById('theme-icon-sun').style.display = isDark ? '' : 'none';
+    // Re-render connections after theme change
+    setTimeout(renderConnections, 50);
+  }
+
+  /* ─── Tab Switching ────────────────────────────── */
+  function switchTab(tab) {
+    ['templates', 'editor'].forEach(t => {
+      document.getElementById('panel-' + t).classList.remove('active');
+      document.getElementById('tab-' + t).classList.remove('active');
+    });
+    document.getElementById('panel-' + tab).classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'editor') {
+      setTimeout(renderConnections, 50);
+    }
+  }
+
+  /* ─── Palette Collapse ─────────────────────────── */
+  let paletteCollapsed = false;
+  function togglePalette() {
+    paletteCollapsed = !paletteCollapsed;
+    const palette = document.getElementById('node-palette');
+    palette.classList.toggle('collapsed', paletteCollapsed);
+    setTimeout(renderConnections, 220);
+  }
+
+  /* ─── Minimap Toggle ───────────────────────────── */
+  let minimapVisible = true;
+  function toggleMinimap() {
+    minimapVisible = !minimapVisible;
+    const mm = document.getElementById('minimap');
+    mm.style.display = minimapVisible ? '' : 'none';
+  }
+
+  /* ─── Validation Panel ─────────────────────────── */
+  function closeValidationPanel() {
+    document.getElementById('validation-panel').style.display = 'none';
+  }
+
+  /* ─── Node Selection ───────────────────────────── */
+  let selectedNodeId = 'node-4';
+
+  function selectNode(id) {
+    // Deselect all
+    document.querySelectorAll('.wf-node').forEach(n => {
+      if (!n.classList.contains('error')) {
+        n.classList.remove('selected');
+      } else {
+        n.classList.remove('selected');
+      }
+    });
+    // Select new
+    const el = document.getElementById(id);
+    if (el) el.classList.add('selected');
+    selectedNodeId = id;
+    renderConnections();
+
+    // Show properties panel (simplified — always shows Deploy Wave 1 data for demo)
+    document.getElementById('properties-panel').style.display = '';
+  }
+
+  function deselectNode() {
+    document.querySelectorAll('.wf-node').forEach(n => n.classList.remove('selected'));
+    selectedNodeId = null;
+    document.getElementById('properties-panel').style.display = 'none';
+    renderConnections();
+  }
+
+  /* ─── Connection Rendering ─────────────────────── */
+  // Define edges: [fromNodeId, fromSide, toNodeId]
+  // fromSide: 'out', 'out-left', 'out-right'
+  const EDGES = [
+    ['node-1', 'out',       'node-2', 'in'],
+    ['node-2', 'out',       'node-3', 'in'],
+    ['node-3', 'out-left',  'node-4', 'in'],
+    ['node-3', 'out-right', 'node-5', 'in'],
+    ['node-4', 'out',       'node-6', 'in'],
+    ['node-6', 'out',       'node-7', 'in'],
+    ['node-7', 'out',       'node-8', 'in'],
+  ];
+
+  function getPortCenter(nodeId, side) {
+    const node = document.getElementById(nodeId);
+    if (!node) return null;
+    const canvas = document.getElementById('canvas');
+    const canvasRect = canvas.getBoundingClientRect();
+    const nodeRect = node.getBoundingClientRect();
+
+    const nLeft = nodeRect.left - canvasRect.left;
+    const nTop = nodeRect.top - canvasRect.top;
+    const nW = nodeRect.width;
+    const nH = nodeRect.height;
+
+    if (side === 'in') {
+      return { x: nLeft + nW / 2, y: nTop };
+    } else if (side === 'out') {
+      return { x: nLeft + nW / 2, y: nTop + nH };
+    } else if (side === 'out-left') {
+      return { x: nLeft + nW * 0.3, y: nTop + nH };
+    } else if (side === 'out-right') {
+      return { x: nLeft + nW * 0.7, y: nTop + nH };
+    }
+    return null;
+  }
+
+  function renderConnections() {
+    const svg = document.getElementById('connections-svg');
+    if (!svg) return;
+    // Clear existing paths
+    svg.querySelectorAll('.conn-path').forEach(p => p.remove());
+
+    EDGES.forEach(([fromId, fromSide, toId, toSide]) => {
+      const from = getPortCenter(fromId, fromSide);
+      const to = getPortCenter(toId, toSide || 'in');
+      if (!from || !to) return;
+
+      const dx = 0;
+      const dy = Math.abs(to.y - from.y) * 0.5;
+      const c1x = from.x + dx;
+      const c1y = from.y + dy;
+      const c2x = to.x + dx;
+      const c2y = to.y - dy;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const d = `M ${from.x} ${from.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${to.x} ${to.y}`;
+      path.setAttribute('d', d);
+      path.classList.add('conn-path');
+
+      const isSelected = (fromId === selectedNodeId || toId === selectedNodeId);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', isSelected ? 'var(--brand)' : 'var(--conn-line)');
+      path.setAttribute('stroke-width', isSelected ? '2' : '1.5');
+      path.setAttribute('stroke-dasharray', '6 3');
+      path.setAttribute('marker-end', isSelected ? 'url(#arrow-brand)' : 'url(#arrow)');
+      path.style.animation = 'dashFlow 3s linear infinite';
+      path.style.animationPlayState = 'running';
+
+      svg.appendChild(path);
+    });
+  }
+
+  /* ─── Init ─────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    // Start with Editor tab active (already set in HTML)
+    // Show properties for default selected node
+    selectNode('node-4');
+    // Render connections after layout settles
+    setTimeout(renderConnections, 100);
+    // Re-render on window resize
+    window.addEventListener('resize', renderConnections);
+  });
+
+  // Also render after fonts load
+  if (document.fonts) {
+    document.fonts.ready.then(() => setTimeout(renderConnections, 50));
+  }
+</script>
+</body>
+</html>

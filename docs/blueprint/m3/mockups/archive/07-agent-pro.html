@@ -1,0 +1,2411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Agent — System Monitor</title>
+<style>
+@font-face {
+  font-family: 'Geist';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+}
+@font-face {
+  font-family: 'GeistMono';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #09090b;
+  --surface: #18181b;
+  --border: #27272a;
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --dim: #71717a;
+  --teal: #14b8a6;
+  --emerald: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --topbar: 56px;
+  --rail: 56px;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Geist', -apple-system, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+mono, .mono { font-family: 'GeistMono', 'Fira Code', monospace; }
+
+/* ─── TOP BAR ─── */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar);
+  background: rgba(9,9,11,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px 0 0;
+  z-index: 100;
+  gap: 0;
+}
+
+.topbar-brand {
+  width: var(--rail);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shield-icon {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--teal) 0%, #0d9488 100%);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  display: none;
+}
+
+.brand-agent {
+  color: var(--teal);
+}
+
+.topbar-spacer { flex: 1; }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.conn-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.conn-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 6px var(--emerald);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--emerald); }
+  50% { opacity: 0.7; box-shadow: 0 0 10px var(--emerald); }
+}
+
+.hostname-badge {
+  font-family: 'GeistMono', monospace;
+  font-size: 11px;
+  background: #1c1c1f;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: var(--teal);
+  letter-spacing: 0.02em;
+}
+
+/* ─── LAYOUT ─── */
+.layout {
+  display: flex;
+  height: 100vh;
+  padding-top: var(--topbar);
+}
+
+/* ─── ICON RAIL ─── */
+.rail {
+  width: var(--rail);
+  flex-shrink: 0;
+  background: rgba(24,24,27,0.5);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  position: fixed;
+  top: var(--topbar);
+  left: 0;
+  bottom: 0;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.rail-items-top { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+.rail-items-bottom { display: flex; flex-direction: column; align-items: center; gap: 2px; padding-bottom: 8px; }
+
+.rail-item {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  color: #71717a;
+}
+
+.rail-item:hover { background: #27272a; color: #d4d4d8; }
+
+.rail-item.active {
+  color: var(--teal);
+}
+
+.rail-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--teal);
+  border-radius: 0 2px 2px 0;
+}
+
+.rail-item svg { width: 18px; height: 18px; }
+
+.rail-tooltip {
+  position: absolute;
+  left: calc(100% + 10px);
+  background: #27272a;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 200;
+  border: 1px solid var(--border);
+}
+
+.rail-item:hover .rail-tooltip {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.rail-divider {
+  width: 24px;
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ─── MAIN CONTENT ─── */
+.main {
+  flex: 1;
+  margin-left: var(--rail);
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.card-subtitle {
+  font-size: 11px;
+  color: var(--dim);
+  margin-left: auto;
+}
+
+.card-body { padding: 14px 16px; }
+
+/* ─── STATUS KPI BAR ─── */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+}
+
+.status-orb-section {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.status-orb-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.orb-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(20,184,166,0.35), rgba(20,184,166,0.08) 60%, transparent 80%);
+  animation: orb-pulse 3s ease-in-out infinite;
+}
+
+@keyframes orb-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.04); }
+}
+
+.orb-ring {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(20,184,166,0.25);
+}
+
+.orb-inner {
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #1ffadc, var(--teal) 50%, #0d7a72);
+  box-shadow: 0 0 16px rgba(20,184,166,0.6), 0 0 32px rgba(20,184,166,0.2);
+  animation: orb-inner-pulse 3s ease-in-out infinite;
+}
+
+@keyframes orb-inner-pulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(20,184,166,0.6), 0 0 32px rgba(20,184,166,0.2); }
+  50% { box-shadow: 0 0 24px rgba(20,184,166,0.8), 0 0 48px rgba(20,184,166,0.3); }
+}
+
+.status-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.status-label .status-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: -0.01em;
+}
+
+.status-label .status-sub {
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.kpi-divider {
+  width: 1px;
+  height: 60px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.kpi-cell {
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 90px;
+}
+
+.kpi-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.kpi-value-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kpi-value {
+  font-family: 'GeistMono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.kpi-value.amber { color: var(--amber); }
+.kpi-value.teal { color: var(--teal); }
+
+/* Mini ring gauge */
+.mini-ring {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+/* Network KPI */
+.kpi-net {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.kpi-net-row {
+  font-family: 'GeistMono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kpi-net-arrow { color: var(--teal); }
+
+.uptime-section {
+  margin-left: auto;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.uptime-val {
+  font-family: 'GeistMono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.uptime-label {
+  font-size: 10px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ─── TWO-COLUMN ─── */
+.two-col {
+  display: grid;
+  grid-template-columns: 60fr 40fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.left-col, .right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ─── SYSTEM RESOURCES ─── */
+.resource-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.resource-section:last-child { border-bottom: none; }
+
+.resource-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.resource-gauge-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.resource-gauge-label {
+  font-size: 10px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.resource-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+.resource-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.resource-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* CPU Cores */
+.cpu-cores {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 32px;
+}
+
+.core-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.core-bar {
+  width: 8px;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.8s ease;
+  background: var(--teal);
+}
+
+.core-bar.warm { background: #3b82f6; }
+.core-bar.hot { background: var(--amber); }
+
+.cpu-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cpu-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cpu-meta-key {
+  font-size: 10px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cpu-meta-val {
+  font-family: 'GeistMono', monospace;
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* Memory */
+.mem-bar-wrap {
+  margin: 4px 0;
+}
+
+.mem-stacked-bar {
+  height: 10px;
+  border-radius: 3px;
+  display: flex;
+  overflow: hidden;
+  background: #27272a;
+}
+
+.mem-seg-used { background: #3b82f6; }
+.mem-seg-cached { background: var(--teal); opacity: 0.7; }
+.mem-seg-free { background: #27272a; }
+
+.mem-legend {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.mem-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.mem-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.mem-totals {
+  font-family: 'GeistMono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mem-total-dim { color: var(--dim); }
+
+.swap-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.swap-val { font-family: 'GeistMono', monospace; color: var(--muted); }
+
+/* Disk */
+.disk-rows { display: flex; flex-direction: column; gap: 8px; }
+
+.disk-row { display: flex; flex-direction: column; gap: 3px; }
+
+.disk-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.disk-mount {
+  font-family: 'GeistMono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.disk-usage-text {
+  font-family: 'GeistMono', monospace;
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.disk-bar-track {
+  height: 5px;
+  background: #27272a;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.disk-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--emerald);
+}
+
+.disk-bar-fill.warn { background: var(--amber); }
+
+.disk-iops {
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.disk-iops-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.disk-iops-val {
+  font-family: 'GeistMono', monospace;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Network section */
+.net-interfaces { display: flex; flex-direction: column; gap: 10px; }
+
+.net-iface {
+  background: #1c1c1f;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 12px;
+}
+
+.net-iface-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.net-iface-name {
+  font-family: 'GeistMono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.net-active-badge {
+  font-size: 9px;
+  font-weight: 600;
+  background: rgba(20,184,166,0.15);
+  color: var(--teal);
+  border: 1px solid rgba(20,184,166,0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.net-ip {
+  font-family: 'GeistMono', monospace;
+  font-size: 11px;
+  color: var(--dim);
+  margin-left: auto;
+}
+
+.net-stats-row {
+  display: flex;
+  gap: 16px;
+}
+
+.net-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.net-stat-key {
+  font-size: 10px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.net-stat-val {
+  font-family: 'GeistMono', monospace;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.bw-chart { margin-top: 8px; }
+
+/* ─── PATCH STATUS ─── */
+.patch-bar-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+
+.patch-summary-bar {
+  height: 12px;
+  border-radius: 4px;
+  display: flex;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.patch-seg-installed { background: var(--emerald); }
+.patch-seg-pending { background: var(--amber); }
+.patch-seg-failed { background: #3f3f46; }
+
+.patch-bar-legend {
+  display: flex;
+  gap: 16px;
+}
+
+.patch-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.patch-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.patch-legend-count {
+  font-family: 'GeistMono', monospace;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.patch-groups { padding: 0; }
+
+.patch-severity-group { border-bottom: 1px solid var(--border); }
+.patch-severity-group:last-child { border-bottom: none; }
+
+.patch-severity-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.patch-severity-header:hover { background: rgba(255,255,255,0.02); }
+
+.severity-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.severity-badge.critical {
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.3);
+}
+
+.severity-badge.high {
+  background: rgba(245,158,11,0.15);
+  color: var(--amber);
+  border: 1px solid rgba(245,158,11,0.3);
+}
+
+.severity-badge.medium {
+  background: rgba(234,179,8,0.1);
+  color: #eab308;
+  border: 1px solid rgba(234,179,8,0.25);
+}
+
+.patch-group-count {
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.patch-group-chevron {
+  margin-left: auto;
+  color: var(--dim);
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.patch-group-chevron.open { transform: rotate(180deg); }
+
+.patch-items { display: flex; flex-direction: column; }
+
+.patch-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-top: 1px solid rgba(39,39,42,0.6);
+  transition: background 0.1s;
+}
+
+.patch-item:hover { background: rgba(255,255,255,0.02); }
+
+.patch-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patch-cve {
+  font-family: 'GeistMono', monospace;
+  font-size: 11px;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.cvss-badge {
+  font-family: 'GeistMono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.cvss-badge.critical {
+  background: rgba(239,68,68,0.2);
+  color: #ef4444;
+}
+
+.cvss-badge.high {
+  background: rgba(245,158,11,0.2);
+  color: var(--amber);
+}
+
+.install-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(20,184,166,0.5);
+  background: rgba(20,184,166,0.1);
+  color: var(--teal);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.install-btn:hover {
+  background: rgba(20,184,166,0.2);
+  border-color: var(--teal);
+}
+
+/* ─── SECURITY POSTURE ─── */
+.compliance-rings {
+  display: flex;
+  gap: 0;
+  justify-content: space-around;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.compliance-ring-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.compliance-ring-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.compliance-ring-pct {
+  font-family: 'GeistMono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.failing-controls { padding: 10px 16px; }
+
+.failing-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.control-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(39,39,42,0.5);
+}
+
+.control-item:last-child { border-bottom: none; }
+
+.fw-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.fw-cis { background: rgba(20,184,166,0.15); color: var(--teal); border: 1px solid rgba(20,184,166,0.25); }
+.fw-pci { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+.fw-nist { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
+
+.control-info { flex: 1; min-width: 0; }
+
+.control-id {
+  font-family: 'GeistMono', monospace;
+  font-size: 10px;
+  color: var(--dim);
+  margin-bottom: 1px;
+}
+
+.control-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.control-status {
+  font-size: 10px;
+  font-weight: 600;
+  color: #ef4444;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.next-eval {
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.next-eval-val {
+  font-family: 'GeistMono', monospace;
+  color: var(--muted);
+}
+
+/* ─── ACTIVITY FEED ─── */
+.activity-list { display: flex; flex-direction: column; }
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 16px;
+  border-bottom: 1px solid rgba(39,39,42,0.4);
+  transition: background 0.1s;
+}
+
+.activity-item:hover { background: rgba(255,255,255,0.015); }
+.activity-item:last-child { border-bottom: none; }
+
+.activity-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.activity-dot.green { background: var(--emerald); box-shadow: 0 0 4px var(--emerald); }
+.activity-dot.amber { background: var(--amber); }
+.activity-dot.red { background: var(--red); }
+.activity-dot.blue { background: var(--blue); }
+.activity-dot.teal { background: var(--teal); }
+
+.activity-time {
+  font-family: 'GeistMono', monospace;
+  font-size: 10px;
+  color: var(--dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.activity-text {
+  font-size: 11px;
+  color: var(--muted);
+  flex: 1;
+  line-height: 1.4;
+}
+
+.activity-cat-badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cat-patch { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+.cat-security { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+.cat-system { background: rgba(99,102,241,0.1); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+.cat-network { background: rgba(20,184,166,0.1); color: var(--teal); border: 1px solid rgba(20,184,166,0.2); }
+
+.activity-scroll-hint {
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 10px;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* ─── QUICK ACTIONS ─── */
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.action-btn {
+  height: 56px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: #1c1c1f;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  letter-spacing: 0.01em;
+}
+
+.action-btn svg { width: 16px; height: 16px; }
+
+.action-btn:hover {
+  background: #27272a;
+  color: var(--text);
+  border-color: #3f3f46;
+}
+
+.action-btn.primary {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+.action-btn.primary:hover {
+  background: #0d9488;
+  border-color: #0d9488;
+}
+
+.action-btn.outline {
+  border-color: rgba(20,184,166,0.4);
+  color: var(--teal);
+  background: rgba(20,184,166,0.06);
+}
+
+.action-btn.outline:hover {
+  background: rgba(20,184,166,0.12);
+  border-color: var(--teal);
+}
+
+.action-btn.future {
+  opacity: 0.5;
+}
+
+/* ─── SERVICE MONITOR ─── */
+.service-table-wrap {
+  overflow-x: auto;
+}
+
+.service-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.service-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.service-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(39,39,42,0.4);
+  white-space: nowrap;
+}
+
+.service-table tr:last-child td { border-bottom: none; }
+
+.service-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+.svc-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.svc-status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.svc-status-dot.running { background: var(--emerald); box-shadow: 0 0 4px var(--emerald); }
+.svc-status-dot.stopped { background: #52525b; }
+
+.svc-cpu-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.svc-bar-track {
+  width: 60px;
+  height: 4px;
+  background: #27272a;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.svc-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--teal);
+}
+
+.svc-bar-fill.med { background: #3b82f6; }
+.svc-bar-fill.low-cpu { background: #3f3f46; }
+
+.svc-mono {
+  font-family: 'GeistMono', monospace;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.svc-pid { color: var(--dim); }
+
+.service-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.svc-count {
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.svc-link {
+  font-size: 11px;
+  color: var(--teal);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.svc-link:hover { color: #5eead4; }
+
+/* ─── SVG SPARKLINE HELPERS ─── */
+.sparkline { display: block; }
+
+/* ─── RING GAUGE SVG ─── */
+.ring-gauge { transform: rotate(-90deg); }
+
+/* ─── FUTURE BADGE ─── */
+.future-pill {
+  font-size: 9px;
+  font-weight: 600;
+  background: rgba(113,113,122,0.2);
+  color: var(--dim);
+  border: 1px solid rgba(113,113,122,0.3);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* Animations */
+@keyframes core-animate {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ TOP BAR ═══════════ -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">
+      <div class="shield-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L3 7v6c0 5.25 3.75 10.15 9 11.35C17.25 23.15 21 18.25 21 13V7L12 2z" fill="white" opacity="0.9"/>
+          <path d="M9 12l2 2 4-4" stroke="#14b8a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-right">
+    <div class="conn-indicator">
+      <div class="conn-dot"></div>
+      Connected
+    </div>
+    <div class="hostname-badge">garage.internal</div>
+  </div>
+</div>
+
+<!-- ═══════════ LAYOUT ═══════════ -->
+<div class="layout">
+
+  <!-- ═══════════ ICON RAIL ═══════════ -->
+  <nav class="rail">
+    <div class="rail-items-top">
+
+      <!-- Overview -->
+      <div class="rail-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <span class="rail-tooltip">Overview</span>
+      </div>
+
+      <!-- Patches -->
+      <div class="rail-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+        <span class="rail-tooltip">Patches</span>
+      </div>
+
+      <!-- Hardware -->
+      <div class="rail-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
+          <rect x="9" y="9" width="6" height="6"/>
+          <line x1="9" y1="1" x2="9" y2="4"/>
+          <line x1="15" y1="1" x2="15" y2="4"/>
+          <line x1="9" y1="20" x2="9" y2="23"/>
+          <line x1="15" y1="20" x2="15" y2="23"/>
+          <line x1="20" y1="9" x2="23" y2="9"/>
+          <line x1="20" y1="14" x2="23" y2="14"/>
+          <line x1="1" y1="9" x2="4" y2="9"/>
+          <line x1="1" y1="14" x2="4" y2="14"/>
+        </svg>
+        <span class="rail-tooltip">Hardware</span>
+      </div>
+
+      <!-- Software -->
+      <div class="rail-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        <span class="rail-tooltip">Software</span>
+      </div>
+
+      <!-- Services -->
+      <div class="rail-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+          <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+          <line x1="6" y1="6" x2="6.01" y2="6"/>
+          <line x1="6" y1="18" x2="6.01" y2="18"/>
+        </svg>
+        <span class="rail-tooltip">Services</span>
+      </div>
+
+      <div class="rail-divider"></div>
+
+      <!-- Network — future -->
+      <div class="rail-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>
+        </svg>
+        <span class="rail-tooltip">Network</span>
+      </div>
+
+      <!-- Security — future -->
+      <div class="rail-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="rail-tooltip">Security</span>
+      </div>
+
+      <div class="rail-divider"></div>
+
+      <!-- History -->
+      <div class="rail-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="rail-tooltip">History</span>
+      </div>
+
+      <!-- Logs -->
+      <div class="rail-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span class="rail-tooltip">Logs</span>
+      </div>
+
+    </div>
+
+    <div class="rail-items-bottom">
+      <!-- Settings -->
+      <div class="rail-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span class="rail-tooltip">Settings</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════ MAIN CONTENT ═══════════ -->
+  <main class="main">
+
+    <!-- ─── SYSTEM STATUS KPI BAR ─── -->
+    <div class="card">
+      <div class="status-bar">
+
+        <!-- Orb + Status -->
+        <div class="status-orb-section">
+          <div class="status-orb-wrap">
+            <div class="orb-glow"></div>
+            <div class="orb-ring"></div>
+            <div class="orb-inner"></div>
+          </div>
+          <div class="status-label">
+            <span class="status-text">Healthy</span>
+            <span class="status-sub">All systems nominal</span>
+          </div>
+        </div>
+
+        <div class="kpi-divider"></div>
+
+        <!-- CPU -->
+        <div class="kpi-cell">
+          <span class="kpi-label">CPU</span>
+          <div class="kpi-value-row">
+            <svg class="mini-ring" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="13" fill="none" stroke="#27272a" stroke-width="3"/>
+              <circle cx="17" cy="17" r="13" fill="none" stroke="#14b8a6" stroke-width="3"
+                stroke-dasharray="81.7" stroke-dashoffset="63" stroke-linecap="round"
+                class="ring-gauge"/>
+            </svg>
+            <span class="kpi-value mono">23%</span>
+          </div>
+        </div>
+
+        <div class="kpi-divider"></div>
+
+        <!-- Memory -->
+        <div class="kpi-cell">
+          <span class="kpi-label">Memory</span>
+          <div class="kpi-value-row">
+            <svg class="mini-ring" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="13" fill="none" stroke="#27272a" stroke-width="3"/>
+              <circle cx="17" cy="17" r="13" fill="none" stroke="#3b82f6" stroke-width="3"
+                stroke-dasharray="81.7" stroke-dashoffset="26.9" stroke-linecap="round"
+                class="ring-gauge"/>
+            </svg>
+            <span class="kpi-value mono">67%</span>
+          </div>
+        </div>
+
+        <div class="kpi-divider"></div>
+
+        <!-- Disk -->
+        <div class="kpi-cell">
+          <span class="kpi-label">Disk</span>
+          <div class="kpi-value-row">
+            <svg class="mini-ring" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="13" fill="none" stroke="#27272a" stroke-width="3"/>
+              <circle cx="17" cy="17" r="13" fill="none" stroke="#f59e0b" stroke-width="3"
+                stroke-dasharray="81.7" stroke-dashoffset="16.3" stroke-linecap="round"
+                class="ring-gauge"/>
+            </svg>
+            <span class="kpi-value mono amber">82%</span>
+          </div>
+        </div>
+
+        <div class="kpi-divider"></div>
+
+        <!-- Network -->
+        <div class="kpi-cell" style="min-width:130px;">
+          <span class="kpi-label">Network</span>
+          <div class="kpi-net">
+            <div class="kpi-net-row">
+              <span class="kpi-net-arrow">↑</span>
+              <span class="mono" style="font-size:12px;color:var(--text);">2.4 MB/s</span>
+            </div>
+            <div class="kpi-net-row">
+              <span class="kpi-net-arrow" style="color:#3b82f6;">↓</span>
+              <span class="mono" style="font-size:12px;color:var(--text);">12.1 MB/s</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-divider"></div>
+
+        <!-- Patches -->
+        <div class="kpi-cell">
+          <span class="kpi-label">Patches</span>
+          <div class="kpi-value-row">
+            <span class="kpi-value mono amber">12</span>
+            <span style="font-size:11px;color:var(--dim);">pending</span>
+          </div>
+        </div>
+
+        <div class="kpi-divider"></div>
+
+        <!-- Compliance -->
+        <div class="kpi-cell">
+          <span class="kpi-label">Compliance</span>
+          <div class="kpi-value-row">
+            <svg class="mini-ring" viewBox="0 0 34 34">
+              <circle cx="17" cy="17" r="13" fill="none" stroke="#27272a" stroke-width="3"/>
+              <circle cx="17" cy="17" r="13" fill="none" stroke="#14b8a6" stroke-width="3"
+                stroke-dasharray="81.7" stroke-dashoffset="8.2" stroke-linecap="round"
+                class="ring-gauge"/>
+            </svg>
+            <span class="kpi-value mono teal">96%</span>
+          </div>
+        </div>
+
+        <!-- Uptime -->
+        <div class="uptime-section">
+          <span class="uptime-val mono">14d 6h</span>
+          <span class="uptime-label">Uptime</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── TWO-COLUMN SECTION ─── -->
+    <div class="two-col">
+
+      <!-- LEFT COLUMN -->
+      <div class="left-col">
+
+        <!-- Card: System Resources -->
+        <div class="card">
+          <div class="card-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="4" width="16" height="16" rx="2"/>
+              <rect x="9" y="9" width="6" height="6"/>
+              <line x1="9" y1="1" x2="9" y2="4"/>
+              <line x1="15" y1="1" x2="15" y2="4"/>
+              <line x1="9" y1="20" x2="9" y2="23"/>
+              <line x1="15" y1="20" x2="15" y2="23"/>
+              <line x1="20" y1="9" x2="23" y2="9"/>
+              <line x1="20" y1="14" x2="23" y2="14"/>
+              <line x1="1" y1="9" x2="4" y2="9"/>
+              <line x1="1" y1="14" x2="4" y2="14"/>
+            </svg>
+            <span class="card-title">System Resources</span>
+            <span class="card-subtitle">Live · 1s refresh</span>
+          </div>
+
+          <!-- CPU -->
+          <div class="resource-section">
+            <div class="resource-row">
+              <div class="resource-gauge-wrap">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#27272a" stroke-width="6"/>
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#14b8a6" stroke-width="6"
+                    stroke-dasharray="201.1" stroke-dashoffset="154.8" stroke-linecap="round"
+                    transform="rotate(-90 40 40)"/>
+                  <text x="40" y="37" text-anchor="middle" fill="#fafafa" font-family="GeistMono,monospace" font-size="14" font-weight="700">23%</text>
+                  <text x="40" y="52" text-anchor="middle" fill="#71717a" font-family="Geist,sans-serif" font-size="9" font-weight="500">CPU</text>
+                </svg>
+                <span class="resource-gauge-label">Processor</span>
+              </div>
+
+              <div class="resource-info">
+                <!-- Per-core bars -->
+                <div>
+                  <div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:600;">Per Core Usage</div>
+                  <div class="cpu-cores" id="cpuCores">
+                    <!-- Generated by JS below -->
+                  </div>
+                </div>
+
+                <div class="cpu-meta">
+                  <div class="cpu-meta-item">
+                    <span class="cpu-meta-key">Model</span>
+                    <span class="cpu-meta-val">AMD EPYC 7763</span>
+                  </div>
+                  <div class="cpu-meta-item">
+                    <span class="cpu-meta-key">Cores</span>
+                    <span class="cpu-meta-val">8 / 16</span>
+                  </div>
+                  <div class="cpu-meta-item">
+                    <span class="cpu-meta-key">Temp</span>
+                    <span class="cpu-meta-val" style="color:#10b981;">42°C</span>
+                  </div>
+                  <div class="cpu-meta-item">
+                    <span class="cpu-meta-key">Freq</span>
+                    <span class="cpu-meta-val">3.2 GHz</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Memory -->
+          <div class="resource-section">
+            <div class="resource-row" style="align-items:flex-start;">
+              <div class="resource-gauge-wrap" style="padding-top:4px;">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#27272a" stroke-width="6"/>
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="#3b82f6" stroke-width="6"
+                    stroke-dasharray="201.1" stroke-dashoffset="66.4" stroke-linecap="round"
+                    transform="rotate(-90 40 40)"/>
+                  <text x="40" y="37" text-anchor="middle" fill="#fafafa" font-family="GeistMono,monospace" font-size="14" font-weight="700">67%</text>
+                  <text x="40" y="52" text-anchor="middle" fill="#71717a" font-family="Geist,sans-serif" font-size="9" font-weight="500">MEM</text>
+                </svg>
+                <span class="resource-gauge-label">Memory</span>
+              </div>
+
+              <div class="resource-info" style="padding-top:4px;">
+                <div class="mem-totals">
+                  <span>21.4 GB</span>
+                  <span class="mem-total-dim">/ 32 GB</span>
+                </div>
+
+                <div class="mem-bar-wrap">
+                  <div class="mem-stacked-bar">
+                    <div class="mem-seg-used" style="width:40%;"></div>
+                    <div class="mem-seg-cached" style="width:27%;"></div>
+                    <div class="mem-seg-free" style="flex:1;"></div>
+                  </div>
+                </div>
+
+                <div class="mem-legend">
+                  <div class="mem-legend-item">
+                    <div class="mem-legend-dot" style="background:#3b82f6;"></div>
+                    App <strong style="font-family:'GeistMono',monospace;color:var(--text);margin-left:4px;">12.8 GB</strong>
+                  </div>
+                  <div class="mem-legend-item">
+                    <div class="mem-legend-dot" style="background:var(--teal);opacity:0.7;"></div>
+                    Cached <strong style="font-family:'GeistMono',monospace;color:var(--text);margin-left:4px;">8.6 GB</strong>
+                  </div>
+                  <div class="mem-legend-item">
+                    <div class="mem-legend-dot" style="background:#3f3f46;"></div>
+                    Free <strong style="font-family:'GeistMono',monospace;color:var(--text);margin-left:4px;">10.6 GB</strong>
+                  </div>
+                </div>
+
+                <div class="swap-row">
+                  <span>Swap:</span>
+                  <span class="swap-val">0 / 4 GB</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Disk -->
+          <div class="resource-section">
+            <div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:10px;">Storage</div>
+            <div class="disk-rows">
+              <div class="disk-row">
+                <div class="disk-row-header">
+                  <span class="disk-mount">/</span>
+                  <span class="disk-usage-text">410 / 500 GB</span>
+                  <span class="disk-usage-text" style="margin-left:8px;color:var(--amber);">82%</span>
+                </div>
+                <div class="disk-bar-track">
+                  <div class="disk-bar-fill warn" style="width:82%;"></div>
+                </div>
+              </div>
+              <div class="disk-row">
+                <div class="disk-row-header">
+                  <span class="disk-mount">/data</span>
+                  <span class="disk-usage-text">280 / 1000 GB</span>
+                  <span class="disk-usage-text" style="margin-left:8px;color:var(--emerald);">28%</span>
+                </div>
+                <div class="disk-bar-track">
+                  <div class="disk-bar-fill" style="width:28%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="disk-iops">
+              <div class="disk-iops-item">
+                <span>Read IOPS:</span>
+                <span class="disk-iops-val">1.2k</span>
+                <svg width="40" height="16" viewBox="0 0 40 16" class="sparkline">
+                  <polyline points="0,13 5,10 10,11 15,8 20,9 25,6 30,7 35,4 40,5" fill="none" stroke="#14b8a6" stroke-width="1.5" opacity="0.7"/>
+                </svg>
+              </div>
+              <div class="disk-iops-item">
+                <span>Write IOPS:</span>
+                <span class="disk-iops-val">340</span>
+                <svg width="40" height="16" viewBox="0 0 40 16" class="sparkline">
+                  <polyline points="0,10 5,12 10,9 15,11 20,8 25,10 30,9 35,11 40,10" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.7"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Network -->
+          <div class="resource-section" style="border-bottom:none;">
+            <div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:10px;">Network Interfaces</div>
+            <div class="net-interfaces">
+
+              <div class="net-iface">
+                <div class="net-iface-header">
+                  <span class="net-iface-name">eth0</span>
+                  <span class="net-active-badge">Primary</span>
+                  <span class="net-ip">10.0.1.47 / 24</span>
+                </div>
+                <div class="net-stats-row">
+                  <div class="net-stat">
+                    <span class="net-stat-key">TX</span>
+                    <span class="net-stat-val">2.4 MB/s</span>
+                  </div>
+                  <div class="net-stat">
+                    <span class="net-stat-key">RX</span>
+                    <span class="net-stat-val">12.1 MB/s</span>
+                  </div>
+                  <div class="net-stat">
+                    <span class="net-stat-key">Packets TX</span>
+                    <span class="net-stat-val">18,432</span>
+                  </div>
+                  <div class="net-stat">
+                    <span class="net-stat-key">Errors</span>
+                    <span class="net-stat-val" style="color:var(--emerald);">0</span>
+                  </div>
+                </div>
+                <div class="bw-chart">
+                  <svg width="100%" height="36" viewBox="0 0 300 36" preserveAspectRatio="none" class="sparkline">
+                    <defs>
+                      <linearGradient id="rxGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="#14b8a6" stop-opacity="0.03"/>
+                      </linearGradient>
+                      <linearGradient id="txGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.03"/>
+                      </linearGradient>
+                    </defs>
+                    <!-- RX area -->
+                    <path d="M0,30 C20,28 40,24 60,20 C80,16 100,22 120,18 C140,14 160,10 180,8 C200,6 220,12 240,9 C260,6 280,4 300,5 L300,36 L0,36 Z"
+                      fill="url(#rxGrad)"/>
+                    <path d="M0,30 C20,28 40,24 60,20 C80,16 100,22 120,18 C140,14 160,10 180,8 C200,6 220,12 240,9 C260,6 280,4 300,5"
+                      fill="none" stroke="#14b8a6" stroke-width="1.5" opacity="0.8"/>
+                    <!-- TX area -->
+                    <path d="M0,34 C20,33 40,32 60,31 C80,30 100,31 120,30 C140,29 160,28 180,27 C200,26 220,28 240,27 C260,26 280,25 300,26 L300,36 L0,36 Z"
+                      fill="url(#txGrad)"/>
+                    <path d="M0,34 C20,33 40,32 60,31 C80,30 100,31 120,30 C140,29 160,28 180,27 C200,26 220,28 240,27 C260,26 280,25 300,26"
+                      fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.6"/>
+                  </svg>
+                  <div style="display:flex;gap:12px;margin-top:2px;">
+                    <span style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:3px;">
+                      <span style="display:inline-block;width:12px;height:2px;background:#14b8a6;border-radius:1px;"></span> RX
+                    </span>
+                    <span style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:3px;">
+                      <span style="display:inline-block;width:12px;height:2px;background:#3b82f6;border-radius:1px;"></span> TX
+                    </span>
+                    <span style="font-size:9px;color:var(--dim);margin-left:auto;">Last 1h</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="net-iface" style="opacity:0.6;">
+                <div class="net-iface-header">
+                  <span class="net-iface-name">lo</span>
+                  <span style="font-size:9px;background:#27272a;color:var(--dim);border-radius:4px;padding:1px 6px;border:1px solid var(--border);">Loopback</span>
+                  <span class="net-ip">127.0.0.1</span>
+                </div>
+                <div class="net-stats-row">
+                  <div class="net-stat">
+                    <span class="net-stat-key">TX</span>
+                    <span class="net-stat-val">0 B/s</span>
+                  </div>
+                  <div class="net-stat">
+                    <span class="net-stat-key">RX</span>
+                    <span class="net-stat-val">0 B/s</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Patch Status -->
+        <div class="card">
+          <div class="card-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            <span class="card-title">Patch Status</span>
+            <span class="card-subtitle">Last scan: 47m ago</span>
+          </div>
+
+          <div class="patch-bar-section">
+            <div class="patch-summary-bar">
+              <div class="patch-seg-installed" style="width:99.5%;"></div>
+              <div class="patch-seg-pending" style="width:0.45%;"></div>
+              <div class="patch-seg-failed" style="width:0.05%;"></div>
+            </div>
+            <div class="patch-bar-legend">
+              <div class="patch-legend-item">
+                <div class="patch-legend-dot" style="background:var(--emerald);"></div>
+                Installed <span class="patch-legend-count">2,627</span>
+              </div>
+              <div class="patch-legend-item">
+                <div class="patch-legend-dot" style="background:var(--amber);"></div>
+                Pending <span class="patch-legend-count" style="color:var(--amber);">12</span>
+              </div>
+              <div class="patch-legend-item">
+                <div class="patch-legend-dot" style="background:#3f3f46;"></div>
+                Failed <span class="patch-legend-count" style="color:var(--dim);">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="patch-groups">
+
+            <!-- Critical group - expanded -->
+            <div class="patch-severity-group">
+              <div class="patch-severity-header">
+                <span class="severity-badge critical">Critical</span>
+                <span class="patch-group-count">3 patches</span>
+                <svg class="patch-group-chevron open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+              <div class="patch-items">
+                <div class="patch-item">
+                  <span class="patch-name">linux-kernel-security</span>
+                  <span class="patch-cve">CVE-2024-1086</span>
+                  <span class="cvss-badge critical">9.8</span>
+                  <button class="install-btn">Install</button>
+                </div>
+                <div class="patch-item">
+                  <span class="patch-name">openssl</span>
+                  <span class="patch-cve">CVE-2024-5535</span>
+                  <span class="cvss-badge critical">9.1</span>
+                  <button class="install-btn">Install</button>
+                </div>
+                <div class="patch-item">
+                  <span class="patch-name">glibc</span>
+                  <span class="patch-cve">CVE-2023-6246</span>
+                  <span class="cvss-badge critical">8.4</span>
+                  <button class="install-btn">Install</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- High group - collapsed -->
+            <div class="patch-severity-group">
+              <div class="patch-severity-header">
+                <span class="severity-badge high">High</span>
+                <span class="patch-group-count">4 patches</span>
+                <svg class="patch-group-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Medium group - collapsed -->
+            <div class="patch-severity-group">
+              <div class="patch-severity-header">
+                <span class="severity-badge medium">Medium</span>
+                <span class="patch-group-count">5 patches</span>
+                <svg class="patch-group-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+
+        <!-- Card: Security Posture -->
+        <div class="card">
+          <div class="card-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span class="card-title">Security Posture</span>
+          </div>
+
+          <div class="compliance-rings">
+            <!-- CIS -->
+            <div class="compliance-ring-cell">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#27272a" stroke-width="6"/>
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#14b8a6" stroke-width="6"
+                  stroke-dasharray="201.1" stroke-dashoffset="8.0" stroke-linecap="round"
+                  transform="rotate(-90 40 40)"/>
+                <text x="40" y="37" text-anchor="middle" fill="#fafafa" font-family="GeistMono,monospace" font-size="14" font-weight="700">96%</text>
+                <text x="40" y="52" text-anchor="middle" fill="#71717a" font-family="Geist,sans-serif" font-size="9">CIS L2</text>
+              </svg>
+              <span class="compliance-ring-label">CIS</span>
+            </div>
+            <!-- PCI -->
+            <div class="compliance-ring-cell">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#27272a" stroke-width="6"/>
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#3b82f6" stroke-width="6"
+                  stroke-dasharray="201.1" stroke-dashoffset="16.1" stroke-linecap="round"
+                  transform="rotate(-90 40 40)"/>
+                <text x="40" y="37" text-anchor="middle" fill="#fafafa" font-family="GeistMono,monospace" font-size="14" font-weight="700">92%</text>
+                <text x="40" y="52" text-anchor="middle" fill="#71717a" font-family="Geist,sans-serif" font-size="9">PCI-DSS</text>
+              </svg>
+              <span class="compliance-ring-label">PCI</span>
+            </div>
+            <!-- NIST -->
+            <div class="compliance-ring-cell">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#27272a" stroke-width="6"/>
+                <circle cx="40" cy="40" r="32" fill="none" stroke="#a855f7" stroke-width="6"
+                  stroke-dasharray="201.1" stroke-dashoffset="24.1" stroke-linecap="round"
+                  transform="rotate(-90 40 40)"/>
+                <text x="40" y="37" text-anchor="middle" fill="#fafafa" font-family="GeistMono,monospace" font-size="14" font-weight="700">88%</text>
+                <text x="40" y="52" text-anchor="middle" fill="#71717a" font-family="Geist,sans-serif" font-size="9">NIST</text>
+              </svg>
+              <span class="compliance-ring-label">NIST</span>
+            </div>
+          </div>
+
+          <div class="failing-controls">
+            <div class="failing-title">3 controls failing</div>
+
+            <div class="control-item">
+              <span class="fw-badge fw-cis">CIS</span>
+              <div class="control-info">
+                <div class="control-id">5.2.4</div>
+                <div class="control-desc">SSH MaxAuthTries not configured</div>
+              </div>
+              <span class="control-status">FAIL</span>
+            </div>
+
+            <div class="control-item">
+              <span class="fw-badge fw-pci">PCI</span>
+              <div class="control-info">
+                <div class="control-id">2.2.1</div>
+                <div class="control-desc">Password complexity below threshold</div>
+              </div>
+              <span class="control-status">FAIL</span>
+            </div>
+
+            <div class="control-item">
+              <span class="fw-badge fw-nist">NIST</span>
+              <div class="control-info">
+                <div class="control-id">AC-2(4)</div>
+                <div class="control-desc">Audit logging not enabled for sudo</div>
+              </div>
+              <span class="control-status">FAIL</span>
+            </div>
+          </div>
+
+          <div class="next-eval">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Next evaluation:
+            <span class="next-eval-val">4h 22m</span>
+          </div>
+        </div>
+
+        <!-- Card: Activity Feed -->
+        <div class="card">
+          <div class="card-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            <span class="card-title">Activity Feed</span>
+            <span class="card-subtitle">Live</span>
+          </div>
+
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-dot teal"></div>
+              <span class="activity-time">14:32:07</span>
+              <span class="activity-text">Heartbeat sent to PatchIQ server</span>
+              <span class="activity-cat-badge cat-system">System</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot amber"></div>
+              <span class="activity-time">14:28:41</span>
+              <span class="activity-text">New critical patch available: linux-kernel-security</span>
+              <span class="activity-cat-badge cat-patch">Patch</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <span class="activity-time">14:15:03</span>
+              <span class="activity-text">Compliance scan completed — 96% CIS score</span>
+              <span class="activity-cat-badge cat-security">Security</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot blue"></div>
+              <span class="activity-time">13:58:22</span>
+              <span class="activity-text">Network interface eth0 link speed: 10Gbps</span>
+              <span class="activity-cat-badge cat-network">Network</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <span class="activity-time">13:45:11</span>
+              <span class="activity-text">Patch installed: curl 8.7.1 → 8.8.0</span>
+              <span class="activity-cat-badge cat-patch">Patch</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot amber"></div>
+              <span class="activity-time">13:40:00</span>
+              <span class="activity-text">Disk / at 82% capacity — threshold warning</span>
+              <span class="activity-cat-badge cat-system">System</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot teal"></div>
+              <span class="activity-time">13:32:07</span>
+              <span class="activity-text">Heartbeat sent to PatchIQ server</span>
+              <span class="activity-cat-badge cat-system">System</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <span class="activity-time">12:58:34</span>
+              <span class="activity-text">Inventory sync completed — 2,639 packages</span>
+              <span class="activity-cat-badge cat-system">System</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot blue"></div>
+              <span class="activity-time">12:47:19</span>
+              <span class="activity-text">Agent enrolled with tenant demo-corp</span>
+              <span class="activity-cat-badge cat-network">Network</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <span class="activity-time">12:30:00</span>
+              <span class="activity-text">Agent service started</span>
+              <span class="activity-cat-badge cat-system">System</span>
+            </div>
+          </div>
+
+          <div class="activity-scroll-hint">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+            Auto-scrolling · showing last 10 events
+          </div>
+        </div>
+
+        <!-- Card: Quick Actions -->
+        <div class="card">
+          <div class="card-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <span class="card-title">Quick Actions</span>
+          </div>
+          <div class="actions-grid">
+
+            <button class="action-btn outline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              Scan Now
+            </button>
+
+            <button class="action-btn primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="21 15 21 21 3 21 3 15"/>
+                <polyline points="15 10 12 13 9 10"/>
+                <line x1="12" y1="13" x2="12" y2="3"/>
+              </svg>
+              Install All (12)
+            </button>
+
+            <button class="action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              Export Report
+            </button>
+
+            <button class="action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              View Logs
+            </button>
+
+            <button class="action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+              Force Heartbeat
+            </button>
+
+            <button class="action-btn future">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </svg>
+              Run Script
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── SERVICE MONITOR (full-width) ─── -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+          <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+          <line x1="6" y1="6" x2="6.01" y2="6"/>
+          <line x1="6" y1="18" x2="6.01" y2="18"/>
+        </svg>
+        <span class="card-title">Service Monitor</span>
+        <span style="font-size:11px;color:var(--dim);background:#1c1c1f;border:1px solid var(--border);border-radius:4px;padding:2px 7px;margin-left:6px;font-family:'GeistMono',monospace;">Top by CPU</span>
+        <span class="card-subtitle">186 total</span>
+      </div>
+
+      <div class="service-table-wrap">
+        <table class="service-table">
+          <thead>
+            <tr>
+              <th style="padding-left:16px;">Service</th>
+              <th>Status</th>
+              <th style="min-width:120px;">CPU %</th>
+              <th style="min-width:120px;">Memory</th>
+              <th>PID</th>
+              <th>Uptime</th>
+              <th>User</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">postgres</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:62%;background:#3b82f6;"></div></div>
+                  <span class="svc-mono">8.2%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:55%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">1.7 GB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">1842</span></td>
+              <td><span class="svc-mono">14d 6h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">postgres</span></td>
+            </tr>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">patchiq-server</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:48%;"></div></div>
+                  <span class="svc-mono">6.1%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:40%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">1.2 GB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">2381</span></td>
+              <td><span class="svc-mono">14d 6h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">patchiq</span></td>
+            </tr>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">valkey</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:30%;background:#3b82f6;"></div></div>
+                  <span class="svc-mono">3.8%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:18%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">564 MB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">1957</span></td>
+              <td><span class="svc-mono">14d 6h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">valkey</span></td>
+            </tr>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">nginx</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:20%;"></div></div>
+                  <span class="svc-mono">2.4%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:5%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">148 MB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">1023</span></td>
+              <td><span class="svc-mono">14d 6h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">www-data</span></td>
+            </tr>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">zitadel</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:17%;"></div></div>
+                  <span class="svc-mono">2.1%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:28%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">896 MB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">3104</span></td>
+              <td><span class="svc-mono">14d 5h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">zitadel</span></td>
+            </tr>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">grafana</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:11%;background:#3b82f6;"></div></div>
+                  <span class="svc-mono">1.3%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:22%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">712 MB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">4220</span></td>
+              <td><span class="svc-mono">14d 5h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">grafana</span></td>
+            </tr>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">patchiq-agent</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:4%;"></div></div>
+                  <span class="svc-mono">0.5%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:3%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">82 MB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">5518</span></td>
+              <td><span class="svc-mono">14d 6h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">root</span></td>
+            </tr>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">sshd</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill svc-bar-fill low-cpu" style="width:2%;"></div></div>
+                  <span class="svc-mono">0.2%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:1%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">9.2 MB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">892</span></td>
+              <td><span class="svc-mono">14d 6h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">root</span></td>
+            </tr>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">cron</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill svc-bar-fill low-cpu" style="width:1%;"></div></div>
+                  <span class="svc-mono">0.1%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:1%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">4.1 MB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">934</span></td>
+              <td><span class="svc-mono">14d 6h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">root</span></td>
+            </tr>
+            <tr>
+              <td style="padding-left:16px;"><span class="svc-name">systemd-journald</span></td>
+              <td><span class="svc-status-dot running"></span><span style="color:var(--emerald);font-size:11px;">Running</span></td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill svc-bar-fill low-cpu" style="width:1%;"></div></div>
+                  <span class="svc-mono">0.1%</span>
+                </div>
+              </td>
+              <td>
+                <div class="svc-cpu-bar-wrap">
+                  <div class="svc-bar-track"><div class="svc-bar-fill" style="width:2%;background:#6366f1;"></div></div>
+                  <span class="svc-mono">64 MB</span>
+                </div>
+              </td>
+              <td><span class="svc-mono svc-pid">1</span></td>
+              <td><span class="svc-mono">14d 6h</span></td>
+              <td><span class="svc-mono" style="color:var(--dim);">root</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="service-footer">
+        <span class="svc-count">Showing 10 of 186 services</span>
+        <a href="#" class="svc-link">View all 186 services →</a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── CPU Core bars (animated)
+(function() {
+  const coreData = [18, 31, 22, 45, 12, 38, 25, 17];
+  const container = document.getElementById('cpuCores');
+  if (!container) return;
+
+  coreData.forEach((pct, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'core-bar-wrap';
+
+    const bar = document.createElement('div');
+    const colorClass = pct > 60 ? 'hot' : pct > 35 ? 'warm' : '';
+    bar.className = 'core-bar' + (colorClass ? ' ' + colorClass : '');
+    bar.style.height = Math.max(4, (pct / 100) * 28) + 'px';
+
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:8px;font-family:GeistMono,monospace;color:#52525b;';
+    label.textContent = 'C' + (i + 1);
+
+    wrap.appendChild(bar);
+    wrap.appendChild(label);
+    container.appendChild(wrap);
+  });
+
+  // Animate cores
+  const bars = container.querySelectorAll('.core-bar');
+  function animate() {
+    bars.forEach((bar, i) => {
+      const base = coreData[i];
+      const delta = (Math.random() - 0.5) * 12;
+      const newPct = Math.min(95, Math.max(3, base + delta));
+      bar.style.height = Math.max(4, (newPct / 100) * 28) + 'px';
+
+      bar.className = 'core-bar';
+      if (newPct > 60) bar.classList.add('hot');
+      else if (newPct > 35) bar.classList.add('warm');
+    });
+  }
+
+  setInterval(animate, 1200);
+})();
+
+// ── Topbar brand text visibility
+document.querySelector('.topbar-brand').addEventListener('mouseenter', function() {
+  // Just keep icon-only, it's part of the rail design
+});
+</script>
+</body>
+</html>

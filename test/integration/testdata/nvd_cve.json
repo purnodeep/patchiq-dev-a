@@ -1,0 +1,54 @@
+{
+  "resultsPerPage": 1,
+  "startIndex": 0,
+  "totalResults": 1,
+  "format": "NVD_CVE",
+  "version": "2.0",
+  "vulnerabilities": [
+    {
+      "cve": {
+        "id": "CVE-2099-99999",
+        "published": "2099-01-15T10:15:00.000",
+        "lastModified": "2099-02-01T08:00:00.000",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "Buffer overflow in cowsay before version 3.04 allows remote attackers to execute arbitrary code via crafted input."
+          }
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {
+              "source": "nvd@nist.gov",
+              "type": "Primary",
+              "cvssData": {
+                "version": "3.1",
+                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+                "baseScore": 8.4,
+                "baseSeverity": "HIGH"
+              }
+            }
+          ]
+        },
+        "configurations": [
+          {
+            "nodes": [
+              {
+                "operator": "OR",
+                "negate": false,
+                "cpeMatch": [
+                  {
+                    "vulnerable": true,
+                    "criteria": "cpe:2.3:a:cowsay_project:cowsay:*:*:*:*:*:*:*:*",
+                    "versionEndExcluding": "3.04",
+                    "matchCriteriaId": "integ-test-001"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

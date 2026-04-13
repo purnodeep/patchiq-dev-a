@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Command Palette (Cmd+K)</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    /* ─── Design Tokens: Dark (default) ────────────────────── */
+    :root {
+      --bg-page:          #000000;
+      --bg-sidebar:       #000000;
+      --bg-card:          #111113;
+      --bg-card-hover:    #161618;
+      --bg-card-selected: rgba(16,185,129,0.05);
+      --border-subtle:    #222222;
+      --border-divider:   #1c1c1c;
+
+      --text-emphasis:    #ffffff;
+      --text-primary:     #d4d4d4;
+      --text-secondary:   #a1a1a1;
+      --text-muted:       #737373;
+      --text-faint:       #525252;
+
+      --brand:            #10b981;
+      --brand-accent:     #10b981;
+      --brand-subtle:     rgba(16,185,129,0.05);
+
+      --badge-bg:         #1a1a1a;
+      --badge-border:     #2a2a2a;
+      --badge-text:       #737373;
+
+      --kbd-bg:           #1a1a1a;
+      --kbd-border:       #2e2e2e;
+      --kbd-text:         #737373;
+
+      --input-bg:         #111113;
+      --overlay-bg:       rgba(0,0,0,0.5);
+
+      --palette-shadow:   0 8px 32px rgba(0,0,0,0.6);
+
+      --dot-running:      #10b981;
+      --dot-critical:     #ef4444;
+      --dot-pending:      #f59e0b;
+      --dot-offline:      #737373;
+
+      --scrollbar-thumb:  #333333;
+
+      --nav-item-color:   #737373;
+      --nav-label:        #525252;
+      --btn-border:       #333333;
+      --btn-text:         #737373;
+    }
+
+    /* ─── Design Tokens: Light ──────────────────────────────── */
+    html.light {
+      --bg-page:          #f5f5f5;
+      --bg-sidebar:       #ffffff;
+      --bg-card:          #ffffff;
+      --bg-card-hover:    #f9f9f9;
+      --bg-card-selected: rgba(5,150,105,0.05);
+      --border-subtle:    #e0e0e0;
+      --border-divider:   #ebebeb;
+
+      --text-emphasis:    #0a0a0a;
+      --text-primary:     #1a1a1a;
+      --text-secondary:   #525252;
+      --text-muted:       #737373;
+      --text-faint:       #a1a1a1;
+
+      --brand:            #059669;
+      --brand-accent:     #7c3aed;
+      --brand-subtle:     rgba(124,58,237,0.05);
+
+      --badge-bg:         #f0f0f0;
+      --badge-border:     #e0e0e0;
+      --badge-text:       #737373;
+
+      --kbd-bg:           #f0f0f0;
+      --kbd-border:       #d4d4d4;
+      --kbd-text:         #737373;
+
+      --input-bg:         #ffffff;
+      --overlay-bg:       rgba(0,0,0,0.3);
+
+      --palette-shadow:   0 8px 32px rgba(0,0,0,0.15);
+
+      --dot-running:      #059669;
+      --dot-critical:     #ef4444;
+      --dot-pending:      #f59e0b;
+      --dot-offline:      #a1a1a1;
+
+      --scrollbar-thumb:  #d4d4d4;
+
+      --nav-item-color:   #737373;
+      --nav-label:        #a1a1a1;
+      --btn-border:       #d4d4d4;
+      --btn-text:         #737373;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ─── Theme toggle ──────────────────────────────────────── */
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'Geist', sans-serif;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .theme-toggle:hover { border-color: var(--brand); color: var(--text-primary); }
+    .theme-toggle svg { width: 14px; height: 14px; }
+
+    /* ─── Page layout ───────────────────────────────────────── */
+    .page {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─── Sidebar (blurred bg sim) ──────────────────────────── */
+    .sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      padding: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      opacity: 0.4;
+      pointer-events: none;
+      user-select: none;
+    }
+    .sidebar-logo {
+      padding: 0 16px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar-logo-icon {
+      width: 22px; height: 22px;
+      background: var(--brand);
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-section { padding: 8px 8px 4px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--nav-label); }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 16px;
+      font-size: 13px;
+      color: var(--nav-item-color);
+      cursor: default;
+      border-radius: 6px;
+      margin: 0 8px;
+    }
+    .nav-item.active {
+      color: var(--text-primary);
+      background: var(--bg-card);
+    }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    /* ─── Main content area ─────────────────────────────────── */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ─── Topbar ────────────────────────────────────────────── */
+    .topbar {
+      height: 48px;
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+      opacity: 0.4;
+      pointer-events: none;
+      user-select: none;
+    }
+    .topbar-left { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+    .topbar-btn {
+      height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--btn-border);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--btn-text);
+      background: transparent;
+      display: flex; align-items: center; gap: 6px;
+      cursor: default;
+    }
+    .topbar-btn svg { width: 13px; height: 13px; }
+
+    /* ─── Page content ──────────────────────────────────────── */
+    .page-content {
+      flex: 1;
+      padding: 20px;
+      overflow: hidden;
+      opacity: 0.3;
+      pointer-events: none;
+      user-select: none;
+    }
+    .content-header { margin-bottom: 16px; }
+    .content-title { font-size: 16px; font-weight: 600; color: var(--text-emphasis); }
+    .content-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .content-row {
+      display: flex;
+      gap: 2px;
+      flex-direction: column;
+    }
+    .table-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 36px;
+      padding: 0 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      margin-bottom: 2px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .table-row-name { color: var(--text-primary); flex: 1; font-family: 'GeistMono', monospace; font-size: 11px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ─── Overlay ───────────────────────────────────────────── */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--overlay-bg);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 10vh;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      z-index: 100;
+    }
+
+    /* ─── Palette ───────────────────────────────────────────── */
+    .palette {
+      width: 560px;
+      max-height: 480px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      box-shadow: var(--palette-shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Search input row ──────────────────────────────────── */
+    .palette-search {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border-divider);
+      flex-shrink: 0;
+    }
+    .palette-search svg.search-icon {
+      width: 16px; height: 16px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .palette-search input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: 'Geist', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      caret-color: var(--brand);
+    }
+    .palette-search input::placeholder { color: var(--text-faint); }
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 6px;
+      background: var(--kbd-bg);
+      border: 1px solid var(--kbd-border);
+      border-radius: 4px;
+      font-family: 'GeistMono', monospace;
+      font-size: 11px;
+      color: var(--kbd-text);
+      line-height: 1.4;
+      flex-shrink: 0;
+    }
+    .clear-btn {
+      width: 18px; height: 18px;
+      background: var(--badge-bg);
+      border: 1px solid var(--badge-border);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+    .clear-btn svg { width: 10px; height: 10px; }
+    .clear-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+
+    /* ─── Results area ──────────────────────────────────────── */
+    .palette-results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-thumb) transparent;
+    }
+    .palette-results::-webkit-scrollbar { width: 4px; }
+    .palette-results::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+    /* ─── Section header ────────────────────────────────────── */
+    .section-header {
+      padding: 8px 14px 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    /* ─── Result row ────────────────────────────────────────── */
+    .result-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 40px;
+      padding: 0 14px;
+      cursor: pointer;
+      transition: background 0.08s;
+    }
+    .result-row:hover,
+    .result-row.hovered {
+      background: var(--bg-card-hover);
+    }
+    .result-row:hover::before,
+    .result-row.hovered::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: var(--brand-accent);
+      border-radius: 1px;
+    }
+    .result-row.selected {
+      background: var(--bg-card-selected);
+    }
+    .result-row.selected::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: var(--brand-accent);
+      border-radius: 1px;
+    }
+
+    /* Row icon */
+    .row-icon {
+      width: 16px; height: 16px;
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+    /* Row content */
+    .row-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .row-name {
+      font-size: 13px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: 'Geist', sans-serif;
+    }
+    .row-name.mono { font-family: 'GeistMono', monospace; font-size: 12px; }
+    .row-sep { color: var(--text-faint); font-size: 12px; flex-shrink: 0; }
+    .row-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* Row right meta */
+    .row-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+    .row-time {
+      font-size: 11px;
+      color: var(--text-faint);
+      white-space: nowrap;
+    }
+    /* Category badge */
+    .cat-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
+      background: var(--badge-bg);
+      border: 1px solid var(--badge-border);
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--badge-text);
+      white-space: nowrap;
+    }
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .status-badge.running {
+      background: rgba(16,185,129,0.1);
+      color: var(--dot-running);
+      border: 1px solid rgba(16,185,129,0.2);
+    }
+    .status-badge.running .badge-dot { background: var(--dot-running); }
+    .badge-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+    }
+    /* Highlight match */
+    mark {
+      background: rgba(16,185,129,0.18);
+      color: var(--brand);
+      border-radius: 2px;
+      padding: 0 1px;
+      font-style: normal;
+    }
+    html.light mark {
+      background: rgba(124,58,237,0.15);
+      color: var(--brand-accent);
+    }
+
+    /* ─── No more results ───────────────────────────────────── */
+    .no-more {
+      padding: 6px 14px 10px;
+      font-size: 11px;
+      color: var(--text-faint);
+      text-align: center;
+    }
+
+    /* ─── Footer ────────────────────────────────────────────── */
+    .palette-footer {
+      height: 34px;
+      border-top: 1px solid var(--border-divider);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      flex-shrink: 0;
+    }
+    .footer-hints {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .footer-hint {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+    .footer-hint .kbd { font-size: 10px; padding: 1px 5px; }
+
+    /* ─── Second palette (search state) ────────────────────── */
+    .demo-section {
+      padding: 0 24px 32px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .demo-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 14px;
+      padding-top: 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .demo-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-divider);
+    }
+
+    /* ─── Standalone palette display ───────────────────────── */
+    .palette-standalone {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      padding: 0 24px 40px;
+    }
+    .palette-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ─── Toast section ─────────────────────────────────────── */
+    .toast-section {
+      padding: 0 24px 40px;
+    }
+    .toast-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-divider);
+    }
+    .toast-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .toast-demo {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px 14px;
+      box-shadow: var(--palette-shadow);
+      font-size: 13px;
+      color: var(--text-primary);
+      min-width: 300px;
+    }
+    .toast-dot {
+      width: 8px; height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+    }
+    html.light .toast-dot {
+      background: #059669;
+      box-shadow: 0 0 0 3px rgba(5,150,105,0.15);
+    }
+    .toast-message { flex: 1; }
+    .toast-title { font-weight: 500; }
+    .toast-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .toast-close {
+      width: 16px; height: 16px;
+      color: var(--text-faint);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .toast-close:hover { color: var(--text-muted); }
+
+    /* ─── Page scaffold for background ─────────────────────── */
+    .scaffold-wrapper {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─── Annotations ───────────────────────────────────────── */
+    .page-header {
+      padding: 20px 24px 0;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-divider);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Theme toggle -->
+  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">
+    <svg id="themeIcon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="8" cy="8" r="3.5"/>
+      <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.1 3.1l1 1M11.9 11.9l1 1M12.9 3.1l-1 1M4.1 11.9l-1 1"/>
+    </svg>
+    <span id="themeLabel">Light mode</span>
+  </button>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 1: Default state (no search)
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-header">State 1 — Default (recent + pages + actions)</div>
+
+  <!-- Simulated page background + overlay + palette -->
+  <div class="scaffold-wrapper">
+    <!-- Background: sidebar + endpoints page -->
+    <div class="page" style="pointer-events:none; user-select:none;">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="white"><path d="M8 1L3 4v4c0 3.5 2.1 6.8 5 7.7 2.9-.9 5-4.2 5-7.7V4L8 1z"/></svg>
+          </div>
+          PatchIQ
+        </div>
+        <div class="nav-section">Platform</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item active">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 7h6M5 9.5h4"/></svg>
+          Endpoints
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 5l-5 5-2-2-4 4"/><path d="M10 5h3v3"/></svg>
+          Deployments
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1L3 4v4c0 3.5 2.1 6.8 5 7.7 2.9-.9 5-4.2 5-7.7V4L8 1z"/></svg>
+          Compliance
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><path d="M10 10l3.5 3.5"/></svg>
+          Policies
+        </div>
+        <div class="nav-section" style="margin-top:8px;">Ops</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="14" height="9" rx="1.5"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>
+          Workflows
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 2"/></svg>
+          Audit
+        </div>
+      </div>
+
+      <!-- Main area -->
+      <div class="main-area">
+        <div class="topbar">
+          <div class="topbar-left">Endpoints</div>
+          <div class="topbar-right">
+            <div class="topbar-btn">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><path d="M10 10l3.5 3.5"/></svg>
+              Filter
+            </div>
+            <div class="topbar-btn">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v12M3 7l5-5 5 5"/></svg>
+              Export
+            </div>
+          </div>
+        </div>
+        <div class="page-content">
+          <div class="content-header">
+            <div class="content-title">1,247 endpoints</div>
+            <div class="content-subtitle">Filtered: all · Showing 50 of 1,247</div>
+          </div>
+          <div class="content-row">
+            <div class="table-row"><span class="status-dot" style="background:#10b981;"></span><span class="table-row-name">prod-db-primary.us-east</span><span>Healthy</span><span style="margin-left:auto;color:var(--text-faint);font-size:11px;">Ubuntu 22.04</span></div>
+            <div class="table-row"><span class="status-dot" style="background:#10b981;"></span><span class="table-row-name">prod-api-01.us-east</span><span>Healthy</span><span style="margin-left:auto;color:var(--text-faint);font-size:11px;">Debian 12</span></div>
+            <div class="table-row"><span class="status-dot" style="background:#ef4444;"></span><span class="table-row-name">prod-deploy-01.us-east</span><span style="color:#ef4444;">Critical</span><span style="margin-left:auto;color:var(--text-faint);font-size:11px;">Ubuntu 22.04</span></div>
+            <div class="table-row"><span class="status-dot" style="background:#f59e0b;"></span><span class="table-row-name">staging-web-01.eu-west</span><span style="color:#f59e0b;">Pending</span><span style="margin-left:auto;color:var(--text-faint);font-size:11px;">CentOS 9</span></div>
+            <div class="table-row"><span class="status-dot" style="background:#10b981;"></span><span class="table-row-name">prod-cache-01.us-east</span><span>Healthy</span><span style="margin-left:auto;color:var(--text-faint);font-size:11px;">Debian 12</span></div>
+            <div class="table-row"><span class="status-dot" style="background:#737373;"></span><span class="table-row-name">dev-worker-03.internal</span><span style="color:var(--text-muted);">Offline</span><span style="margin-left:auto;color:var(--text-faint);font-size:11px;">Ubuntu 20.04</span></div>
+            <div class="table-row"><span class="status-dot" style="background:#10b981;"></span><span class="table-row-name">prod-analytics.us-east</span><span>Healthy</span><span style="margin-left:auto;color:var(--text-faint);font-size:11px;">RHEL 9</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay">
+      <!-- ─── PALETTE: Default state ─────────────────────── -->
+      <div class="palette" id="palette-default">
+
+        <!-- Search input -->
+        <div class="palette-search">
+          <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/>
+          </svg>
+          <input type="text" placeholder="Type a command or search..." readonly />
+          <span class="kbd">ESC</span>
+        </div>
+
+        <!-- Results -->
+        <div class="palette-results">
+
+          <!-- RECENT -->
+          <div class="section-header">Recent</div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="3" width="12" height="10" rx="1.5"/>
+              <path d="M5 7h4M5 9.5h3"/>
+              <circle cx="12" cy="12" r="3" fill="var(--bg-card)" stroke="currentColor"/>
+              <path d="M11 12h2M12 11v2"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name mono">prod-db-primary.us-east</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Endpoint</span>
+            </div>
+            <div class="row-meta">
+              <span class="cat-badge">Endpoint</span>
+              <span class="row-time">5m ago</span>
+            </div>
+          </div>
+
+          <div class="result-row selected">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="4" cy="8" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="12" cy="12" r="2"/>
+              <path d="M6 7.1l4-2.2M6 8.9l4 2.2"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">Critical Patch Pipeline</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Workflow</span>
+            </div>
+            <div class="row-meta">
+              <span class="cat-badge">Workflow</span>
+              <span class="row-time">1h ago</span>
+            </div>
+          </div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M8 1L3 4v4c0 3.5 2.1 6.8 5 7.7 2.9-.9 5-4.2 5-7.7V4L8 1z"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">CIS Controls v8</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Compliance framework</span>
+            </div>
+            <div class="row-meta">
+              <span class="cat-badge">Compliance</span>
+              <span class="row-time">2h ago</span>
+            </div>
+          </div>
+
+          <!-- PAGES -->
+          <div class="section-header" style="margin-top:4px;">Pages</div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+              <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">Dashboard</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Overview and metrics</span>
+            </div>
+          </div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="3" width="12" height="10" rx="1.5"/>
+              <path d="M5 7h6M5 9.5h4"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">Endpoints</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Manage endpoint fleet</span>
+            </div>
+          </div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5l3.5-.5L8 2z"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">Deployments</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Track patch deployments</span>
+            </div>
+          </div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M8 1L3 4v4c0 3.5 2.1 6.8 5 7.7 2.9-.9 5-4.2 5-7.7V4L8 1z"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">Compliance</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Framework compliance</span>
+            </div>
+          </div>
+
+          <!-- ACTIONS -->
+          <div class="section-header" style="margin-top:4px;">Actions</div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">Create Deployment</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Deploy patches to endpoints</span>
+            </div>
+            <div class="row-meta">
+              <span class="kbd">⌘D</span>
+            </div>
+          </div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">Register Endpoint</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Add new endpoint</span>
+            </div>
+            <div class="row-meta">
+              <span class="kbd">⌘E</span>
+            </div>
+          </div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">Run Scan</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">Scan all endpoints</span>
+            </div>
+            <div class="row-meta">
+              <span class="kbd">⌘S</span>
+            </div>
+          </div>
+
+          <div class="result-row">
+            <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/>
+            </svg>
+            <div class="row-content">
+              <span class="row-name">Create Policy</span>
+              <span class="row-sep">·</span>
+              <span class="row-desc">New patch policy</span>
+            </div>
+          </div>
+
+        </div><!-- /palette-results -->
+
+        <!-- Footer -->
+        <div class="palette-footer">
+          <div class="footer-hints">
+            <div class="footer-hint">
+              <span class="kbd">↑</span><span class="kbd">↓</span>
+              Navigate
+            </div>
+            <div class="footer-hint">
+              <span class="kbd">↵</span>
+              Open
+            </div>
+            <div class="footer-hint">
+              <span class="kbd">ESC</span>
+              Close
+            </div>
+          </div>
+          <div class="footer-hint">
+            <span class="kbd">⌘K</span>
+          </div>
+        </div>
+
+      </div><!-- /palette-default -->
+    </div><!-- /overlay -->
+  </div><!-- /scaffold-wrapper -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 2: Search state — "deploy"
+  ═══════════════════════════════════════════════════════════════ -->
+  <div class="page-header" style="padding-top:32px;">State 2 — Search query: "deploy"</div>
+
+  <div style="position:relative; background:var(--bg-page); padding: 40px 0 40px; display:flex; justify-content:center;">
+    <!-- Blurred bg hint -->
+    <div style="position:absolute;inset:0;background:var(--overlay-bg);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);pointer-events:none;"></div>
+
+    <!-- ─── PALETTE: Search state ─────────────────────── -->
+    <div class="palette" style="position:relative;z-index:2;">
+
+      <!-- Search input with value -->
+      <div class="palette-search">
+        <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/>
+        </svg>
+        <input type="text" value="deploy" readonly style="color:var(--text-primary);" />
+        <div class="clear-btn" title="Clear">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M2 2l8 8M10 2l-8 8"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Filtered results -->
+      <div class="palette-results">
+
+        <!-- ENDPOINTS -->
+        <div class="section-header">Endpoints</div>
+
+        <div class="result-row">
+          <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="3" width="12" height="10" rx="1.5"/>
+            <path d="M5 7h6M5 9.5h4"/>
+          </svg>
+          <div class="row-content">
+            <span class="row-name mono">prod-<mark>deploy</mark>-01.us-east</span>
+          </div>
+          <div class="row-meta">
+            <span class="cat-badge">Endpoint</span>
+          </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="section-header" style="margin-top:4px;">Actions</div>
+
+        <div class="result-row hovered">
+          <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/>
+          </svg>
+          <div class="row-content">
+            <span class="row-name">Create <mark>Deploy</mark>ment</span>
+            <span class="row-sep">·</span>
+            <span class="row-desc"><mark>Deploy</mark> patches to endpoints</span>
+          </div>
+          <div class="row-meta">
+            <span class="kbd">⌘D</span>
+          </div>
+        </div>
+
+        <!-- PAGES -->
+        <div class="section-header" style="margin-top:4px;">Pages</div>
+
+        <div class="result-row">
+          <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5l3.5-.5L8 2z"/>
+          </svg>
+          <div class="row-content">
+            <span class="row-name"><mark>Deploy</mark>ments</span>
+            <span class="row-sep">·</span>
+            <span class="row-desc">Track patch <mark>deploy</mark>ments</span>
+          </div>
+          <div class="row-meta">
+            <span class="cat-badge">Page</span>
+          </div>
+        </div>
+
+        <!-- RECENT DEPLOYMENTS -->
+        <div class="section-header" style="margin-top:4px;">Recent Deployments</div>
+
+        <div class="result-row">
+          <svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5l3.5-.5L8 2z"/>
+          </svg>
+          <div class="row-content">
+            <span class="row-name mono" style="font-size:11px;">DEP-a3f8</span>
+            <span class="row-sep">·</span>
+            <span class="row-desc">Critical patches to staging</span>
+          </div>
+          <div class="row-meta">
+            <span class="status-badge running">
+              <span class="badge-dot"></span>
+              Running
+            </span>
+          </div>
+        </div>
+
+        <div class="no-more">No more results for "deploy"</div>
+
+      </div><!-- /palette-results -->
+
+      <!-- Footer -->
+      <div class="palette-footer">
+        <div class="footer-hints">
+          <div class="footer-hint">
+            <span class="kbd">↑</span><span class="kbd">↓</span>
+            Navigate
+          </div>
+          <div class="footer-hint">
+            <span class="kbd">↵</span>
+            Open
+          </div>
+          <div class="footer-hint">
+            <span class="kbd">ESC</span>
+            Close
+          </div>
+        </div>
+        <div class="footer-hint">
+          <span class="kbd">⌘K</span>
+        </div>
+      </div>
+
+    </div><!-- /palette search state -->
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 3: Toast interaction
+  ═══════════════════════════════════════════════════════════════ -->
+  <div style="padding:32px 24px 0;">
+    <div class="toast-section-label">Toast — Action executed from palette</div>
+    <p class="toast-desc">When an action is executed from the palette, a confirmation toast appears:</p>
+    <div class="toast-demo">
+
+      <!-- Success toast -->
+      <div class="toast">
+        <div class="toast-dot"></div>
+        <div class="toast-message">
+          <div class="toast-title">Scan initiated on 1,247 endpoints</div>
+          <div class="toast-sub">Results will appear in the audit log</div>
+        </div>
+        <svg class="toast-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 4l8 8M12 4l-8 8"/>
+        </svg>
+      </div>
+
+      <!-- Deployment toast -->
+      <div class="toast">
+        <div class="toast-dot"></div>
+        <div class="toast-message">
+          <div class="toast-title">Deployment DEP-b7c2 created</div>
+          <div class="toast-sub">Targeting 3 endpoint groups · Pending approval</div>
+        </div>
+        <svg class="toast-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 4l8 8M12 4l-8 8"/>
+        </svg>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 4: Interactive palette (live filter demo)
+  ═══════════════════════════════════════════════════════════════ -->
+  <div style="padding:32px 24px 0 24px;">
+    <div class="toast-section-label">Interactive — Type to filter live</div>
+    <p class="toast-desc" style="margin-bottom:16px;">Click into the palette below and type to see live filtering in action.</p>
+  </div>
+
+  <div style="display:flex; justify-content:center; padding: 0 24px 48px; position:relative;">
+    <div style="position:absolute;inset:0;background:var(--overlay-bg);pointer-events:none;"></div>
+    <div class="palette" id="interactive-palette" style="position:relative;z-index:2;">
+      <!-- Search -->
+      <div class="palette-search">
+        <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/>
+        </svg>
+        <input type="text" id="live-input" placeholder="Type a command or search..." autocomplete="off" autocorrect="off" spellcheck="false" />
+        <span class="kbd" id="esc-badge">ESC</span>
+        <div class="clear-btn" id="clear-btn" style="display:none;" onclick="clearSearch()">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M2 2l8 8M10 2l-8 8"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Dynamic results -->
+      <div class="palette-results" id="live-results">
+        <!-- populated by JS -->
+      </div>
+
+      <!-- Footer -->
+      <div class="palette-footer">
+        <div class="footer-hints">
+          <div class="footer-hint">
+            <span class="kbd">↑</span><span class="kbd">↓</span>
+            Navigate
+          </div>
+          <div class="footer-hint">
+            <span class="kbd">↵</span>
+            Open
+          </div>
+          <div class="footer-hint">
+            <span class="kbd">ESC</span>
+            Close
+          </div>
+        </div>
+        <div class="footer-hint">
+          <span class="kbd">⌘K</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Theme + Interactive JS ─────────────────────────────── -->
+  <script>
+    /* ── Theme toggle ──────────────────────────────────────── */
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isLight = html.classList.toggle('light');
+      document.getElementById('themeLabel').textContent = isLight ? 'Dark mode' : 'Light mode';
+      const icon = document.getElementById('themeIcon');
+      if (isLight) {
+        icon.innerHTML = '<path d="M8 3a5 5 0 100 10A5 5 0 008 3z" fill="currentColor" opacity="0.3"/><path d="M8 1v1M8 14v1M1 8h1M14 8h1M3.2 3.2l.7.7M12.1 12.1l.7.7M3.2 12.8l.7-.7M12.1 3.9l.7-.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+      } else {
+        icon.innerHTML = '<circle cx="8" cy="8" r="3.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.1 3.1l1 1M11.9 11.9l1 1M12.9 3.1l-1 1M4.1 11.9l-1 1"/>';
+      }
+    }
+
+    /* ── Data ──────────────────────────────────────────────── */
+    const ITEMS = [
+      // Recent
+      { type: 'recent', name: 'prod-db-primary.us-east', desc: 'Endpoint', cat: 'Endpoint', mono: true, time: '5m ago', icon: 'monitor' },
+      { type: 'recent', name: 'Critical Patch Pipeline', desc: 'Workflow', cat: 'Workflow', time: '1h ago', icon: 'workflow' },
+      { type: 'recent', name: 'CIS Controls v8', desc: 'Compliance framework', cat: 'Compliance', time: '2h ago', icon: 'shield' },
+      // Pages
+      { type: 'page', name: 'Dashboard', desc: 'Overview and metrics', icon: 'grid' },
+      { type: 'page', name: 'Endpoints', desc: 'Manage endpoint fleet', icon: 'monitor' },
+      { type: 'page', name: 'Deployments', desc: 'Track patch deployments', icon: 'rocket' },
+      { type: 'page', name: 'Compliance', desc: 'Framework compliance', icon: 'shield' },
+      { type: 'page', name: 'Policies', desc: 'Manage patch policies', icon: 'file' },
+      { type: 'page', name: 'Workflows', desc: 'Automation workflows', icon: 'workflow' },
+      { type: 'page', name: 'Audit', desc: 'Activity and audit log', icon: 'clock' },
+      // Actions
+      { type: 'action', name: 'Create Deployment', desc: 'Deploy patches to endpoints', icon: 'plus', shortcut: '⌘D' },
+      { type: 'action', name: 'Register Endpoint', desc: 'Add new endpoint', icon: 'plus', shortcut: '⌘E' },
+      { type: 'action', name: 'Run Scan', desc: 'Scan all endpoints', icon: 'search', shortcut: '⌘S' },
+      { type: 'action', name: 'Create Policy', desc: 'New patch policy', icon: 'plus' },
+      { type: 'action', name: 'Create Workflow', desc: 'New automation workflow', icon: 'plus' },
+      // Endpoints (entity)
+      { type: 'endpoint', name: 'prod-db-primary.us-east', cat: 'Endpoint', mono: true, status: 'healthy', icon: 'monitor' },
+      { type: 'endpoint', name: 'prod-api-01.us-east', cat: 'Endpoint', mono: true, status: 'healthy', icon: 'monitor' },
+      { type: 'endpoint', name: 'prod-deploy-01.us-east', cat: 'Endpoint', mono: true, status: 'critical', icon: 'monitor' },
+      { type: 'endpoint', name: 'staging-web-01.eu-west', cat: 'Endpoint', mono: true, status: 'pending', icon: 'monitor' },
+      { type: 'endpoint', name: 'dev-worker-03.internal', cat: 'Endpoint', mono: true, status: 'offline', icon: 'monitor' },
+      // Deployments (entity)
+      { type: 'deployment', name: 'DEP-a3f8 — Critical patches to staging', cat: 'Deployment', mono: false, status: 'running', icon: 'rocket' },
+      { type: 'deployment', name: 'DEP-c1a0 — Security baseline update', cat: 'Deployment', mono: false, status: 'pending', icon: 'rocket' },
+    ];
+
+    /* ── Icon SVGs ─────────────────────────────────────────── */
+    const ICONS = {
+      monitor: `<svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 7h6M5 9.5h4"/></svg>`,
+      workflow: `<svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4" cy="8" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="12" cy="12" r="2"/><path d="M6 7.1l4-2.2M6 8.9l4 2.2"/></svg>`,
+      shield: `<svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1L3 4v4c0 3.5 2.1 6.8 5 7.7 2.9-.9 5-4.2 5-7.7V4L8 1z"/></svg>`,
+      grid: `<svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>`,
+      rocket: `<svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5l3.5-.5L8 2z"/></svg>`,
+      plus: `<svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg>`,
+      search: `<svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/></svg>`,
+      file: `<svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="1" width="10" height="14" rx="1.5"/><path d="M6 5h4M6 8h4M6 11h2"/></svg>`,
+      clock: `<svg class="row-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 2"/></svg>`,
+    };
+
+    const TYPE_LABEL = {
+      recent: 'Recent', page: 'Pages', action: 'Actions',
+      endpoint: 'Endpoints', deployment: 'Recent Deployments',
+    };
+
+    const STATUS_COLORS = {
+      healthy: '#10b981',
+      critical: '#ef4444',
+      pending: '#f59e0b',
+      offline: '#737373',
+      running: '#10b981',
+    };
+
+    function highlight(text, query) {
+      if (!query) return escHtml(text);
+      const re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return escHtml(text).replace(re, '<mark>$1</mark>');
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function buildRow(item, q, idx, selectedIdx) {
+      const sel = idx === selectedIdx ? ' selected' : '';
+      const nameHl = highlight(item.name, q);
+      const descHl = item.desc ? highlight(item.desc, q) : '';
+      let right = '';
+      if (item.status && (item.type === 'deployment')) {
+        right = `<span class="status-badge running"><span class="badge-dot"></span>${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>`;
+      } else if (item.cat) {
+        right += `<span class="cat-badge">${escHtml(item.cat)}</span>`;
+      }
+      if (item.time) right += `<span class="row-time">${escHtml(item.time)}</span>`;
+      if (item.shortcut) right += `<span class="kbd">${escHtml(item.shortcut)}</span>`;
+
+      let statusDot = '';
+      if (item.status && item.type === 'endpoint') {
+        const color = STATUS_COLORS[item.status] || '#737373';
+        statusDot = `<span class="status-dot" style="background:${color};width:6px;height:6px;border-radius:50%;flex-shrink:0;"></span>`;
+      }
+
+      return `<div class="result-row${sel}" data-idx="${idx}">
+        ${ICONS[item.icon] || ICONS.monitor}
+        <div class="row-content">
+          ${statusDot}
+          <span class="row-name${item.mono ? ' mono' : ''}">${nameHl}</span>
+          ${descHl ? `<span class="row-sep">·</span><span class="row-desc">${descHl}</span>` : ''}
+        </div>
+        ${right ? `<div class="row-meta">${right}</div>` : ''}
+      </div>`;
+    }
+
+    let selectedIdx = -1;
+    let filteredFlat = [];
+
+    function renderResults(query) {
+      const q = query.toLowerCase().trim();
+      const resultsEl = document.getElementById('live-results');
+
+      if (!q) {
+        // Default: show recent, pages, actions
+        const groups = [
+          { label: 'Recent', types: ['recent'] },
+          { label: 'Pages', types: ['page'] },
+          { label: 'Actions', types: ['action'] },
+        ];
+        let html = '';
+        filteredFlat = [];
+        let idx = 0;
+        for (const g of groups) {
+          const items = ITEMS.filter(i => g.types.includes(i.type));
+          if (!items.length) continue;
+          html += `<div class="section-header">${g.label}</div>`;
+          for (const item of items) {
+            html += buildRow(item, '', idx, selectedIdx);
+            filteredFlat.push(item);
+            idx++;
+          }
+        }
+        resultsEl.innerHTML = html;
+      } else {
+        // Fuzzy: match any item where name or desc contains query
+        const matches = ITEMS.filter(i => {
+          const hay = (i.name + ' ' + (i.desc || '') + ' ' + (i.cat || '')).toLowerCase();
+          return hay.includes(q);
+        });
+
+        if (!matches.length) {
+          filteredFlat = [];
+          resultsEl.innerHTML = `<div class="no-more">No results for "${escHtml(query)}"</div>`;
+          return;
+        }
+
+        // Group by type priority
+        const typeOrder = ['endpoint', 'action', 'page', 'deployment', 'recent'];
+        const grouped = {};
+        for (const t of typeOrder) grouped[t] = [];
+        for (const item of matches) {
+          const t = typeOrder.includes(item.type) ? item.type : 'page';
+          grouped[t].push(item);
+        }
+
+        let html = '';
+        filteredFlat = [];
+        let idx = 0;
+        for (const t of typeOrder) {
+          if (!grouped[t].length) continue;
+          html += `<div class="section-header">${TYPE_LABEL[t]}</div>`;
+          for (const item of grouped[t]) {
+            html += buildRow(item, query, idx, selectedIdx);
+            filteredFlat.push(item);
+            idx++;
+          }
+        }
+        html += `<div class="no-more">No more results for "${escHtml(query)}"</div>`;
+        resultsEl.innerHTML = html;
+      }
+
+      // Attach hover events
+      document.querySelectorAll('#interactive-palette .result-row').forEach(row => {
+        row.addEventListener('mouseenter', () => {
+          const i = parseInt(row.dataset.idx);
+          selectedIdx = i;
+          updateSelected();
+        });
+      });
+    }
+
+    function updateSelected() {
+      document.querySelectorAll('#interactive-palette .result-row').forEach(row => {
+        const i = parseInt(row.dataset.idx);
+        row.classList.toggle('selected', i === selectedIdx);
+        row.classList.remove('hovered');
+      });
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('live-input');
+      input.value = '';
+      input.focus();
+      document.getElementById('clear-btn').style.display = 'none';
+      document.getElementById('esc-badge').style.display = '';
+      selectedIdx = -1;
+      filteredFlat = [];
+      renderResults('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderResults('');
+
+      const input = document.getElementById('live-input');
+      const clearBtn = document.getElementById('clear-btn');
+      const escBadge = document.getElementById('esc-badge');
+
+      input.addEventListener('input', () => {
+        const q = input.value;
+        clearBtn.style.display = q ? '' : 'none';
+        escBadge.style.display = q ? 'none' : '';
+        selectedIdx = -1;
+        renderResults(q);
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedIdx = Math.min(selectedIdx + 1, filteredFlat.length - 1);
+          updateSelected();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedIdx = Math.max(selectedIdx - 1, 0);
+          updateSelected();
+        } else if (e.key === 'Escape') {
+          clearSearch();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+[{"Name":"wuauserv","DisplayName":"Windows Update","Status":4,"StartType":3},{"Name":"WinDefend","DisplayName":"Microsoft Defender Antivirus Service","Status":4,"StartType":2},{"Name":"Spooler","DisplayName":"Print Spooler","Status":1,"StartType":3},{"Name":"MSSQLSERVER","DisplayName":"SQL Server (MSSQLSERVER)","Status":4,"StartType":2}]

@@ -1,0 +1,158 @@
+/* Widget content stretching — makes every widget fill its grid cell */
+.widget-content-fill > * {
+  flex: 1;
+  min-height: 0;
+}
+
+.widget-content-fill > * > * {
+  height: 100%;
+}
+
+.widget-content-auto {
+  height: auto !important;
+  flex: none !important;
+}
+
+.widget-content-auto > * {
+  height: auto !important;
+}
+
+/* react-grid-layout base styles */
+.react-grid-layout {
+  position: relative;
+  transition: height 200ms ease;
+}
+
+.react-grid-item {
+  transition: all 200ms ease;
+  transition-property: left, top, width, height;
+  overflow: hidden;
+}
+
+.react-grid-item.cssTransforms {
+  transition-property: transform, width, height;
+}
+
+.react-grid-item.resizing {
+  transition: none;
+  z-index: 1;
+  will-change: width, height;
+}
+
+.react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 3;
+  will-change: transform;
+  opacity: 0.9;
+}
+
+/* Suppress transition on items being dropped — prevents slide-in jank */
+.react-grid-item.dropping {
+  transition: none !important;
+}
+
+/* Drop placeholder */
+.react-grid-item.react-grid-placeholder {
+  background: var(--accent);
+  opacity: 0.1;
+  border-radius: 8px;
+  transition-duration: 100ms;
+  z-index: 2;
+  user-select: none;
+}
+
+/* Resize handle — hidden unless editing */
+.react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+  z-index: 10;
+  display: none;
+}
+
+.dashboard-grid--editing .react-resizable-handle {
+  display: block;
+}
+
+.react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--border-hover);
+  border-bottom: 2px solid var(--border-hover);
+  border-radius: 0 0 2px 0;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.react-grid-item:hover .react-resizable-handle::after {
+  opacity: 1;
+}
+
+/* Widget config gear — show on hover */
+.react-grid-item:hover .widget-config-trigger {
+  opacity: 1 !important;
+}
+
+/* Drag handle cursors */
+.widget-drag-handle {
+  cursor: grab;
+}
+
+.widget-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Editing mode visual cues */
+.dashboard-grid--editing .react-grid-item {
+  outline: 2px dashed var(--border-hover);
+  outline-offset: -1px;
+  border-radius: 8px;
+  user-select: none;
+  transition: outline-color 150ms ease;
+}
+
+.dashboard-grid--editing .react-grid-item:hover {
+  outline-color: var(--accent);
+}
+
+/* Resize handle — always visible in edit mode */
+.dashboard-grid--editing .react-resizable-handle {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px 0 8px 0;
+  background-color: rgba(255, 255, 255, 0.06);
+  transition: background-color 150ms ease;
+}
+
+.dashboard-grid--editing .react-resizable-handle:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Droppable area highlight when dragging from drawer */
+.react-grid-layout.droppable {
+  outline: 2px dashed var(--accent);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.dashboard-grid--editing .react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 10px;
+  height: 10px;
+  border: none;
+  opacity: 1;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  border-radius: 0 0 3px 0;
+}
+

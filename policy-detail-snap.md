@@ -1,0 +1,133 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - complementary [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e7]
+        - generic [ref=e10]: PatchIQ
+      - navigation [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]: Overview
+          - link "Dashboard" [ref=e14] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e15]
+        - generic [ref=e22]:
+          - generic [ref=e23]: Assets
+          - link "Endpoints" [ref=e24] [cursor=pointer]:
+            - /url: /endpoints
+            - generic [ref=e25]
+          - link "Tags" [ref=e29] [cursor=pointer]:
+            - /url: /tags
+            - generic [ref=e30]
+        - generic [ref=e35]:
+          - generic [ref=e36]: Security
+          - link "Patches" [ref=e37] [cursor=pointer]:
+            - /url: /patches
+            - generic [ref=e38]
+          - link "CVEs" [ref=e44] [cursor=pointer]:
+            - /url: /cves
+            - generic [ref=e45]
+          - link "Policies" [ref=e49] [cursor=pointer]:
+            - /url: /policies
+            - generic [ref=e50]
+        - generic [ref=e55]:
+          - generic [ref=e56]: Operations
+          - link "Deployments" [ref=e57] [cursor=pointer]:
+            - /url: /deployments
+            - generic [ref=e58]
+          - link "Workflows" [ref=e65] [cursor=pointer]:
+            - /url: /workflows
+            - generic [ref=e66]
+        - generic [ref=e72]:
+          - generic [ref=e73]: Compliance
+          - link "Compliance" [ref=e74] [cursor=pointer]:
+            - /url: /compliance
+            - generic [ref=e75]
+          - link "Alerts 48" [ref=e80] [cursor=pointer]:
+            - /url: /alerts
+            - generic [ref=e81]
+          - link "Audit" [ref=e89] [cursor=pointer]:
+            - /url: /audit
+            - generic [ref=e90]
+        - generic [ref=e97]:
+          - generic [ref=e98]: System
+          - link "Notifications" [ref=e99] [cursor=pointer]:
+            - /url: /notifications
+            - generic [ref=e100]
+          - link "Settings" [ref=e105] [cursor=pointer]:
+            - /url: /settings
+            - generic [ref=e106]
+          - link "Roles" [ref=e111] [cursor=pointer]:
+            - /url: /admin/roles
+            - generic [ref=e112]
+          - link "User Roles" [ref=e116] [cursor=pointer]:
+            - /url: /admin/users/roles
+            - generic [ref=e117]
+          - link "Agent Downloads" [ref=e131] [cursor=pointer]:
+            - /url: /agent-downloads
+            - generic [ref=e132]
+      - generic [ref=e137]:
+        - generic [ref=e138]: U
+        - generic [ref=e139]: User
+    - generic [ref=e140]:
+      - banner [ref=e141]:
+        - generic [ref=e142]:
+          - link "Policies" [ref=e491] [cursor=pointer]:
+            - /url: /policies
+          - generic [ref=e492]: /
+          - generic [ref=e493]: e1000000-0000-0000-0000-000000000004
+        - generic [ref=e144]:
+          - button "Search ⌘K" [ref=e145] [cursor=pointer]:
+            - img [ref=e146]
+            - generic [ref=e149]: Search
+            - generic [ref=e150]: ⌘K
+          - button "Toggle theme" [ref=e151] [cursor=pointer]:
+            - img [ref=e152]
+          - button "Notifications" [ref=e158] [cursor=pointer]:
+            - img [ref=e159]
+          - button "AI Assistant" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+      - generic [ref=e494]:
+        - generic [ref=e495]:
+          - heading "Windows Update Policy" [level=1] [ref=e496]
+          - generic [ref=e497]:
+            - button "Evaluate Now" [ref=e498] [cursor=pointer]
+            - button "Deploy Now" [ref=e504] [cursor=pointer]
+            - link "Edit" [ref=e507] [cursor=pointer]:
+              - /url: /policies/e1000000-0000-0000-0000-000000000004/edit
+            - button [ref=e512] [cursor=pointer]
+        - generic [ref=e517]:
+          - generic [ref=e520]: Automatic
+          - generic "Toggle policy" [ref=e521] [cursor=pointer]: Enabled ●
+          - generic [ref=e522]: 0 2 8 * *
+          - generic [ref=e523]: Created 14d ago
+          - generic [ref=e524]: 5 endpoints
+        - generic [ref=e525]:
+          - generic [ref=e527]:
+            - generic [ref=e528]: Pass Rate
+            - generic [ref=e529]: 100%
+          - generic [ref=e533]:
+            - generic [ref=e534]: Endpoints
+            - generic [ref=e535]: "5"
+          - generic [ref=e537]:
+            - generic [ref=e538]: Patches
+            - generic [ref=e539]: 10 matched
+          - generic [ref=e541]:
+            - generic [ref=e542]: Next Run
+            - generic [ref=e543]: Scheduled
+        - generic [ref=e544]:
+          - button "Overview" [ref=e545] [cursor=pointer]
+          - button "Patch Scope" [ref=e546] [cursor=pointer]
+          - button "Groups & Endpoints" [ref=e547] [cursor=pointer]
+          - button "Evaluation History" [ref=e548] [cursor=pointer]
+          - button "Deployment History" [ref=e549] [cursor=pointer]
+          - button "Schedule" [ref=e550] [cursor=pointer]
+        - generic [ref=e552]:
+          - generic [ref=e553]:
+            - generic [ref=e554]: Policy Scope Pipeline
+            - generic [ref=e555]
+            - generic [ref=e585]
+          - generic [ref=e597]:
+            - generic [ref=e598]: Policy Effectiveness
+            - generic [ref=e599]
+            - generic [ref=e609]
+  - region "Notifications alt+T"

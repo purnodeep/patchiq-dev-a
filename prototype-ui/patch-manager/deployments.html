@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — Deployments</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:260px;--topbar-h:56px;
+}
+.light{--bg:#f8fafc;--card:#ffffff;--card2:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#94a3b8;}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;display:flex;height:100vh;overflow:hidden;transition:background .2s,color .2s}
+#sidebar{width:var(--sidebar-w);background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s}
+#sidebar.collapsed{width:64px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-icon{width:28px;height:28px;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sb-logo-text,.sb-logo-sub{white-space:nowrap}
+.sb-logo-text{font-weight:600;font-size:13px;color:var(--text)}
+.sb-logo-sub{font-size:10px;color:var(--muted)}
+.sb-group{margin-top:4px}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
+.sb-group-label .arrow{transition:.2s;font-size:9px}
+.sb-group-label.collapsed .arrow{transform:rotate(-90deg)}
+.sb-group-items{overflow:hidden;transition:max-height .2s ease}
+.sb-item{padding:6px 16px 6px 24px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;text-decoration:none}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:14px;height:14px;flex-shrink:0}
+.sb-item-label{white-space:nowrap}
+.sb-badge{margin-left:auto;background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+.sb-badge.amber{background:#f59e0b20;color:#f59e0b}
+#sidebar.collapsed .sb-logo-text,#sidebar.collapsed .sb-logo-sub,#sidebar.collapsed .sb-group-label span:first-child,#sidebar.collapsed .sb-item-label,#sidebar.collapsed .sb-badge{opacity:0;pointer-events:none}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.tb-collapse-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;background:transparent;border:none;flex-shrink:0}
+.tb-collapse-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-breadcrumb span:last-child{color:var(--text);font-weight:500}
+.tb-sep{color:#374151}
+.tb-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb-icon-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:16px;height:16px}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--danger);border-radius:50%;border:1.5px solid var(--card)}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;color:#fff;flex-shrink:0;border:none}
+#page{flex:1;overflow-y:auto;padding:0}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.view{padding:20px;animation:fadeIn .2s ease}
+.page-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.ph-bc{font-size:11px;color:var(--muted);margin-bottom:4px}
+.ph-title{font-size:20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.ph-count{font-size:14px;font-weight:400;color:var(--muted)}
+.ph-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px;text-decoration:none;background:transparent}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d;border-color:#374151}
+.btn-ghost{color:var(--muted);border-color:transparent}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{background:#ef444415;color:var(--danger);border-color:#ef444430}
+.btn-danger:hover{background:#ef444425}
+.filter-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filter-pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:.15s}
+.filter-pill:hover{border-color:#374151;color:var(--text)}
+.filter-pill.active{background:#3b82f620;border-color:#3b82f650;color:var(--primary)}
+.filter-pill.pill-running{border-color:#10b98140;color:#10b981}
+.filter-pill.pill-running.active{background:#10b98120}
+.filter-pill.pill-failed{border-color:#ef444440;color:#ef4444}
+.filter-pill.pill-failed.active{background:#ef444415}
+.filter-pill.pill-pending{border-color:#f59e0b40;color:#f59e0b}
+.filter-pill.pill-pending.active{background:#f59e0b15}
+.filter-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
+.search-wrap{position:relative}
+.search-wrap svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--muted);pointer-events:none}
+.search-input{padding:5px 10px 5px 30px;border-radius:6px;font-size:12px;border:1px solid var(--border);background:#ffffff08;color:var(--text);outline:none;transition:.15s;min-width:180px}
+.search-input:focus{border-color:var(--primary)}
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.table-scroll{overflow-x:auto}
+.table-scroll::-webkit-scrollbar{height:4px}
+.table-scroll::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.data-table{width:100%;border-collapse:collapse;min-width:1100px}
+.data-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border)}
+.data-table td{padding:9px 12px;border-bottom:1px solid #1e293b60;font-size:12px;vertical-align:middle}
+.data-table tr:hover td{background:#ffffff04}
+.data-table tr.failed-row td{background:#ef444405}
+.data-table tr.failed-row{border-left:3px solid var(--danger)}
+.data-table tr:last-child td{border-bottom:none}
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.badge-green{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-blue{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630}
+.badge-gray{background:#ffffff10;color:var(--muted);border:1px solid var(--border)}
+.badge-red{background:#ef444420;color:#ef4444;border:1px solid #ef444430}
+.badge-amber{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+.link{color:var(--primary);text-decoration:none;font-weight:500}
+.link:hover{text-decoration:underline}
+.mono{font-family:monospace;font-size:11px}
+/* Status indicator */
+.status-cell{display:flex;align-items:center;gap:6px;font-size:12px}
+.status-orb{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.orb-running{background:#10b981;animation:pulse-orb 1.5s infinite}
+.orb-complete{background:#10b981}
+.orb-failed{background:#ef4444}
+.orb-pending{background:#f59e0b}
+@keyframes pulse-orb{0%,100%{box-shadow:0 0 0 0 #10b98160}50%{box-shadow:0 0 0 5px #10b98100}}
+/* Progress bar segmented */
+.prog-track{height:8px;background:#ffffff08;border-radius:4px;overflow:hidden;display:flex;min-width:120px}
+.prog-seg{height:100%;transition:width .4s ease}
+.prog-seg.done{background:#10b981}
+.prog-seg.active{background:#3b82f6;animation:prog-pulse .8s ease infinite}
+.prog-seg.pend{background:#374151}
+.prog-seg.fail{background:#ef4444}
+@keyframes prog-pulse{0%,100%{opacity:1}50%{opacity:.6}}
+/* Expanded rows */
+.exp-row{display:none}
+.exp-row.open{display:table-row}
+.exp-row td{padding:0!important;border-bottom:1px solid var(--border)!important}
+.exp-content{padding:16px;background:#080c16}
+.expand-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:4px;transition:.15s;font-size:11px}
+.expand-btn:hover{color:var(--text);background:#ffffff08}
+/* Wave mini vis */
+.wave-mini{display:flex;gap:3px;align-items:center;margin-bottom:8px}
+.wave-seg{height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff;padding:0 6px;white-space:nowrap}
+/* Stacked bar */
+.stack-bar{height:10px;border-radius:5px;overflow:hidden;display:flex;width:200px}
+.stack-seg{height:100%}
+/* Error text */
+.error-text{background:#ef444410;border:1px solid #ef444430;border-radius:4px;padding:6px 10px;font-size:11px;color:#ef4444;font-family:monospace;margin-top:6px}
+/* Date range input */
+.date-range{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.date-range input{background:#ffffff08;border:1px solid var(--border);border-radius:4px;padding:3px 8px;color:var(--text);font-size:11px;outline:none}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div><div class="sb-logo-text">PatchIQ</div><div class="sb-logo-sub">Patch Manager</div></div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Overview</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="../patch-manager.html" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="sb-item-label">Dashboard</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Inventory</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="sb-item-label">Endpoints</span><span class="sb-badge blue">247</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg><span class="sb-item-label">Patches</span><span class="sb-badge">12</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="sb-item-label">CVEs</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Operations</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="policies.html" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="sb-item-label">Policies</span></a>
+      <a href="deployments.html" class="sb-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg><span class="sb-item-label">Deployments</span><span class="sb-badge blue">3</span></a>
+      <a href="workflows.html" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="sb-item-label">Workflows</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Reports</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="sb-item-label">Compliance</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="sb-item-label">Audit</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)"><span>Configuration</span><span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg><span class="sb-item-label">Settings</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg><span class="sb-item-label">Roles</span></a>
+      <a href="#" class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="sb-item-label">Notifications</span></a>
+    </div>
+  </div>
+</nav>
+
+<div id="main">
+  <div id="topbar">
+    <button class="tb-collapse-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-breadcrumb">
+      <span>Home</span><span class="tb-sep">/</span><span>Operations</span><span class="tb-sep">/</span><span>Deployments</span>
+    </div>
+    <div class="tb-icons">
+      <button class="tb-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notif-dot"></span></button>
+      <button class="tb-icon-btn" onclick="toggleTheme()"><svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+      <button class="tb-avatar">HS</button>
+    </div>
+  </div>
+
+  <div id="page">
+    <div class="view">
+      <div class="page-header">
+        <div>
+          <div class="ph-bc">Home / Operations / Deployments</div>
+          <div class="ph-title">Deployments <span class="ph-count">47</span></div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-primary" onclick="alert('Create Deployment wizard would open')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Create Deployment
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-row">
+        <span style="font-size:11px;color:var(--muted);font-weight:500">Status:</span>
+        <button class="filter-pill active" onclick="setFilter(this)">All</button>
+        <button class="filter-pill pill-running" onclick="setFilter(this)">Running (3)</button>
+        <button class="filter-pill" onclick="setFilter(this)">Completed (38)</button>
+        <button class="filter-pill pill-failed" onclick="setFilter(this)">Failed (4)</button>
+        <button class="filter-pill pill-pending" onclick="setFilter(this)">Pending (2)</button>
+        <div class="filter-sep"></div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" type="text" placeholder="Search deployments...">
+        </div>
+        <div class="date-range" style="margin-left:4px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <input type="date" value="2026-01-01">
+          <span>—</span>
+          <input type="date" value="2026-03-10">
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:28px"></th>
+                <th>ID</th>
+                <th>Policy</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Targets</th>
+                <th>Waves</th>
+                <th>Started</th>
+                <th>Duration</th>
+                <th>Triggered By</th>
+              </tr>
+            </thead>
+            <tbody id="dep-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// THEME
+(function(){const t=localStorage.getItem('piq-theme');if(t==='light')document.body.classList.add('light')})();
+function toggleTheme(){document.body.classList.toggle('light');localStorage.setItem('piq-theme',document.body.classList.contains('light')?'light':'dark');}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+function toggleGroup(el){
+  el.classList.toggle('collapsed');
+  const items=el.nextElementSibling;
+  items.style.maxHeight=el.classList.contains('collapsed')?'0':items.scrollHeight+'px';
+}
+document.querySelectorAll('.sb-group-items').forEach(el=>{el.style.maxHeight=el.scrollHeight+'px'});
+function setFilter(el){
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+const deps = [
+  {id:'dep-a1b2c3',policy:'Auto-Deploy Critical Patches',status:'running',done:32,total:45,waves:'2/3',started:'10m ago',dur:'in progress...',by:'policy/auto',error:null,waveDone:15,waveActive:17,wavePend:13},
+  {id:'dep-b2c3d4',policy:'Linux OS Updates',status:'running',done:18,total:62,waves:'1/2',started:'25m ago',dur:'in progress...',by:'policy/auto',error:null,waveDone:18,waveActive:20,wavePend:24},
+  {id:'dep-c3d4e5',policy:'Windows Monthly Rollup',status:'running',done:55,total:89,waves:'2/2',started:'1h ago',dur:'in progress...',by:'admin@acme.com',error:null,waveDone:44,waveActive:11,wavePend:0},
+  {id:'dep-d4e5f6',policy:'Auto-Deploy Critical Patches',status:'completed',done:45,total:45,waves:'3',started:'3d ago',dur:'23m 12s',by:'policy/auto',error:null,waveDone:45,waveActive:0,wavePend:0},
+  {id:'dep-e5f6g7',policy:'Weekly Security Scan',status:'completed',done:247,total:247,waves:'1',started:'7d ago',dur:'1h 14m',by:'policy/auto',error:null,waveDone:247,waveActive:0,wavePend:0},
+  {id:'dep-f6g7h8',policy:'Linux OS Updates',status:'failed',done:40,total:62,waves:'2',started:'10d ago',dur:'31m 05s',by:'policy/auto',error:'5 endpoints returned exit code 1603 during wave 2. WSUSserver unreachable.',waveDone:40,waveActive:0,wavePend:0},
+  {id:'dep-g7h8i9',policy:'Auto-Deploy Critical Patches',status:'completed',done:45,total:45,waves:'3',started:'11d ago',dur:'21m 48s',by:'admin@acme.com',error:null,waveDone:45,waveActive:0,wavePend:0},
+  {id:'dep-h8i9j0',policy:'Compliance Baseline',status:'failed',done:22,total:27,waves:'1',started:'14d ago',dur:'14m 33s',by:'policy/auto',error:'msiexec.exe returned error 1618 (another install in progress) on 5 endpoints.',waveDone:22,waveActive:0,wavePend:0},
+  {id:'dep-i9j0k1',policy:'Database Server Patches',status:'completed',done:12,total:12,waves:'2',started:'18d ago',dur:'45m 20s',by:'admin@acme.com',error:null,waveDone:12,waveActive:0,wavePend:0},
+  {id:'dep-j0k1l2',policy:'Emergency Critical',status:'completed',done:30,total:30,waves:'1',started:'21d ago',dur:'18m 44s',by:'ops@acme.com',error:null,waveDone:30,waveActive:0,wavePend:0},
+  {id:'dep-k1l2m3',policy:'Windows Monthly Rollup',status:'pending',done:0,total:89,waves:'0/2',started:'scheduled',dur:'—',by:'policy/auto',error:null,waveDone:0,waveActive:0,wavePend:89},
+  {id:'dep-l2m3n4',policy:'New Endpoint Onboarding',status:'pending',done:0,total:8,waves:'0/1',started:'scheduled',dur:'—',by:'enrollment trigger',error:null,waveDone:0,waveActive:0,wavePend:8},
+];
+
+const statusConfig = {
+  running:{label:'In Progress',orbClass:'orb-running',textColor:'#10b981'},
+  completed:{label:'Completed',orbClass:'orb-complete',textColor:'#10b981'},
+  failed:{label:'Failed',orbClass:'orb-failed',textColor:'#ef4444'},
+  pending:{label:'Pending',orbClass:'orb-pending',textColor:'#f59e0b'},
+};
+
+function renderDeps(){
+  document.getElementById('dep-tbody').innerHTML = deps.map((d,i)=>{
+    const sc = statusConfig[d.status];
+    const pct = d.total ? Math.round(d.done/d.total*100) : 0;
+    const donePct = d.total ? Math.round(d.waveDone/d.total*100) : 0;
+    const activePct = d.total ? Math.round(d.waveActive/d.total*100) : 0;
+    const pendPct = d.total ? Math.round(d.wavePend/d.total*100) : 0;
+    const failRow = d.status==='failed';
+    return `
+      <tr class="${failRow?'failed-row':''}">
+        <td><button class="expand-btn" onclick="toggleExp(${i},this)">▶</button></td>
+        <td><a href="deployment-detail.html" class="link mono">${d.id}</a></td>
+        <td><a href="policy-detail.html" style="color:var(--text);text-decoration:none;font-size:12px">${d.policy}</a></td>
+        <td>
+          <div class="status-cell">
+            <div class="status-orb ${sc.orbClass}"></div>
+            <span style="color:${sc.textColor};font-weight:500">${sc.label}</span>
+          </div>
+        </td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="prog-track">
+              <div class="prog-seg done" style="width:${donePct}%"></div>
+              <div class="prog-seg active" style="width:${activePct}%"></div>
+              <div class="prog-seg fail" style="width:${d.status==='failed'?Math.round((d.total-d.done)/d.total*100):0}%"></div>
+              <div class="prog-seg pend" style="width:${pendPct}%"></div>
+            </div>
+            <span style="font-size:10px;color:var(--muted);white-space:nowrap">${pct}%</span>
+          </div>
+        </td>
+        <td style="font-weight:600">${d.done}<span style="color:var(--muted);font-weight:400">/${d.total}</span></td>
+        <td style="color:var(--muted);font-size:12px">${d.waves}</td>
+        <td style="color:var(--muted);font-size:11px">${d.started}</td>
+        <td style="color:var(--muted);font-size:11px">${d.dur}</td>
+        <td style="color:var(--muted);font-size:11px">${d.by}</td>
+      </tr>
+      <tr class="exp-row" id="exp-${i}">
+        <td colspan="10">
+          <div class="exp-content">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+              <div>
+                <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Wave Pipeline</div>
+                <div class="wave-mini">
+                  <div class="wave-seg" style="flex:${d.waveDone};background:#10b981;min-width:4px">W1</div>
+                  ${d.waveActive>0?`<div class="wave-seg" style="flex:${d.waveActive};background:#3b82f6;min-width:4px">W2</div>`:''}
+                  ${d.wavePend>0?`<div class="wave-seg" style="flex:${d.wavePend};background:#374151;min-width:4px">W3</div>`:''}
+                </div>
+                <div style="font-size:10px;color:var(--muted)">${d.waveDone} done${d.waveActive>0?` · ${d.waveActive} active`:''}${d.wavePend>0?` · ${d.wavePend} pending`:''}</div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Endpoint Results</div>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                  <div class="stack-bar">
+                    <div class="stack-seg" style="flex:${d.waveDone};background:#10b981"></div>
+                    <div class="stack-seg" style="flex:${d.waveActive};background:#3b82f6"></div>
+                    <div class="stack-seg" style="flex:${d.total-d.done-d.waveActive>0?d.total-d.done-d.waveActive:0};background:#ef4444"></div>
+                    <div class="stack-seg" style="flex:${d.wavePend};background:#374151"></div>
+                  </div>
+                </div>
+                <div style="font-size:10px;color:var(--muted)">
+                  <span style="color:#10b981">✓ ${d.waveDone} succeeded</span>
+                  ${d.waveActive>0?`<span style="color:#3b82f6;margin-left:6px">⟳ ${d.waveActive} in progress</span>`:''}
+                  ${d.wavePend>0?`<span style="color:#f59e0b;margin-left:6px">◷ ${d.wavePend} pending</span>`:''}
+                  ${d.total-d.done-d.waveActive-d.wavePend>0?`<span style="color:#ef4444;margin-left:6px">✗ ${d.total-d.done-d.waveActive-d.wavePend} failed</span>`:''}
+                </div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Actions</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  ${d.status==='running'?`<button class="btn btn-sm btn-danger" onclick="alert('Cancel deployment?')">Cancel</button>`:''}
+                  ${d.status==='failed'?`<button class="btn btn-sm btn-primary" onclick="alert('Retrying failed endpoints...')">Retry Failed (${d.total-d.done})</button>`:''}
+                  ${d.status==='completed'||d.status==='failed'?`<button class="btn btn-sm btn-outline" onclick="alert('Rolling back...')">Rollback</button>`:''}
+                  <a href="deployment-detail.html" class="btn btn-sm btn-ghost">View Details →</a>
+                </div>
+                ${d.error?`<div class="error-text">${d.error}</div>`:''}
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function toggleExp(i,btn){
+  const row=document.getElementById('exp-'+i);
+  const open=row.classList.toggle('open');
+  btn.textContent=open?'▼':'▶';
+}
+
+renderDeps();
+</script>
+</body>
+</html>

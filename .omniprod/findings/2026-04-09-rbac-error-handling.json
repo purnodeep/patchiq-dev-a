@@ -1,0 +1,181 @@
+{
+  "audit_date": "2026-04-09",
+  "audit_type": "error_handling",
+  "feature": "RBAC Implementation",
+  "total_issues": 8,
+  "critical": 5,
+  "high": 3,
+  "findings": [
+    {
+      "id": "RBAC-001",
+      "severity": "CRITICAL",
+      "type": "SILENT_FAILURE",
+      "title": "Me() Handler Returns 200 OK on Permission Load Failure",
+      "location": "internal/server/auth/sso.go:318-329",
+      "description": "When GetUserPermissions() fails, the handler logs a WARNING and continues, returning 200 OK with empty permissions array. User sees themselves as having no permissions without any indication that permission loading failed.",
+      "code_context": {
+        "file": "internal/server/auth/sso.go",
+        "lines": "318-329",
+        "snippet": "if h.PermStore != nil && resp.TenantID != \"\" {\n    perms, err := h.PermStore.GetUserPermissions(r.Context(), resp.TenantID, userID)\n    if err != nil {\n        slog.WarnContext(r.Context(), \"sso me: failed to load user permissions\", \"error\", err)\n        // SILENT FAILURE: No return, continues with empty perms\n    } else {\n        entries := make([]permissionEntry, len(perms))\n        for i, p := range perms {\n            entries[i] = permissionEntry{Resource: p.Resource, Action: p.Action, Scope: p.Scope}\n        }\n        resp.Permissions = entries\n    }\n}"
+      },
+      "hidden_errors": [
+        "Database connection timeout",
+        "RLS policy evaluation error",
+        "Permission row decode error",
+        "Transaction rollback failure",
+        "Network timeout to remote DB"
+      ],
+      "user_impact": "User is locked out of all actions with no indication of why. Support receives reports of 'permission denied' with no clear cause.",
+      "required_fix": "Return 500 Internal Server Error when permission load fails. Log at ERROR level with user_id and tenant_id context."
+    },
+    {
+      "id": "RBAC-002",
+      "severity": "CRITICAL",
+      "type": "NO_RETRY_LOGIC",
+      "title": "useCurrentUser() Hook Has No Retry, No Error Details",
+      "location": "web/src/api/hooks/useAuth.ts:13-26",
+      "description": "The useCurrentUser hook throws generic error with no details and retry: false, causing transient network failures to become permanent. No logging of HTTP status codes or error context.",
+      "code_context": {
+        "file": "web/src/api/hooks/useAuth.ts",
+        "lines": "13-26",
+        "snippet": "export function useCurrentUser() {\n  return useQuery({\n    queryKey: ['auth', 'me'],\n    queryFn: async (): Promise<AuthUser> => {\n      const res = await fetch('/api/v1/auth/me', { credentials: 'include' });\n      if (!res.ok) throw new Error(`auth/me failed: ${res.status}`);\n      return res.json() as Promise<AuthUser>;\n    },\n    retry: false,\n    staleTime: 5 * 60 * 1000,\n  });\n}"
+      },
+      "hidden_errors": [
+        "Network timeout (no retry)",
+        "DNS resolution failure",
+        "TLS certificate error",
+        "Server 500 error",
+        "Server 503 unavailable",
+        "401 Unauthorized",
+        "403 Forbidden",
+        "Invalid JSON response"
+      ],
+      "user_impact": "User sees loading screen indefinitely on network hiccup. Refreshing page doesn't help. No indication what's wrong (network, server, token expired, etc).",
+      "required_fix": "Add retry logic for transient errors (not 401/403). Log full HTTP details including status text and response snippet. Distinguish permanent vs temporary failures."
+    },
+    {
+      "id": "RBAC-003",
+      "severity": "CRITICAL",
+      "type": "MOCK_IN_PRODUCTION",
+      "title": "AuthProvider Falls Back to Admin devUser on Auth Failure",
+      "location": "web/src/app/auth/AuthContext.tsx:54-76",
+      "description": "When useCurrentUser() fails, AuthProvider silently uses devUser with wildcard admin permissions. Violates CLAUDE.md: 'Mock/fake implementations belong only in tests'.",
+      "code_context": {
+        "file": "web/src/app/auth/AuthContext.tsx",
+        "lines": "54-76",
+        "snippet": "const devUser: AuthUser = {\n  user_id: 'dev-user',\n  tenant_id: '00000000-0000-0000-0000-000000000001',\n  email: 'dev@patchiq.local',\n  name: 'Dev User',\n  preferred_username: 'dev-user',\n  role: 'admin',\n  roles: ['admin'],\n  permissions: [{ resource: '*', action: '*', scope: '*' }],\n};\n\nconst effectiveUser = user ?? (isError ? devUser : null);"
+      },
+      "hidden_errors": [
+        "Network partition to auth server",
+        "Permission database connection failure",
+        "Auth middleware crash",
+        "Any authentication system failure"
+      ],
+      "user_impact": "User with no permissions sees full admin UI and thinks they have admin access. Operations fail silently on backend with 403 responses that frontend doesn't handle.",
+      "required_fix": "Remove devUser fallback. Show error screen with retry button when auth fails. Never give users admin access on auth failure."
+    },
+    {
+      "id": "RBAC-004",
+      "severity": "CRITICAL",
+      "type": "MISSING_CONTEXT",
+      "title": "403 Middleware Swallows Request Context",
+      "location": "web/src/api/client.ts:14-23",
+      "description": "The forbiddenInterceptor catches all 403 responses and shows generic 'Access denied' toast. No context about which operation failed, which endpoint, what resource.",
+      "code_context": {
+        "file": "web/src/api/client.ts",
+        "lines": "14-23",
+        "snippet": "const forbiddenInterceptor: Middleware = {\n  async onResponse({ response }) {\n    if (response.status === 403) {\n      toast.error('Access denied', {\n        description: 'You don\\'t have permission to perform this action.',\n      });\n    }\n    return response;\n  },\n};"
+      },
+      "hidden_errors": [
+        "Backend permission evaluator crash (returns 403 by default)",
+        "RLS policy evaluation error",
+        "Permission cache invalidation race condition",
+        "Tenant isolation violation",
+        "Transient permission service failure"
+      ],
+      "user_impact": "User sees generic 'Access denied' without knowing which operation failed. Toast disappears before user can read it. Support cannot correlate frontend error to backend logs.",
+      "required_fix": "Remove global 403 middleware. Let individual API call handlers show operation-specific errors with full context (method, URL, timestamp). Add error IDs and trace IDs for debugging."
+    },
+    {
+      "id": "RBAC-005",
+      "severity": "CRITICAL",
+      "type": "INSECURE_DEFAULT",
+      "title": "checkPermission() Implicitly Allows on Undefined Permissions",
+      "location": "web/src/app/auth/AuthContext.tsx:38-52",
+      "description": "When permissions is undefined, checkPermission returns true (allow all). Not justified and contradicts CLAUDE.md principle of explicit fallbacks.",
+      "code_context": {
+        "file": "web/src/app/auth/AuthContext.tsx",
+        "lines": "38-52",
+        "snippet": "export function checkPermission(\n  permissions: AuthUser['permissions'],\n  resource: string,\n  action: string,\n): boolean {\n  if (permissions === undefined) return true;  // IMPLICIT ALLOW\n  if (permissions.length === 0) return false;\n  return permissions.some((p) => {\n    const resourceMatch = p.resource === '*' || p.resource === resource;\n    const actionMatch = p.action === '*' || p.action === action;\n    return resourceMatch && actionMatch;\n  });\n}"
+      },
+      "hidden_errors": [
+        "Malformed permission response from backend",
+        "Missing permissions field in user response",
+        "Permission object schema change/mismatch"
+      ],
+      "user_impact": "If backend returns invalid response (missing permissions), user gets full access without realizing permission system is broken.",
+      "required_fix": "Change: if (permissions === undefined) return false; with console.warn. Undefined should mean 'permission unknown, deny by default'."
+    },
+    {
+      "id": "RBAC-006",
+      "severity": "HIGH",
+      "type": "ERROR_HANDLING_GAP",
+      "title": "JWT Profile Parsing Failures Logged But Response Incomplete",
+      "location": "internal/server/auth/sso.go:298-316",
+      "description": "When JWT parsing fails for profile claims, the handler logs WARNING but continues, returning user with missing name/email/preferred_username. User sees incomplete profile.",
+      "code_context": {
+        "file": "internal/server/auth/sso.go",
+        "lines": "298-316",
+        "snippet": "if cookie, err := r.Cookie(cookieName); err == nil {\n    tok, err := jwtParseInsecure(cookie.Value)\n    if err != nil {\n        slog.WarnContext(r.Context(), \"sso me: failed to parse session JWT\", \"error\", err)\n        // Continues without Name/Email/PreferredUsername\n    } else {\n        var profile oidcProfileClaims\n        if err := tok.UnsafeClaimsWithoutVerification(&profile); err != nil {\n            slog.WarnContext(r.Context(), \"sso me: failed to extract profile claims\", \"error\", err)\n            // Continues with empty profile\n        } else {\n            resp.Name = profile.Name\n            resp.Email = profile.Email\n            resp.PreferredUsername = profile.PreferredUsername\n        }\n    }\n}"
+      },
+      "hidden_errors": [
+        "JWT signature validation failure in middleware",
+        "Token schema change in Zitadel",
+        "Claims extraction error"
+      ],
+      "user_impact": "User's profile shows name=null, email=null. Frontend displays empty fields. User confused about why profile is incomplete.",
+      "required_fix": "Include failure details in response: {profileFailure: 'failed to parse JWT'}. Log at ERROR level with trace ID for debugging."
+    },
+    {
+      "id": "RBAC-007",
+      "severity": "HIGH",
+      "type": "DEBUGGING_DIFFICULTY",
+      "title": "No Error IDs from errorIds.ts for Sentry Tracking",
+      "location": "internal/server/auth/sso.go (lines 301, 307, 321), web/src/api/hooks/useAuth.ts (line 20)",
+      "description": "All RBAC-related errors are logged but do not include error IDs from constants/errorIds.ts, making Sentry correlation impossible.",
+      "code_context": {
+        "file": "internal/server/auth/sso.go",
+        "snippet": "slog.WarnContext(r.Context(), \"sso me: failed to load user permissions\", \"error\", err)\n// Missing: \"error_id\", errorIds.RBACPermissionLoadFailed,"
+      },
+      "hidden_errors": [
+        "Correlation between frontend and backend logs",
+        "Grouping errors by category in Sentry"
+      ],
+      "user_impact": "Support cannot group permission-related failures by type. Operator sees 100s of individual errors instead of 'Permission load failing 50 times/hour'.",
+      "required_fix": "Add error IDs to all error logs: 'error_id', errorIds.RBACPermissionLoadFailed. Ensure errorIds.ts has constants for all RBAC failure modes."
+    },
+    {
+      "id": "RBAC-008",
+      "severity": "HIGH",
+      "type": "RUNTIME_ERROR_RISK",
+      "title": "useCan() Called Without Null Safety in 35+ Page Files",
+      "location": "web/src/pages/settings/SettingsSidebar.tsx, AgentFleetSettingsPage.tsx, IdentitySettingsPage.tsx (and 35+ more)",
+      "description": "Pages call useCan() without null checks. If AuthProvider encounters error before page renders, useAuth() throws 'must be used within AuthProvider' error.",
+      "code_context": {
+        "file": "web/src/pages/settings/SettingsSidebar.tsx",
+        "snippet": "const can = useCan();  // Throws if not in AuthProvider\ndisabled={!can('endpoints', 'create')}"
+      },
+      "hidden_errors": ["AuthProvider not initialized", "Auth error occurs before page setup"],
+      "user_impact": "White screen of death if auth fails while page is rendering. No error boundary to catch and display readable error message.",
+      "required_fix": "Add error boundary wrapping all routes that use useAuth/useCan. Provide readable error screen with retry option."
+    }
+  ],
+  "recommendation": "DO NOT MERGE without fixes. All 5 CRITICAL issues must be resolved before this code reaches production. These are silent failures that will cause user confusion, support escalations, and difficult-to-debug incidents.",
+  "claude_md_violations": [
+    "No silent failures in production code",
+    "Mock/fake implementations belong only in tests",
+    "Catch blocks must be specific",
+    "Fallback must be explicit and justified",
+    "Every error message must be actionable"
+  ]
+}

@@ -1,0 +1,20 @@
+version: v2
+modules:
+  - path: proto
+lint:
+  use:
+    - STANDARD
+  ignore_only:
+    # SyncOutbox and SyncInbox use domain-meaningful type names for their streaming
+    # messages rather than the mechanical Request/Response suffix convention.
+    # The names (OutboxMessage, OutboxAck, InboxRequest, CommandRequest) are more
+    # descriptive as standalone types that are also used outside the RPC context.
+    RPC_REQUEST_STANDARD_NAME:
+      - proto/patchiq/v1/agent.proto
+    RPC_RESPONSE_STANDARD_NAME:
+      - proto/patchiq/v1/agent.proto
+    RPC_REQUEST_RESPONSE_UNIQUE:
+      - proto/patchiq/v1/agent.proto
+breaking:
+  use:
+    - FILE

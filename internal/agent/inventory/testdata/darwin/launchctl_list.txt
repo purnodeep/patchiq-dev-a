@@ -1,0 +1,13 @@
+PID	Status	Label
+432	0	com.apple.Spotlight
+-	0	com.apple.Accessibility.AXUIAutomation
+123	0	org.homebrew.mxcl.postgresql@14
+-	78	com.apple.xprotect.check
+501	0	com.docker.vmnetd
+-	0	com.microsoft.OneDrive
+88	0	com.openssh.sshd
+-	0	org.postgres.pgctl
+200	0	com.apple.cron
+-	0	com.apple.security.agent
+300	0	com.brave.Browser.updater
+-	0	io.containerd.grpc.v1

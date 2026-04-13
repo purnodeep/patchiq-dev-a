@@ -1,0 +1,36 @@
+{
+  "SPDisplaysDataType" : [
+    {
+      "_name" : "Apple M2 Pro",
+      "sppci_bus" : "sppci_builtin",
+      "sppci_cores" : "19",
+      "sppci_device_type" : "spdisplays_gpu",
+      "sppci_model" : "Apple M2 Pro",
+      "spdisplays_mtlgpufamilysupport" : "spdisplays_metal3",
+      "spdisplays_vram_shared" : "24576 MB",
+      "spdisplays_ndrvs" : [
+        {
+          "_name" : "Color LCD",
+          "spdisplays_resolution" : "3024 x 1964 Retina",
+          "_spdisplays_pixels" : "3024 x 1964",
+          "spdisplays_main" : "spdisplays_yes",
+          "spdisplays_mirror" : "spdisplays_off"
+        }
+      ]
+    },
+    {
+      "_name" : "Radeon Pro 5500M",
+      "sppci_bus" : "sppci_pcie",
+      "sppci_device_type" : "spdisplays_gpu",
+      "sppci_model" : "Radeon Pro 5500M",
+      "spdisplays_vram" : "4096 MB",
+      "sppci_slot" : "Slot - 0x02",
+      "spdisplays_ndrvs" : [
+        {
+          "_name" : "External Display",
+          "spdisplays_resolution" : "2560 x 1440 @ 60 Hz"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,173 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: patchiq
+      POSTGRES_USER: patchiq
+      POSTGRES_PASSWORD: patchiq
+    volumes:
+      - patchiq-pgdata:/var/lib/postgresql/data
+      - ./deploy/docker/init-dev-dbs.sh:/docker-entrypoint-initdb.d/init-dev-dbs.sh:ro
+      - ./deploy/zitadel/docker-compose.init.sql:/docker-entrypoint-initdb.d/02-zitadel.sql
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=500"
+      - "-c"
+      - "shared_buffers=512MB"
+      - "-c"
+      - "work_mem=8MB"
+    networks:
+      - patchiq-dev
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U patchiq -d patchiq"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:v2.71.6
+    container_name: ${COMPOSE_PROJECT_NAME:-patchiq}-zitadel
+    command: start-from-init --masterkeyFromEnv --tlsMode disabled --steps /steps.yaml
+    environment:
+      ZITADEL_MASTERKEY: "patchiq-dev-masterkey-32chars!!x"
+      ZITADEL_DATABASE_POSTGRES_HOST: postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: patchiq
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: patchiq
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      ZITADEL_EXTERNALDOMAIN: localhost
+      ZITADEL_EXTERNALPORT: ${ZITADEL_PORT:-8085}
+      ZITADEL_EXTERNALSECURE: "false"
+    volumes:
+      - ./deploy/zitadel/steps.yaml:/steps.yaml:ro
+      - ./deploy/zitadel/machinekey:/machinekey
+    ports:
+      - "${ZITADEL_PORT:-8085}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - patchiq-dev
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/debug/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  valkey:
+    image: valkey/valkey:9-alpine
+    ports:
+      - "${VALKEY_PORT:-6379}:6379"
+    volumes:
+      - patchiq-valkey:/data
+    networks:
+      - patchiq-dev
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-28T09-55-16Z
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - patchiq-minio:/data
+    networks:
+      - patchiq-dev
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  otel-lgtm:
+    image: grafana/otel-lgtm:0.8.1
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+      - "${OTLP_GRPC_PORT:-4317}:4317"
+      - "${OTLP_HTTP_PORT:-4318}:4318"
+    volumes:
+      - patchiq-grafana:/data
+    networks:
+      - patchiq-dev
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  patchiq-dev:
+    driver: bridge
+
+volumes:
+  patchiq-pgdata:
+  patchiq-valkey:
+  patchiq-minio:
+  patchiq-grafana:

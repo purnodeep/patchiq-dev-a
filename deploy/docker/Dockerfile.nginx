@@ -1,0 +1,36 @@
+# Dockerfile.nginx — Builds all 3 frontend SPAs and serves via nginx.
+# Used by docker-compose.prod.yml.
+
+FROM node:24-bookworm-slim AS builder
+WORKDIR /src
+RUN corepack enable && corepack prepare pnpm@10 --activate
+
+# Install dependencies (layer cached unless lockfile changes)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ui/package.json packages/ui/
+COPY web/package.json web/
+COPY web-hub/package.json web-hub/
+COPY web-agent/package.json web-agent/
+RUN pnpm install --frozen-lockfile
+
+# Copy source and build all frontends
+COPY packages/ui/ packages/ui/
+COPY web/ web/
+COPY web-hub/ web-hub/
+COPY web-agent/ web-agent/
+RUN pnpm --filter=@patchiq/ui build \
+    && pnpm --filter=@patchiq/web build \
+    && pnpm --filter=@patchiq/web-hub build \
+    && pnpm --filter=@patchiq/web-agent build
+
+# Serve with nginx
+FROM nginx:1.27-alpine
+RUN rm /etc/nginx/conf.d/default.conf
+COPY deploy/docker/nginx.prod.conf /etc/nginx/templates/default.conf.template
+
+# Copy built SPAs
+COPY --from=builder /src/web/dist /srv/web
+COPY --from=builder /src/web-hub/dist /srv/web-hub
+COPY --from=builder /src/web-agent/dist /srv/web-agent
+
+EXPOSE 3401 3402 3403

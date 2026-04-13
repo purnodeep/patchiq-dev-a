@@ -1,0 +1,65 @@
+{
+  "SPStorageDataType" : [
+    {
+      "_name" : "Macintosh HD",
+      "bsd_name" : "disk3s1",
+      "file_system" : "APFS",
+      "free_space_in_bytes" : 350000000000,
+      "mount_point" : "/",
+      "size_in_bytes" : 994662584320,
+      "volume_uuid" : "12345678-ABCD-EFGH-IJKL-1234567890AB",
+      "physical_drive" : {
+        "device_name" : "APPLE SSD AP1024Z",
+        "is_internal_disk" : "yes",
+        "medium_type" : "Solid State",
+        "partition_map_type" : "guid_partition_map_type",
+        "protocol" : "Apple Fabric"
+      }
+    },
+    {
+      "_name" : "Macintosh HD - Data",
+      "bsd_name" : "disk3s5",
+      "file_system" : "APFS",
+      "free_space_in_bytes" : 350000000000,
+      "mount_point" : "/System/Volumes/Data",
+      "size_in_bytes" : 994662584320,
+      "physical_drive" : {
+        "device_name" : "APPLE SSD AP1024Z",
+        "is_internal_disk" : "yes",
+        "medium_type" : "Solid State",
+        "partition_map_type" : "guid_partition_map_type",
+        "protocol" : "Apple Fabric"
+      }
+    },
+    {
+      "_name" : "External USB",
+      "bsd_name" : "disk4s1",
+      "file_system" : "ExFAT",
+      "free_space_in_bytes" : 100000000000,
+      "mount_point" : "/Volumes/External",
+      "size_in_bytes" : 500107862016,
+      "physical_drive" : {
+        "device_name" : "Samsung T7",
+        "is_internal_disk" : "no",
+        "medium_type" : "Solid State",
+        "partition_map_type" : "guid_partition_map_type",
+        "protocol" : "USB"
+      }
+    },
+    {
+      "_name" : "NVMe Drive",
+      "bsd_name" : "disk5s1",
+      "file_system" : "APFS",
+      "free_space_in_bytes" : 200000000000,
+      "mount_point" : "/Volumes/NVMe",
+      "size_in_bytes" : 1000204886016,
+      "physical_drive" : {
+        "device_name" : "WD Black SN850",
+        "is_internal_disk" : "no",
+        "medium_type" : "Solid State",
+        "partition_map_type" : "guid_partition_map_type",
+        "protocol" : "NVMe"
+      }
+    }
+  ]
+}

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Hub — Patch Catalog</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        indigo: { 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5' },
+      }
+    }
+  }
+}
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#141c2e;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#6366f1;--primary-dark:#4f46e5;
+  --secondary:#8b5cf6;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --radius:8px;--sidebar-w:260px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:13px}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar-w);min-height:100vh;background:#0d1120;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:width .2s}
+#sidebar.collapsed{width:64px}
+.sidebar-brand{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;overflow:hidden}
+.sidebar-brand-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sidebar-brand-text{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.sidebar-brand-sub{font-size:10px;color:var(--muted);display:block}
+.sidebar-nav{flex:1;padding:10px 0;overflow-y:auto;overflow-x:hidden}
+.nav-group-label{padding:8px 16px 3px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;overflow:hidden}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 16px;cursor:pointer;color:var(--muted);transition:all .15s;position:relative;font-size:12.5px;white-space:nowrap;text-decoration:none}
+.nav-item:hover{color:var(--text);background:rgba(99,102,241,.07)}
+.nav-item.active{color:var(--primary);background:rgba(99,102,241,.12)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--primary);border-radius:0 2px 2px 0}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--warning);color:#000;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0}
+.nav-badge.primary{background:var(--primary);color:#fff}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
+.sidebar-user{display:flex;align-items:center;gap:8px;cursor:pointer;overflow:hidden}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.avatar-info{line-height:1.3;overflow:hidden}
+.avatar-name{font-size:12px;font-weight:500;white-space:nowrap}
+.avatar-role{font-size:10px;color:var(--muted);white-space:nowrap}
+.collapse-btn{position:absolute;top:50%;right:-12px;transform:translateY(-50%);width:24px;height:24px;background:var(--card);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:var(--muted);z-index:101}
+
+/* MAIN */
+#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .2s}
+#main.sidebar-collapsed{margin-left:64px}
+
+/* TOPBAR */
+#topbar{height:52px;background:#0d1120;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:90}
+.topbar-brand{font-size:13px;font-weight:700;color:var(--primary)}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.breadcrumb span.active{color:var(--text)}
+.breadcrumb .sep{color:var(--border)}
+.client-switcher{margin-left:auto;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;position:relative}
+.client-switcher:hover{border-color:var(--primary)}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:16px}
+.topbar-icon-btn{width:32px;height:32px;border-radius:6px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.topbar-icon-btn:hover{border-color:var(--primary);color:var(--primary)}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--danger);border-radius:50%;font-size:8px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center}
+
+/* PAGE */
+.page-body{padding:24px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:20px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.page-count{font-size:14px;font-weight:400;color:var(--muted)}
+.page-subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+.page-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-ghost{background:none;border:1px solid transparent;color:var(--muted)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.badge-success{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-warning{background:rgba(245,158,11,.15);color:var(--warning)}
+.badge-danger{background:rgba(239,68,68,.15);color:var(--danger)}
+.badge-primary{background:rgba(99,102,241,.15);color:var(--primary)}
+.badge-secondary{background:rgba(139,92,246,.15);color:var(--secondary)}
+.badge-muted{background:rgba(100,116,139,.15);color:var(--muted)}
+.badge-blue{background:rgba(59,130,246,.15);color:#60a5fa}
+.badge-green{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-purple{background:rgba(139,92,246,.15);color:var(--secondary)}
+.badge-orange{background:rgba(249,115,22,.15);color:#fb923c}
+
+/* STATS STRIP */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--primary)}
+.stat-card.green::before{background:var(--success)}
+.stat-card.amber::before{background:var(--warning)}
+.stat-card.blue::before{background:#60a5fa}
+.stat-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.stat-value{font-size:22px;font-weight:700;line-height:1}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.stat-trend{display:flex;align-items:center;gap:4px;font-size:11px;margin-top:4px}
+.trend-up{color:var(--success)}
+.sparkline{display:flex;align-items:flex-end;gap:1.5px;height:20px;margin-top:8px}
+.spark-bar{width:4px;border-radius:1px;background:var(--primary);opacity:.7}
+
+/* FILTER BAR */
+.filter-bar{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.severity-pills{display:flex;gap:4px}
+.sev-pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);color:var(--muted);transition:all .15s}
+.sev-pill:hover{color:var(--text)}
+.sev-pill.active{color:#fff}
+.sev-pill.all.active{background:var(--primary);border-color:var(--primary)}
+.sev-pill.critical.active{background:var(--danger);border-color:var(--danger)}
+.sev-pill.high.active{background:var(--warning);border-color:var(--warning);color:#000}
+.sev-pill.medium.active{background:#f97316;border-color:#f97316}
+.sev-pill.low.active{background:var(--success);border-color:var(--success)}
+.filter-sep{width:1px;height:24px;background:var(--border)}
+.filter-select{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer}
+.filter-select:focus{outline:none;border-color:var(--primary)}
+.filter-search{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:12px;width:180px}
+.filter-search:focus{outline:none;border-color:var(--primary)}
+.filter-search::placeholder{color:var(--muted)}
+
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-toolbar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.bulk-actions{display:flex;gap:6px;align-items:center}
+.bulk-sep{font-size:11px;color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;font-weight:600;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid rgba(30,41,59,.5);font-size:12.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(99,102,241,.03)}
+.tr-selected td{background:rgba(99,102,241,.06)}
+.expand-row td{background:rgba(10,14,26,.7);border-bottom:1px solid var(--border)}
+.expand-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:3px;transition:all .15s;line-height:1}
+.expand-btn:hover{color:var(--text)}
+.name-link{font-family:monospace;font-size:11.5px;color:var(--primary);cursor:pointer}
+.name-link:hover{text-decoration:underline}
+.pm-dots{display:flex;gap:2px;align-items:center}
+.pm-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.checkbox-col{width:32px}
+input[type=checkbox]{accent-color:var(--primary);cursor:pointer;width:13px;height:13px}
+
+/* EXPANDED */
+.expand-content{padding:16px 40px;background:rgba(10,14,26,.8)}
+.expand-desc{color:var(--muted);font-size:12px;line-height:1.6;margin-bottom:12px}
+.expand-cve-list{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.expand-section-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.expand-actions{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+
+/* CLIENT SWITCHER DROPDOWN */
+.dropdown{position:relative;display:inline-block}
+.dropdown-menu{position:absolute;top:calc(100% + 6px);left:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:4px 0;min-width:180px;z-index:200;display:none}
+.dropdown-menu.open{display:block}
+.dropdown-item{padding:8px 14px;font-size:12px;cursor:pointer;color:var(--text);transition:background .1s}
+.dropdown-item:hover{background:rgba(99,102,241,.1)}
+.dropdown-item.active{color:var(--primary)}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;gap:4px;padding:12px 16px;border-top:1px solid var(--border)}
+.pag-btn{width:28px;height:28px;border-radius:5px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pag-btn:hover{border-color:var(--primary);color:var(--primary)}
+.pag-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.pag-info{font-size:12px;color:var(--muted);margin-left:auto}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div style="position:relative">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">H</div>
+      <div>
+        <div class="sidebar-brand-text">PatchIQ Hub</div>
+        <span class="sidebar-brand-sub">Control Plane</span>
+      </div>
+    </div>
+    <button class="collapse-btn" onclick="toggleSidebar()" id="collapse-btn">◀</button>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-label" id="grp-overview">Overview</div>
+      <a href="../hub-manager.html" class="nav-item">
+        <span class="nav-icon">⬡</span> <span class="nav-label">Dashboard</span>
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" id="grp-fleet">Fleet</div>
+      <a href="clients.html" class="nav-item">
+        <span class="nav-icon">🖥</span> <span class="nav-label">Clients</span>
+        <span class="nav-badge nav-label">8</span>
+      </a>
+      <a href="deployments.html" class="nav-item">
+        <span class="nav-icon">🚀</span> <span class="nav-label">Deployments</span>
+        <span class="nav-badge primary nav-label">2</span>
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" id="grp-catalog">Catalog</div>
+      <a href="catalog.html" class="nav-item active">
+        <span class="nav-icon">📦</span> <span class="nav-label">Catalog</span>
+      </a>
+      <a href="feeds.html" class="nav-item">
+        <span class="nav-icon">⚡</span> <span class="nav-label">Feeds</span>
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" id="grp-licensing">Licensing</div>
+      <a href="licenses.html" class="nav-item">
+        <span class="nav-icon">🔑</span> <span class="nav-label">Licenses</span>
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" id="grp-config">Configuration</div>
+      <a href="configuration.html" class="nav-item">
+        <span class="nav-icon">⚙</span> <span class="nav-label">Settings</span>
+      </a>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="avatar">HA</div>
+      <div class="avatar-info">
+        <div class="avatar-name">hubadmin</div>
+        <div class="avatar-role">hubadmin@msp.com</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <span class="topbar-brand">PatchIQ Hub</span>
+    <div class="breadcrumb">
+      <span class="sep">/</span> <span>Home</span>
+      <span class="sep">/</span> <span>Catalog</span>
+      <span class="sep">/</span> <span class="active">Entries</span>
+    </div>
+    <!-- CLIENT SWITCHER -->
+    <div class="dropdown" style="margin-left:auto" id="clientDropdown">
+      <div class="client-switcher" onclick="toggleDropdown()">
+        <span>🏢</span> All Clients <span style="color:var(--muted);margin-left:2px">▾</span>
+      </div>
+      <div class="dropdown-menu" id="clientMenu">
+        <div class="dropdown-item active">All Clients</div>
+        <div class="dropdown-item">Acme Corp</div>
+        <div class="dropdown-item">TechNova Inc</div>
+        <div class="dropdown-item">Riverside Health</div>
+        <div class="dropdown-item">Meridian Finance</div>
+        <div class="dropdown-item">Skyline Retail</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div style="position:relative">
+        <button class="topbar-icon-btn" title="Notifications">🔔
+          <div class="notif-badge">2</div>
+        </button>
+      </div>
+      <button class="topbar-icon-btn" onclick="toggleDark()" title="Toggle dark/light">🌙</button>
+      <div class="avatar" style="width:30px;height:30px;font-size:11px;cursor:pointer">HA</div>
+    </div>
+  </div>
+
+  <!-- PAGE BODY -->
+  <div class="page-body">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Patch Catalog <span class="page-count">(1,247)</span></div>
+        <div class="page-subtitle">Unified patch library synced across all Patch Manager instances</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost">📤 Export</button>
+        <button class="btn btn-outline">📥 Import CSV</button>
+        <button class="btn btn-primary">+ Add Entry</button>
+      </div>
+    </div>
+
+    <!-- STATS STRIP -->
+    <div class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-label">Total Entries</div>
+        <div class="stat-value">1,247</div>
+        <div class="stat-trend trend-up">↑ +34 this week</div>
+        <div class="sparkline" id="spark-total"></div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">New This Week</div>
+        <div class="stat-value" style="color:var(--success)">34</div>
+        <div class="stat-trend trend-up">↑ up from 21 last week</div>
+        <div class="sparkline" id="spark-new"></div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">CVEs Tracked</div>
+        <div class="stat-value" style="color:#60a5fa">3,892</div>
+        <div class="stat-sub">Across 1,247 entries</div>
+        <div class="sparkline" id="spark-cves"></div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Synced to PMs</div>
+        <div class="stat-value" style="color:var(--warning)">89%</div>
+        <div style="margin-top:8px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+          <div style="width:89%;height:100%;background:var(--warning);border-radius:2px;transition:width .5s"></div>
+        </div>
+        <div class="stat-sub" style="margin-top:4px">1,110 / 1,247 entries synced</div>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="severity-pills">
+        <div class="sev-pill all active" onclick="setSev(this,'all')">All <span style="opacity:.6">1,247</span></div>
+        <div class="sev-pill critical" onclick="setSev(this,'critical')">Critical <span style="opacity:.6">89</span></div>
+        <div class="sev-pill high" onclick="setSev(this,'high')">High <span style="opacity:.6">234</span></div>
+        <div class="sev-pill medium" onclick="setSev(this,'medium')">Medium <span style="opacity:.6">567</span></div>
+        <div class="sev-pill low" onclick="setSev(this,'low')">Low <span style="opacity:.6">357</span></div>
+      </div>
+      <div class="filter-sep"></div>
+      <select class="filter-select"><option>All OS</option><option>Windows</option><option>Ubuntu</option><option>RHEL</option><option>Debian</option></select>
+      <select class="filter-select"><option>All Sources</option><option>NVD</option><option>KEV</option><option>MSRC</option><option>Manual</option></select>
+      <div class="filter-sep"></div>
+      <input type="text" class="filter-search" placeholder="🔍  Search catalog…">
+      <select class="filter-select" style="margin-left:auto">
+        <option>Last 30 days</option><option>Last 7 days</option><option>Last 90 days</option><option>All time</option>
+      </select>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div class="table-toolbar" id="bulkToolbar" style="display:none">
+        <span style="font-size:12px;color:var(--text);font-weight:500"><span id="selCount">0</span> selected</span>
+        <div class="filter-sep" style="height:20px"></div>
+        <div class="bulk-actions">
+          <button class="btn btn-outline btn-sm">🔄 Push to PMs</button>
+          <button class="btn btn-outline btn-sm">📤 Export</button>
+          <button class="btn btn-outline btn-sm">🏷 Tag</button>
+          <button class="btn btn-danger btn-sm">🗑 Remove</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="clearSelection()">✕ Clear</button>
+      </div>
+      <div class="table-wrap" style="overflow-x:auto">
+      <table id="catalogTable">
+        <thead>
+          <tr>
+            <th class="checkbox-col"><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th>
+            <th>Name</th>
+            <th>Vendor</th>
+            <th>OS</th>
+            <th>Version</th>
+            <th>Severity</th>
+            <th>CVE Count</th>
+            <th>Synced PMs</th>
+            <th>Source</th>
+            <th>Published</th>
+            <th>Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="catalogBody">
+        </tbody>
+      </table>
+      </div>
+      <div class="pagination">
+        <button class="pag-btn">◀</button>
+        <button class="pag-btn active">1</button>
+        <button class="pag-btn">2</button>
+        <button class="pag-btn">3</button>
+        <button class="pag-btn">…</button>
+        <button class="pag-btn">63</button>
+        <button class="pag-btn">▶</button>
+        <span class="pag-info">Showing 1–20 of 1,247 entries</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- DARK MODE ----
+const root = document.documentElement;
+if(localStorage.getItem('theme')==='light') root.classList.remove('dark');
+function toggleDark(){
+  root.classList.toggle('dark');
+  localStorage.setItem('theme', root.classList.contains('dark')?'dark':'light');
+}
+
+// ---- SIDEBAR ----
+let sidebarCollapsed = false;
+function toggleSidebar(){
+  sidebarCollapsed = !sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed',sidebarCollapsed);
+  document.getElementById('main').classList.toggle('sidebar-collapsed',sidebarCollapsed);
+  document.getElementById('collapse-btn').textContent = sidebarCollapsed ? '▶' : '◀';
+  document.querySelectorAll('.nav-label,.nav-group-label,.avatar-info,.sidebar-brand-text,.sidebar-brand-sub').forEach(el=>{
+    el.style.display = sidebarCollapsed ? 'none' : '';
+  });
+}
+
+// ---- CLIENT SWITCHER ----
+function toggleDropdown(){
+  document.getElementById('clientMenu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if(!document.getElementById('clientDropdown').contains(e.target))
+    document.getElementById('clientMenu').classList.remove('open');
+});
+
+// ---- SPARKLINES ----
+function buildSparkline(id, data, color){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const max = Math.max(...data);
+  data.forEach(v=>{
+    const bar = document.createElement('div');
+    bar.className = 'spark-bar';
+    bar.style.height = Math.max(3, Math.round((v/max)*20))+'px';
+    bar.style.background = color||'var(--primary)';
+    el.appendChild(bar);
+  });
+}
+buildSparkline('spark-total',[850,900,940,980,1020,1060,1100,1140,1180,1210,1235,1247],'var(--primary)');
+buildSparkline('spark-new',[8,12,15,18,14,20,23,19,25,28,30,34],'var(--success)');
+buildSparkline('spark-cves',[2800,2950,3100,3200,3300,3450,3600,3700,3780,3820,3860,3892],'#60a5fa');
+
+// ---- SEVERITY PILLS ----
+function setSev(el, sev){
+  document.querySelectorAll('.sev-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ---- CATALOG DATA ----
+const catalogData = [
+  {id:'KB5034441',name:'KB5034441 — Windows Security Update',vendor:'Microsoft',os:'🪟 Windows',ver:'2024.01.09',sev:'Critical',sev_c:'danger',cves:4,synced:7,total:8,source:'NVD',src_c:'blue',pub:'Jan 9, 2024',upd:'Jan 11, 2024',desc:'Critical security update addressing remote code execution vulnerabilities in Windows Server 2022 and Windows 11. Patches CVE-2024-21307 and related kernel privilege escalation flaws.',cve_list:['CVE-2024-21307','CVE-2024-21318','CVE-2024-20697','CVE-2024-21320']},
+  {id:'USN-6570-1',name:'USN-6570-1 — Linux Kernel Vulnerability',vendor:'Canonical',os:'🐧 Ubuntu',ver:'6.5.0-14.14',sev:'High',sev_c:'warning',cves:3,synced:8,total:8,source:'USN',src_c:'orange',pub:'Jan 8, 2024',upd:'Jan 9, 2024',desc:'Ubuntu kernel security update fixing use-after-free and memory corruption vulnerabilities. Affects Ubuntu 23.10 and 22.04 LTS with HWE kernel.',cve_list:['CVE-2023-51780','CVE-2023-51781','CVE-2023-51782']},
+  {id:'RHSA-2024-0145',name:'RHSA-2024:0145 — OpenSSL Critical Patch',vendor:'Red Hat',os:'🎩 RHEL',ver:'3.0.7-27',sev:'Critical',sev_c:'danger',cves:2,synced:5,total:8,source:'KEV',src_c:'green',pub:'Jan 10, 2024',upd:'Jan 10, 2024',desc:'Red Hat security advisory for OpenSSL vulnerability allowing remote attackers to trigger denial of service via crafted X.509 certificate chains.',cve_list:['CVE-2023-5678','CVE-2023-6129']},
+  {id:'KB5034122',name:'KB5034122 — .NET Framework Update',vendor:'Microsoft',os:'🪟 Windows',ver:'4.8.09037',sev:'High',sev_c:'warning',cves:2,synced:8,total:8,source:'MSRC',src_c:'purple',pub:'Jan 9, 2024',upd:'Jan 9, 2024',desc:'.NET Framework security and reliability update for Windows. Addresses XML external entity injection and path traversal vulnerabilities.',cve_list:['CVE-2024-0056','CVE-2024-0057']},
+  {id:'USN-6548-1',name:'USN-6548-1 — curl Vulnerability Fix',vendor:'Canonical',os:'🐧 Ubuntu',ver:'7.81.0-1ubuntu1.15',sev:'Medium',sev_c:'secondary',cves:1,synced:6,total:8,source:'USN',src_c:'orange',pub:'Jan 2, 2024',upd:'Jan 3, 2024',desc:'Security update for curl addressing HSTS bypass and header injection vulnerabilities in the command-line data transfer tool.',cve_list:['CVE-2023-46218']},
+  {id:'KB5033372',name:'KB5033372 — Windows Defender Update',vendor:'Microsoft',os:'🪟 Windows',ver:'4.18.2311.9',sev:'Medium',sev_c:'secondary',cves:1,synced:8,total:8,source:'MSRC',src_c:'purple',pub:'Dec 14, 2023',upd:'Dec 15, 2023',desc:'Windows Defender antimalware definition and engine update. Improves detection of new malware variants and patches a bypass vulnerability.',cve_list:['CVE-2023-36010']},
+  {id:'RHSA-2024-0033',name:'RHSA-2024:0033 — glibc Security Update',vendor:'Red Hat',os:'🎩 RHEL',ver:'2.34-60.el9_3.3',sev:'Critical',sev_c:'danger',cves:3,synced:3,total:8,source:'NVD',src_c:'blue',pub:'Jan 4, 2024',upd:'Jan 5, 2024',desc:'Critical glibc vulnerability enabling remote code execution through buffer overflow in the GNU C Library dynamic linker. Affects RHEL 8 and 9.',cve_list:['CVE-2023-6246','CVE-2023-6779','CVE-2023-6780']},
+  {id:'USN-6551-1',name:'USN-6551-1 — OpenSSH Update',vendor:'Canonical',os:'🐧 Ubuntu',ver:'8.9p1-3ubuntu0.6',sev:'High',sev_c:'warning',cves:2,synced:7,total:8,source:'KEV',src_c:'green',pub:'Jan 3, 2024',upd:'Jan 4, 2024',desc:'OpenSSH security update addressing a heap buffer overflow vulnerability that could allow pre-authentication remote code execution.',cve_list:['CVE-2023-51384','CVE-2023-51385']},
+  {id:'KB5034763',name:'KB5034763 — Exchange Server Patch',vendor:'Microsoft',os:'🪟 Windows',ver:'15.2.1118.40',sev:'Critical',sev_c:'danger',cves:5,synced:4,total:8,source:'MSRC',src_c:'purple',pub:'Feb 13, 2024',upd:'Feb 14, 2024',desc:'Microsoft Exchange Server security update addressing NTLM relay attacks and remote code execution vulnerabilities affecting on-premise deployments.',cve_list:['CVE-2024-21410','CVE-2024-21400','CVE-2024-21413','CVE-2024-21389','CVE-2024-21386']},
+  {id:'RHSA-2024-0461',name:'RHSA-2024:0461 — Python Security Update',vendor:'Red Hat',os:'🎩 RHEL',ver:'3.11.7-1.el9_3',sev:'High',sev_c:'warning',cves:2,synced:6,total:8,source:'NVD',src_c:'blue',pub:'Jan 24, 2024',upd:'Jan 25, 2024',desc:'Python interpreter security update for RHEL 9 addressing URL parsing vulnerabilities and IDNA decoding issues that could lead to SSRF attacks.',cve_list:['CVE-2023-24329','CVE-2023-40217']},
+  {id:'USN-6605-1',name:'USN-6605-1 — Firefox Security Update',vendor:'Canonical',os:'🐧 Ubuntu',ver:'122.0+build2-0ubuntu0.23.10.1',sev:'High',sev_c:'warning',cves:6,synced:8,total:8,source:'USN',src_c:'orange',pub:'Jan 31, 2024',upd:'Feb 1, 2024',desc:'Mozilla Firefox security update patching multiple memory safety vulnerabilities, use-after-free, and out-of-bounds write flaws.',cve_list:['CVE-2024-0741','CVE-2024-0742','CVE-2024-0743','CVE-2024-0744','CVE-2024-0745','CVE-2024-0746']},
+  {id:'KB5034168',name:'KB5034168 — Azure AD Connect Update',vendor:'Microsoft',os:'🪟 Windows',ver:'2.3.6.0',sev:'Medium',sev_c:'secondary',cves:1,synced:8,total:8,source:'MSRC',src_c:'purple',pub:'Jan 9, 2024',upd:'Jan 10, 2024',desc:'Azure AD Connect security update addressing privilege escalation vulnerability in the sync service. Critical for hybrid identity deployments.',cve_list:['CVE-2024-21319']},
+  {id:'RHSA-2024-0557',name:'RHSA-2024:0557 — git Security Fix',vendor:'Red Hat',os:'🎩 RHEL',ver:'2.43.0-1.el9',sev:'High',sev_c:'warning',cves:2,synced:7,total:8,source:'NVD',src_c:'blue',pub:'Jan 30, 2024',upd:'Jan 30, 2024',desc:'Git version control security update for RHEL addressing arbitrary code execution via repository hooks and gitattributes parsing.',cve_list:['CVE-2024-32002','CVE-2024-32004']},
+  {id:'USN-6530-1',name:'USN-6530-1 — Vim Vulnerabilities',vendor:'Canonical',os:'🐧 Ubuntu',ver:'9.0.2189-1ubuntu0.1',sev:'Low',sev_c:'success',cves:2,synced:5,total:8,source:'USN',src_c:'orange',pub:'Dec 20, 2023',upd:'Dec 21, 2023',desc:'Vim text editor security update addressing use-after-free and buffer overflow vulnerabilities triggered by maliciously crafted files.',cve_list:['CVE-2023-48231','CVE-2023-48237']},
+  {id:'KB5033920',name:'KB5033920 — IIS Security Update',vendor:'Microsoft',os:'🪟 Windows',ver:'10.0.20348.2113',sev:'High',sev_c:'warning',cves:2,synced:6,total:8,source:'MSRC',src_c:'purple',pub:'Jan 9, 2024',upd:'Jan 10, 2024',desc:'Internet Information Services security update addressing HTTP/2 DoS and request smuggling vulnerabilities in IIS 10 on Windows Server.',cve_list:['CVE-2024-20694','CVE-2024-21354']},
+  {id:'USN-6574-1',name:'USN-6574-1 — SQLite Update',vendor:'Canonical',os:'🐧 Ubuntu',ver:'3.45.0-1ubuntu0.1',sev:'Medium',sev_c:'secondary',cves:1,synced:8,total:8,source:'NVD',src_c:'blue',pub:'Jan 9, 2024',upd:'Jan 9, 2024',desc:'SQLite database security update addressing a use-after-free vulnerability in the window function implementation that could cause crashes.',cve_list:['CVE-2023-7104']},
+  {id:'RHSA-2024-0897',name:'RHSA-2024:0897 — sudo Security Update',vendor:'Red Hat',os:'🎩 RHEL',ver:'1.9.5p2-10.el9_3',sev:'Critical',sev_c:'danger',cves:1,synced:2,total:8,source:'KEV',src_c:'green',pub:'Feb 20, 2024',upd:'Feb 21, 2024',desc:'Critical sudo vulnerability allowing local privilege escalation. CVE-2023-42465 can be exploited by a local user to obtain root privileges.',cve_list:['CVE-2023-42465']},
+  {id:'KB5035942',name:'KB5035942 — Windows 10 Cumulative',vendor:'Microsoft',os:'🪟 Windows',ver:'10.0.19045.4170',sev:'High',sev_c:'warning',cves:8,synced:7,total:8,source:'MSRC',src_c:'purple',pub:'Mar 5, 2024',upd:'Mar 6, 2024',desc:'Windows 10 cumulative security update for March 2024, addressing multiple vulnerabilities including kernel elevation of privilege and remote code execution.',cve_list:['CVE-2024-26182','CVE-2024-26185','CVE-2024-26198','CVE-2024-26199','CVE-2024-26200','CVE-2024-26201','CVE-2024-26202','CVE-2024-26204']},
+  {id:'USN-6640-1',name:'USN-6640-1 — OpenJDK 21 Update',vendor:'Canonical',os:'🐧 Ubuntu',ver:'21.0.2+13-1',sev:'Medium',sev_c:'secondary',cves:3,synced:8,total:8,source:'NVD',src_c:'blue',pub:'Feb 20, 2024',upd:'Feb 21, 2024',desc:'OpenJDK 21 security update for Ubuntu addressing vulnerabilities in JSSE, XML handling, and the Java VM affecting confidentiality and integrity.',cve_list:['CVE-2024-20918','CVE-2024-20919','CVE-2024-20945']},
+  {id:'RHSA-2024-1063',name:'RHSA-2024:1063 — bind Security Update',vendor:'Red Hat',os:'🎩 RHEL',ver:'9.16.23-18.el9_3.4',sev:'High',sev_c:'warning',cves:2,synced:6,total:8,source:'NVD',src_c:'blue',pub:'Mar 5, 2024',upd:'Mar 5, 2024',desc:'BIND DNS server security update addressing a cache poisoning vulnerability and a denial-of-service flaw affecting DNS resolver functionality.',cve_list:['CVE-2023-4408','CVE-2023-50387']},
+];
+
+function getSrcBadge(src, c){
+  const map = {blue:'badge-blue',green:'badge-success',purple:'badge-purple',orange:'badge-orange',gray:'badge-muted'};
+  return `<span class="badge ${map[c]||'badge-muted'}">${src}</span>`;
+}
+function getSevBadge(sev, c){
+  const map = {danger:'badge-danger',warning:'badge-warning',secondary:'badge-secondary',success:'badge-success'};
+  return `<span class="badge ${map[c]||'badge-muted'}">${sev}</span>`;
+}
+function getPmDots(synced, total){
+  let html = '<div class="pm-dots">';
+  for(let i=0;i<total;i++){
+    const col = i<synced ? 'var(--success)' : (i<synced+1 && synced<total ? 'var(--warning)' : 'var(--border)');
+    html += `<div class="pm-dot" style="background:${i<synced?'var(--success)':'var(--border)'}"></div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderTable(){
+  const tbody = document.getElementById('catalogBody');
+  tbody.innerHTML = '';
+  catalogData.forEach((row, i)=>{
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-i', i);
+    tr.innerHTML = `
+      <td><input type="checkbox" class="row-check" onchange="updateBulk()"></td>
+      <td><a href="catalog-detail.html" class="name-link">${row.name}</a></td>
+      <td style="color:var(--muted)">${row.vendor}</td>
+      <td>${row.os}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--muted)">${row.ver}</td>
+      <td>${getSevBadge(row.sev, row.sev_c)}</td>
+      <td><span style="color:var(--primary);font-weight:600">${row.cves}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:12px">${row.synced}/${row.total}</span>
+          ${getPmDots(row.synced,row.total)}
+        </div>
+      </td>
+      <td>${getSrcBadge(row.source, row.src_c)}</td>
+      <td style="color:var(--muted);font-size:11.5px">${row.pub}</td>
+      <td style="color:var(--muted);font-size:11.5px">${row.upd}</td>
+      <td>
+        <button class="expand-btn" onclick="toggleExpand(${i},this)">▼</button>
+      </td>`;
+    tbody.appendChild(tr);
+
+    // Expanded row
+    const expTr = document.createElement('tr');
+    expTr.id = `exp-${i}`;
+    expTr.style.display = 'none';
+    expTr.className = 'expand-row';
+    expTr.innerHTML = `<td colspan="12">
+      <div class="expand-content">
+        <div class="expand-section-label">Description</div>
+        <div class="expand-desc">${row.desc}</div>
+        <div class="expand-section-label">CVEs</div>
+        <div class="expand-cve-list">
+          ${row.cve_list.map(c=>`<span class="badge badge-danger" style="font-family:monospace">${c}</span>`).join('')}
+        </div>
+        <div class="expand-section-label">PM Sync Status</div>
+        <div style="display:flex;gap:6px;margin-bottom:4px">
+          ${['Acme Corp','TechNova','Riverside','Meridian','Skyline','BluePeak','Northridge','Vertex'].map((pm,j)=>{
+            const st = j<row.synced?'green':j===row.synced&&row.synced<row.total?'amber':'gray';
+            const col = st==='green'?'var(--success)':st==='amber'?'var(--warning)':'var(--muted)';
+            return `<div style="font-size:10px;text-align:center"><div style="width:10px;height:10px;border-radius:50%;background:${col};margin:0 auto 3px"></div><span style="color:var(--muted)">${pm.split(' ')[0]}</span></div>`;
+          }).join('')}
+        </div>
+        <div class="expand-actions">
+          <button class="btn btn-primary btn-sm">🔄 Push to All PMs</button>
+          <button class="btn btn-outline btn-sm">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm">🗑 Remove</button>
+        </div>
+      </div>
+    </td>`;
+    tbody.appendChild(expTr);
+  });
+}
+
+function toggleExpand(i, btn){
+  const row = document.getElementById(`exp-${i}`);
+  const visible = row.style.display !== 'none';
+  row.style.display = visible ? 'none' : 'table-row';
+  btn.textContent = visible ? '▼' : '▲';
+}
+
+function toggleAll(cb){
+  document.querySelectorAll('.row-check').forEach(c=>c.checked=cb.checked);
+  updateBulk();
+}
+function updateBulk(){
+  const checked = document.querySelectorAll('.row-check:checked');
+  const toolbar = document.getElementById('bulkToolbar');
+  toolbar.style.display = checked.length>0 ? 'flex' : 'none';
+  document.getElementById('selCount').textContent = checked.length;
+}
+function clearSelection(){
+  document.querySelectorAll('.row-check,#selectAll').forEach(c=>c.checked=false);
+  document.getElementById('bulkToolbar').style.display='none';
+}
+
+renderTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "SPUSBDataType" : [
+    {
+      "_name" : "USB31Bus",
+      "host_controller" : "AppleT8112USBXHCI",
+      "_items" : [
+        {
+          "_name" : "USB Keyboard",
+          "location_id" : "0x01100000",
+          "manufacturer" : "Keychron",
+          "product_id" : "0x0084",
+          "serial_num" : "SN12345",
+          "vendor_id" : "0x05ac"
+        },
+        {
+          "_name" : "USB Hub",
+          "location_id" : "0x01200000",
+          "product_id" : "0x0610",
+          "vendor_id" : "0x05e3",
+          "_items" : [
+            {
+              "_name" : "USB Mouse",
+              "location_id" : "0x01210000",
+              "manufacturer" : "Logitech",
+              "product_id" : "0xc077",
+              "vendor_id" : "0x046d"
+            },
+            {
+              "_name" : "Webcam",
+              "location_id" : "0x01220000",
+              "product_id" : "0x9230",
+              "vendor_id" : "0x046d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "_name" : "USB31Bus",
+      "host_controller" : "AppleT8112USBXHCI",
+      "_items" : [
+        {
+          "_name" : "External SSD",
+          "location_id" : "0x02100000",
+          "manufacturer" : "Samsung",
+          "product_id" : "0xa825",
+          "vendor_id" : "0x04e8"
+        }
+      ]
+    }
+  ]
+}

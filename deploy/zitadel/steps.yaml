@@ -1,0 +1,15 @@
+FirstInstance:
+  DefaultLanguage: en
+  Org:
+    Name: "PatchIQ Dev"
+    Human:
+      UserName: "admin@patchiq.local"
+      FirstName: "Admin"
+      LastName: "User"
+      Password: "Admin1234!"
+      PasswordChangeRequired: false
+  # Machine users and OIDC apps are created via the Management API
+  # after first boot. See CLAUDE.md for setup instructions.
+  # Service account PAT and OIDC client_id are stored in .env.
+  MachineKeyPath: /machinekey
+  PatPath: /machinekey

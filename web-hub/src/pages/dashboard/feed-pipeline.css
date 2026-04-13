@@ -1,0 +1,62 @@
+.feed-pipe {
+  position: relative;
+  overflow: hidden;
+}
+
+.pipe-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: flowpipe 2s linear infinite;
+}
+
+@keyframes flowpipe {
+  0% {
+    left: -10px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% + 10px);
+    opacity: 0;
+  }
+}
+
+.pipe-particle-red {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--signal-critical);
+  opacity: 0.5;
+  animation: flowpipe-blocked 3s linear infinite;
+}
+
+@keyframes flowpipe-blocked {
+  0% {
+    left: -10px;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+    left: 30%;
+  }
+  40% {
+    opacity: 0;
+    left: 35%;
+  }
+  100% {
+    left: 35%;
+    opacity: 0;
+  }
+}

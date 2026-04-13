@@ -1,0 +1,18 @@
+FROM ubuntu:22.04
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        cowsay \
+        sqlite3 \
+        ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Make cowsay available on PATH (Ubuntu installs to /usr/games).
+ENV PATH="/usr/games:${PATH}"
+
+RUN mkdir -p /var/lib/patchiq
+
+COPY patchiq-agent /usr/local/bin/patchiq-agent
+RUN chmod +x /usr/local/bin/patchiq-agent
+
+ENTRYPOINT ["/usr/local/bin/patchiq-agent"]

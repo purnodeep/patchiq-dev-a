@@ -1,0 +1,66 @@
+version: 2
+
+builds:
+  - id: server
+    main: ./cmd/server
+    binary: patchiq-server
+    goos: [linux]
+    goarch: [amd64]
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}}
+
+  - id: agent
+    main: ./cmd/agent
+    binary: patchiq-agent
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}}
+
+  - id: hub
+    main: ./cmd/hub
+    binary: patchiq-hub
+    goos: [linux]
+    goarch: [amd64]
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}}
+
+dockers:
+  - id: server
+    ids: [server]
+    image_templates:
+      - "ghcr.io/skenzeriq/patchiq-server:{{ .Tag }}"
+      - "ghcr.io/skenzeriq/patchiq-server:latest"
+    dockerfile: deploy/docker/Dockerfile.server
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+
+  - id: hub
+    ids: [hub]
+    image_templates:
+      - "ghcr.io/skenzeriq/patchiq-hub:{{ .Tag }}"
+      - "ghcr.io/skenzeriq/patchiq-hub:latest"
+    dockerfile: deploy/docker/Dockerfile.hub
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^ci:"

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Running pre-push checks (make ci)..."
+
+if ! make ci; then
+    echo ""
+    echo "Pre-push check failed. Push aborted."
+    echo "To skip this check, use: git push --no-verify"
+    exit 1
+fi

@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Workflow Editor</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ─── CSS Variables ──────────────────────────────────────── */
+    :root {
+      --brand: #10b981;
+      --brand-dim: rgba(16,185,129,0.12);
+      --brand-glow: rgba(16,185,129,0.25);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.12);
+      --red: #ef4444;
+      --red-dim: rgba(239,68,68,0.12);
+
+      --pg: #000000;
+      --card: #111111;
+      --border: #1a1a1a;
+      --canvas: #080808;
+      --dot-color: #1a1a1a;
+
+      --text-emphasis: #ffffff;
+      --text-primary: #cccccc;
+      --text-secondary: #a1a1a1;
+      --text-muted: #737373;
+      --text-faint: #444444;
+
+      --input-bg: #0d0d0d;
+      --input-border: #333333;
+      --hover-bg: #161616;
+
+      --node-bg: #141414;
+      --node-border: #2a2a2a;
+      --node-type-color: #737373;
+
+      --conn-line: #444444;
+      --scrollbar-thumb: #222222;
+    }
+
+    [data-theme="light"] {
+      --brand: #7c3aed;
+      --brand-dim: rgba(124,58,237,0.08);
+      --brand-glow: rgba(124,58,237,0.2);
+
+      --pg: #f8f8f8;
+      --card: #ffffff;
+      --border: #e5e5e5;
+      --canvas: #eeeeee;
+      --dot-color: #dddddd;
+
+      --text-emphasis: #111111;
+      --text-primary: #1a1a1a;
+      --text-secondary: #525252;
+      --text-muted: #737373;
+      --text-faint: #cccccc;
+
+      --input-bg: #f5f5f5;
+      --input-border: #e0e0e0;
+      --hover-bg: #f0f0f0;
+
+      --node-bg: #ffffff;
+      --node-border: #d4d4d4;
+      --node-type-color: #737373;
+
+      --conn-line: #b0b0b0;
+      --scrollbar-thumb: #d0d0d0;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--pg);
+      color: var(--text-primary);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Scrollbar ─────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+    /* ─── Layout ────────────────────────────────────────────── */
+    .app {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─── Sidebar ───────────────────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--pg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px 0;
+    }
+
+    .nav-section {
+      margin-bottom: 4px;
+    }
+
+    .nav-section-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      padding: 8px 20px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 20px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      border-radius: 0;
+      transition: background 0.1s, color 0.1s;
+      font-size: 13px;
+    }
+
+    .nav-item:hover {
+      background: var(--hover-bg);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      color: var(--text-emphasis);
+      background: var(--hover-bg);
+    }
+
+    .nav-item svg {
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+    .nav-item.active svg {
+      opacity: 1;
+    }
+
+    .sidebar-bottom {
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── Main Content ──────────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--pg);
+    }
+
+    /* ─── Top Bar ───────────────────────────────────────────── */
+    .topbar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--pg);
+      flex-shrink: 0;
+    }
+
+    .topbar-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .topbar-breadcrumb span.active {
+      color: var(--text-primary);
+    }
+
+    .topbar-breadcrumb .sep {
+      color: var(--text-faint);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--hover-bg);
+      color: var(--text-primary);
+    }
+
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand-dim);
+      border: 1px solid var(--brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--brand);
+    }
+
+    /* ─── Editor Container ──────────────────────────────────── */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Editor Top Bar ────────────────────────────────────── */
+    .editor-topbar {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      gap: 12px;
+    }
+
+    .editor-name-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .editor-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-family: 'Geist', sans-serif;
+    }
+
+    .editor-name:focus {
+      outline: none;
+    }
+
+    .editor-status {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .editor-center-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .editor-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-ghost {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-family: 'Geist', sans-serif;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s, border-color 0.1s;
+      white-space: nowrap;
+    }
+
+    .btn-ghost:hover {
+      background: var(--hover-bg);
+      color: var(--text-primary);
+    }
+
+    .btn-brand {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: none;
+      background: var(--brand);
+      color: #000000;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Geist', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.1s;
+      white-space: nowrap;
+    }
+
+    .btn-brand:hover { opacity: 0.88; }
+
+    /* ─── Editor Body ───────────────────────────────────────── */
+    .editor-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ─── Node Palette ──────────────────────────────────────── */
+    .node-palette {
+      width: 200px;
+      flex-shrink: 0;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .palette-search {
+      padding: 10px 10px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .palette-search input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-size: 11px;
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      outline: none;
+    }
+
+    .palette-search input::placeholder {
+      color: var(--text-faint);
+    }
+
+    .palette-search input:focus {
+      border-color: var(--brand);
+    }
+
+    .palette-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .palette-section {
+      margin-bottom: 6px;
+    }
+
+    .palette-section-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 6px 10px 3px;
+    }
+
+    .palette-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px;
+      height: 36px;
+      cursor: grab;
+      transition: background 0.1s;
+    }
+
+    .palette-item:hover {
+      background: var(--hover-bg);
+    }
+
+    .palette-item:active {
+      cursor: grabbing;
+    }
+
+    .palette-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-brand { background: var(--brand); }
+    .dot-gray { background: var(--text-faint); }
+    .dot-amber { background: var(--amber); }
+    .dot-red { background: var(--red); }
+
+    .palette-icon {
+      color: var(--text-muted);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .palette-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    /* ─── Canvas ────────────────────────────────────────────── */
+    .canvas-area {
+      flex: 1;
+      position: relative;
+      background: var(--canvas);
+      background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1px);
+      background-size: 24px 24px;
+      overflow: hidden;
+    }
+
+    .canvas-viewport {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ─── Workflow Nodes ─────────────────────────────────────── */
+    .wf-node {
+      position: absolute;
+      width: 200px;
+      background: var(--node-bg);
+      border: 1px solid var(--node-border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .wf-node:hover {
+      border-color: var(--text-faint);
+    }
+
+    .wf-node.selected {
+      border-color: var(--brand) !important;
+      box-shadow: 0 0 8px rgba(16,185,129,0.2), 0 0 0 2px var(--brand-glow), 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    [data-theme="light"] .wf-node {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    [data-theme="light"] .wf-node.selected {
+      box-shadow: 0 0 8px rgba(124,58,237,0.2), 0 0 0 2px var(--brand-glow), 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .wf-node.cat-trigger { border-color: var(--brand); }
+    .wf-node.cat-gate { border-color: var(--amber); }
+    .wf-node.cat-error { border-color: var(--red); }
+
+    .node-accent {
+      height: 4px;
+      width: 100%;
+    }
+
+    .accent-brand { background: var(--brand); }
+    .accent-gray { background: var(--node-border); }
+    .accent-amber { background: var(--amber); }
+    .accent-red { background: var(--red); }
+
+    .node-body {
+      padding: 8px 10px 10px;
+    }
+
+    .node-type-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .node-type-icon {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+    }
+
+    .node-type-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .node-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      letter-spacing: -0.01em;
+    }
+
+    .node-detail {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: 'GeistMono', monospace;
+    }
+
+    .node-port {
+      display: flex;
+      justify-content: center;
+      padding: 5px 0 2px;
+    }
+
+    .port-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      border: 1.5px solid var(--text-faint);
+      background: var(--node-bg);
+      transition: border-color 0.15s;
+    }
+
+    .cat-trigger .port-dot { border-color: var(--brand); }
+    .cat-gate .port-dot { border-color: var(--amber); }
+    .cat-error .port-dot { border-color: var(--red); }
+    .selected .port-dot { border-color: var(--brand); }
+
+    /* ─── SVG Canvas ────────────────────────────────────────── */
+    .canvas-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    @keyframes flow-dash {
+      from { stroke-dashoffset: 20; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    .conn-path {
+      fill: none;
+      stroke: var(--conn-line);
+      stroke-width: 1.5;
+      stroke-dasharray: 5 5;
+      animation: flow-dash 2.5s linear infinite;
+    }
+
+    .conn-path:hover {
+      stroke: var(--text-secondary);
+    }
+
+    .conn-arrow {
+      fill: var(--conn-line);
+    }
+
+    /* ─── Zoom Controls ─────────────────────────────────────── */
+    .zoom-controls {
+      position: absolute;
+      bottom: 36px;
+      left: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 10;
+    }
+
+    .zoom-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+      font-size: 14px;
+      font-weight: 300;
+    }
+
+    .zoom-btn:hover {
+      background: var(--hover-bg);
+      color: var(--text-primary);
+    }
+
+    .zoom-level {
+      font-size: 10px;
+      color: var(--text-faint);
+      text-align: center;
+      font-family: 'GeistMono', monospace;
+      padding: 2px 0;
+    }
+
+    /* ─── Status Bar ────────────────────────────────────────── */
+    .status-bar {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      background: var(--canvas);
+      border-top: 1px solid var(--border);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    .status-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-valid {
+      color: var(--brand);
+      font-size: 11px;
+    }
+
+    /* ─── Properties Panel ──────────────────────────────────── */
+    .props-panel {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .props-header {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .props-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .props-type-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--hover-bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+    }
+
+    .props-title-group {}
+
+    .props-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .props-subtitle {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .props-close {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      transition: background 0.1s, color 0.1s;
+    }
+
+    .props-close:hover {
+      background: var(--hover-bg);
+      color: var(--text-primary);
+    }
+
+    .props-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px;
+    }
+
+    .props-section {
+      margin-bottom: 18px;
+    }
+
+    .props-section-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .form-field {
+      margin-bottom: 10px;
+    }
+
+    .form-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-size: 12px;
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus {
+      border-color: var(--brand);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-faint);
+    }
+
+    textarea.form-input {
+      resize: vertical;
+      min-height: 52px;
+      line-height: 1.4;
+    }
+
+    .form-select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-size: 12px;
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+    }
+
+    .form-input-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .form-input-row .form-field {
+      flex: 1;
+    }
+
+    .tag-expr {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 6px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 5px;
+      min-height: 34px;
+    }
+
+    .tag-pill {
+      display: flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--hover-bg);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: 'GeistMono', monospace;
+    }
+
+    .tag-and {
+      font-size: 9px;
+      color: var(--text-faint);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .endpoints-count {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 5px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .toggle-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .toggle {
+      width: 32px;
+      height: 18px;
+      background: var(--brand);
+      border-radius: 9px;
+      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #000000;
+      border-radius: 50%;
+      top: 3px;
+      left: 17px;
+      transition: left 0.15s;
+    }
+
+    [data-theme="light"] .toggle::after {
+      background: #ffffff;
+    }
+
+    /* ─── SVG icon helpers ──────────────────────────────────── */
+    svg { display: block; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ─── Sidebar ──────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg class="logo-icon" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="6" fill="#10b981" opacity="0.15"/>
+        <path d="M7 14.5L11.5 19L21 9" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="logo-text">PatchIQ</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Overview</div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+          Dashboard
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Inventory</div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4v3l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Endpoints
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h10M2 10h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Tags
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2L12 5v4L7 12 2 9V5L7 2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+          CVEs
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Operations</div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="4.5" width="11" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 4.5V3a1.5 1.5 0 0 1 3 0v1.5M7 4.5V3a1.5 1.5 0 0 1 3 0v1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Deployments
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="4" height="4" rx="1" fill="currentColor" opacity="0.5"/><rect x="8.5" y="1.5" width="4" height="4" rx="1" fill="currentColor" opacity="0.5"/><path d="M3.5 5.5v3M10.5 5.5v3M3.5 8.5h7M7 8.5v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Policies
+        </div>
+        <div class="nav-item active">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="2.5" cy="7" r="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="7" cy="3" r="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="11.5" cy="7" r="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="7" cy="11" r="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 7h1.5M8.5 7H10M7 4.5v1M7 9.5v-1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Workflows
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L12.5 4.5v5L7 12.5 1.5 9.5v-5L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5v2l1.5 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Compliance
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Analytics</div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11L5 7.5l3 2L12 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Audit
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="nav-item">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M2.5 12c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Settings
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── Main ─────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-breadcrumb">
+        <span>Operations</span>
+        <span class="sep">/</span>
+        <span>Workflows</span>
+        <span class="sep">/</span>
+        <span class="active">Critical Patch Pipeline</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">
+          <svg id="themeIconDark" width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M6.5 1v1M6.5 11v1M1 6.5H0M13 6.5h-1M2.636 2.636l-.707-.707M11.071 11.071l-.707-.707M11.071 2.636l.707-.707M2.636 11.071l-.707.707" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            <circle cx="6.5" cy="6.5" r="2.5" stroke="currentColor" stroke-width="1.3"/>
+          </svg>
+          <svg id="themeIconLight" width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:none">
+            <path d="M11 7.5A5 5 0 0 1 5.5 2 5 5 0 1 0 11 7.5z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="topbar-user">
+          <div class="avatar">H</div>
+          <span>heramb</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor Container -->
+    <div class="editor-container">
+
+      <!-- Editor Top Bar -->
+      <div class="editor-topbar">
+        <div class="editor-name-group">
+          <input class="editor-name" value="Critical Patch Pipeline" type="text" />
+          <span class="editor-status">Draft &bull; Saved 2m ago</span>
+        </div>
+        <div class="editor-center-actions">
+          <button class="btn-ghost">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="0.5" y="0.5" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M3 5.5h5M5.5 3l2.5 2.5L5.5 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Load Template
+          </button>
+          <button class="btn-ghost">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="3" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="6" y="1" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="6" y="7" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+            Auto Layout
+          </button>
+        </div>
+        <div class="editor-right-actions">
+          <button class="btn-ghost">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Validate
+          </button>
+          <button class="btn-ghost">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 8.5h8M1.5 1.5h8v5H1.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Save Draft
+          </button>
+          <button class="btn-brand">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 5.5l1.5 1.5 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Publish
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor Body: Palette + Canvas + Props -->
+      <div class="editor-body">
+
+        <!-- Node Palette -->
+        <div class="node-palette">
+          <div class="palette-search">
+            <input type="text" placeholder="Search nodes…" />
+          </div>
+          <div class="palette-list">
+
+            <div class="palette-section">
+              <div class="palette-section-label">Triggers</div>
+              <div class="palette-item">
+                <div class="palette-dot dot-brand"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 3.5v3l2 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                </div>
+                <span class="palette-label">Schedule</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-brand"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 2v4M6.5 9v1M3.5 4.5L2 3M9.5 4.5L11 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="6.5" cy="8" r="3" stroke="currentColor" stroke-width="1.2"/></svg>
+                </div>
+                <span class="palette-label">CVE Alert</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-brand"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M5 2.5C5 1.67 5.67 1 6.5 1S8 1.67 8 2.5V7H5V2.5z" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 7h6l-1 4h-4L3.5 7z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                </div>
+                <span class="palette-label">Manual</span>
+              </div>
+            </div>
+
+            <div class="palette-section">
+              <div class="palette-section-label">Actions</div>
+              <div class="palette-item">
+                <div class="palette-dot dot-gray"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9L8 7H5L2 3.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M5 7v4M8 7v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                </div>
+                <span class="palette-label">Filter</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-gray"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5L9 4l-1 1-1-1L6.5 5.5C8 6.5 9 8 9 9.5A2.5 2.5 0 0 1 4 9.5c0-1.5 1-3 2.5-4L6.5 5l-1 1-1-1 2.5-2.5z" stroke="currentColor" stroke-width="1.1"/></svg>
+                </div>
+                <span class="palette-label">Deploy Wave</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-gray"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2" width="11" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 5l2 2-2 2M7 9h2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <span class="palette-label">Script</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-gray"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 2v2M4.5 3C3 3.5 2 4.9 2 6.5c0 2.485 2.015 4.5 4.5 4.5S11 8.985 11 6.5c0-1.6-1-3-2.5-3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M5 6.5c0-.828.672-1.5 1.5-1.5S8 5.672 8 6.5 7.328 8 6.5 8" stroke="currentColor" stroke-width="1.2"/></svg>
+                </div>
+                <span class="palette-label">Notification</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-gray"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 2L11 9.5H2L6.5 2z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M5 7.5l1 1.5 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <span class="palette-label">Compliance Check</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-gray"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 6.5L6.5 2l4 4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="6.5" width="5" height="4" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+                </div>
+                <span class="palette-label">Complete</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-gray"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5A4.5 4.5 0 0 1 6.5 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M11 6.5A4.5 4.5 0 0 1 6.5 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M4.5 2L2 4.5M6.5 9l2.5 2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                </div>
+                <span class="palette-label">Reboot</span>
+              </div>
+            </div>
+
+            <div class="palette-section">
+              <div class="palette-section-label">Gates</div>
+              <div class="palette-item">
+                <div class="palette-dot dot-amber"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="4.5" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M2.5 11c0-2.209 1.79-4 4-4s4 1.791 4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M5 4.5l1 1 2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <span class="palette-label">Approval</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-amber"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 4v2.5l1.5 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                </div>
+                <span class="palette-label">Gate</span>
+              </div>
+              <div class="palette-item">
+                <div class="palette-dot dot-amber"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h5M7 3.5l4 3-4 3M7 6.5H2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <span class="palette-label">Decision</span>
+              </div>
+            </div>
+
+            <div class="palette-section">
+              <div class="palette-section-label">Error Handling</div>
+              <div class="palette-item">
+                <div class="palette-dot dot-red"></div>
+                <div class="palette-icon">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M10 3.5A4.5 4.5 0 0 0 2.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M8 1.5L10.5 4 8 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 9.5A4.5 4.5 0 0 0 10.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M5 11.5L2.5 9 5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <span class="palette-label">Rollback</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="canvas-area" id="canvas">
+
+          <!-- SVG connections layer -->
+          <svg class="canvas-svg" id="canvasSvg">
+            <defs>
+              <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" class="conn-arrow"/>
+              </marker>
+            </defs>
+            <!-- Connections drawn by JS -->
+          </svg>
+
+          <!-- Node: Schedule Trigger -->
+          <div class="wf-node cat-trigger" id="node-1" style="left:60px; top:80px;">
+            <div class="node-accent accent-brand"></div>
+            <div class="node-body">
+              <div class="node-type-row">
+                <div class="node-type-icon">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.1"/><path d="M5.5 3v2.5l1.5 1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+                </div>
+                <span class="node-type-label">Trigger</span>
+              </div>
+              <div class="node-name">Schedule Trigger</div>
+              <div class="node-detail">Every 6h</div>
+            </div>
+            <div class="node-port"><div class="port-dot"></div></div>
+          </div>
+
+          <!-- Node: Filter -->
+          <div class="wf-node" id="node-2" style="left:320px; top:80px;">
+            <div class="node-accent accent-gray"></div>
+            <div class="node-body">
+              <div class="node-type-row">
+                <div class="node-type-icon">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 2.5h9L7 5.5H4L1 2.5z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M4 5.5v3M7 5.5v3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+                </div>
+                <span class="node-type-label">Action</span>
+              </div>
+              <div class="node-name">Filter: Critical CVEs</div>
+              <div class="node-detail">severity ≥ critical</div>
+            </div>
+            <div class="node-port"><div class="port-dot"></div></div>
+          </div>
+
+          <!-- Node: Approval -->
+          <div class="wf-node cat-gate" id="node-3" style="left:580px; top:80px;">
+            <div class="node-accent accent-amber"></div>
+            <div class="node-body">
+              <div class="node-type-row">
+                <div class="node-type-icon">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="3.5" r="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M2 9.5c0-1.933 1.567-3.5 3.5-3.5S9 7.567 9 9.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M4 3.5l.75.75L7 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <span class="node-type-label">Gate</span>
+              </div>
+              <div class="node-name">Approval: Security Lead</div>
+              <div class="node-detail">timeout: 48h</div>
+            </div>
+            <div class="node-port"><div class="port-dot"></div></div>
+          </div>
+
+          <!-- Node: Deploy Wave 1 (SELECTED) -->
+          <div class="wf-node selected" id="node-4" style="left:580px; top:200px;">
+            <div class="node-accent accent-gray"></div>
+            <div class="node-body">
+              <div class="node-type-row">
+                <div class="node-type-icon">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1L8 3.5l-1 1-1-1L5.5 4.5C7 5.5 7.5 7 7.5 8A2 2 0 0 1 3.5 8c0-1 .5-2.5 2-3.5L5.5 4l-1 1-1-1L6 1.5z" stroke="currentColor" stroke-width="1.1"/></svg>
+                </div>
+                <span class="node-type-label">Action</span>
+              </div>
+              <div class="node-name">Deploy Wave 1: Staging</div>
+              <div class="node-detail">rolling · 25% batches</div>
+            </div>
+            <div class="node-port"><div class="port-dot"></div></div>
+          </div>
+
+          <!-- Node: Gate Wait -->
+          <div class="wf-node cat-gate" id="node-5" style="left:580px; top:320px;">
+            <div class="node-accent accent-amber"></div>
+            <div class="node-body">
+              <div class="node-type-row">
+                <div class="node-type-icon">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.1"/><path d="M5.5 3v2.5l1.5 1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+                </div>
+                <span class="node-type-label">Gate</span>
+              </div>
+              <div class="node-name">Gate: Wait 24h</div>
+              <div class="node-detail">timeout: 24h</div>
+            </div>
+            <div class="node-port"><div class="port-dot"></div></div>
+          </div>
+
+          <!-- Node: Deploy Wave 2 -->
+          <div class="wf-node" id="node-6" style="left:580px; top:440px;">
+            <div class="node-accent accent-gray"></div>
+            <div class="node-body">
+              <div class="node-type-row">
+                <div class="node-type-icon">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1L8 3.5l-1 1-1-1L5.5 4.5C7 5.5 7.5 7 7.5 8A2 2 0 0 1 3.5 8c0-1 .5-2.5 2-3.5L5.5 4l-1 1-1-1L6 1.5z" stroke="currentColor" stroke-width="1.1"/></svg>
+                </div>
+                <span class="node-type-label">Action</span>
+              </div>
+              <div class="node-name">Deploy Wave 2: Production</div>
+              <div class="node-detail">rolling · 10% batches</div>
+            </div>
+            <div class="node-port"><div class="port-dot"></div></div>
+          </div>
+
+          <!-- Node: Complete -->
+          <div class="wf-node" id="node-7" style="left:580px; top:560px;">
+            <div class="node-accent accent-gray"></div>
+            <div class="node-body">
+              <div class="node-type-row">
+                <div class="node-type-icon">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 5.5l3 3 6-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <span class="node-type-label">Action</span>
+              </div>
+              <div class="node-name">Complete</div>
+              <div class="node-detail">pipeline finished</div>
+            </div>
+            <div class="node-port" style="opacity:0"><div class="port-dot"></div></div>
+          </div>
+
+          <!-- Zoom Controls -->
+          <div class="zoom-controls">
+            <div class="zoom-btn">+</div>
+            <div class="zoom-level">75%</div>
+            <div class="zoom-btn">−</div>
+            <div class="zoom-btn" style="margin-top:2px;">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="1" width="4" height="4" rx="0.75" stroke="currentColor" stroke-width="1.1"/><rect x="6" y="1" width="4" height="4" rx="0.75" stroke="currentColor" stroke-width="1.1"/><rect x="1" y="6" width="4" height="4" rx="0.75" stroke="currentColor" stroke-width="1.1"/><rect x="6" y="6" width="4" height="4" rx="0.75" stroke="currentColor" stroke-width="1.1"/></svg>
+            </div>
+          </div>
+
+          <!-- Status Bar -->
+          <div class="status-bar">
+            <div class="status-text">
+              <span>7 nodes &bull; 6 connections</span>
+              <span class="status-valid">✓ Valid</span>
+            </div>
+            <div class="status-text">
+              <span>Ctrl+Z undo &nbsp;&bull;&nbsp; Ctrl+S save</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Properties Panel -->
+        <div class="props-panel">
+          <div class="props-header">
+            <div class="props-header-left">
+              <div class="props-type-icon">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L9.5 4l-1 1-1-1L7 5C8.5 6 9.5 7.5 9.5 9A2.5 2.5 0 0 1 4.5 9c0-1.5 1-3 2.5-4L7 4.5l-1 1-1-1 2.5-2.5z" stroke="currentColor" stroke-width="1.2"/></svg>
+              </div>
+              <div class="props-title-group">
+                <div class="props-title">Deploy Wave</div>
+                <div class="props-subtitle">Action node</div>
+              </div>
+            </div>
+            <button class="props-close">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+
+          <div class="props-body">
+
+            <div class="props-section">
+              <span class="props-section-label">Configuration</span>
+              <div class="form-field">
+                <label class="form-label">Name</label>
+                <input class="form-input" type="text" value="Staging Rollout" />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Description</label>
+                <textarea class="form-input" placeholder="Optional description…">Deploy critical patches to staging environment first.</textarea>
+              </div>
+            </div>
+
+            <div class="props-section">
+              <span class="props-section-label">Targeting</span>
+              <div class="form-field">
+                <label class="form-label">Tag Expression</label>
+                <div class="tag-expr">
+                  <span class="tag-pill">env:staging</span>
+                  <span class="tag-and">AND</span>
+                  <span class="tag-pill">priority:critical</span>
+                </div>
+                <div class="endpoints-count">47 endpoints matched</div>
+              </div>
+            </div>
+
+            <div class="props-section">
+              <span class="props-section-label">Deployment</span>
+              <div class="form-field">
+                <label class="form-label">Strategy</label>
+                <select class="form-select">
+                  <option selected>Rolling</option>
+                  <option>Blue/Green</option>
+                  <option>Canary</option>
+                  <option>All at once</option>
+                </select>
+              </div>
+              <div class="form-input-row">
+                <div class="form-field">
+                  <label class="form-label">Batch Size</label>
+                  <input class="form-input" type="text" value="25%" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Timeout</label>
+                  <input class="form-input" type="text" value="4h" />
+                </div>
+              </div>
+              <div class="form-field" style="margin-top:4px;">
+                <div class="toggle-row">
+                  <span class="toggle-label">Auto-rollback on failure</span>
+                  <div class="toggle"></div>
+                </div>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Failure Threshold</label>
+                <input class="form-input" type="text" value="10%" />
+              </div>
+            </div>
+
+            <div class="props-section">
+              <span class="props-section-label">On Failure</span>
+              <div class="form-field">
+                <label class="form-label">Action</label>
+                <select class="form-select">
+                  <option selected>Rollback &amp; notify</option>
+                  <option>Pause &amp; wait</option>
+                  <option>Skip &amp; continue</option>
+                  <option>Abort pipeline</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- editor-body -->
+    </div><!-- editor-container -->
+  </div><!-- main -->
+</div><!-- app -->
+
+<script>
+  /* ── Theme Toggle ─────────────────────────────────────────── */
+  const html = document.documentElement;
+  const toggleBtn = document.getElementById('themeToggle');
+  const iconDark = document.getElementById('themeIconDark');
+  const iconLight = document.getElementById('themeIconLight');
+
+  toggleBtn.addEventListener('click', () => {
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    iconDark.style.display = isDark ? 'none' : 'block';
+    iconLight.style.display = isDark ? 'block' : 'none';
+    drawConnections();
+  });
+
+  /* ── Connection Lines ─────────────────────────────────────── */
+  function getNodeCenter(id, side) {
+    const node = document.getElementById(id);
+    if (!node) return null;
+    const canvas = document.getElementById('canvas');
+    const canvasRect = canvas.getBoundingClientRect();
+    const nodeRect = node.getBoundingClientRect();
+
+    const x = nodeRect.left - canvasRect.left + nodeRect.width / 2;
+    const yTop = nodeRect.top - canvasRect.top;
+    const yBot = nodeRect.bottom - canvasRect.top;
+    return side === 'top' ? { x, y: yTop } : { x, y: yBot };
+  }
+
+  function makeBezier(from, to) {
+    const dx = 0;
+    const dy = Math.abs(to.y - from.y) * 0.5;
+    return `M ${from.x} ${from.y} C ${from.x} ${from.y + dy}, ${to.x} ${to.y - dy}, ${to.x} ${to.y}`;
+  }
+
+  function drawConnections() {
+    const svg = document.getElementById('canvasSvg');
+    // Clear old paths
+    svg.querySelectorAll('.conn-path').forEach(el => el.remove());
+
+    const pairs = [
+      ['node-1', 'node-2'],
+      ['node-2', 'node-3'],
+      ['node-3', 'node-4'],
+      ['node-4', 'node-5'],
+      ['node-5', 'node-6'],
+      ['node-6', 'node-7'],
+    ];
+
+    pairs.forEach(([fromId, toId]) => {
+      const from = getNodeCenter(fromId, 'bottom');
+      const to = getNodeCenter(toId, 'top');
+      if (!from || !to) return;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', makeBezier(from, to));
+      path.setAttribute('class', 'conn-path');
+      path.setAttribute('marker-end', 'url(#arrow)');
+      svg.appendChild(path);
+    });
+  }
+
+  // Draw on load and resize
+  window.addEventListener('load', () => { setTimeout(drawConnections, 50); });
+  window.addEventListener('resize', drawConnections);
+
+  /* ── Node click → select ────────────────────────────────── */
+  document.querySelectorAll('.wf-node').forEach(node => {
+    node.addEventListener('click', () => {
+      document.querySelectorAll('.wf-node').forEach(n => n.classList.remove('selected'));
+      node.classList.add('selected');
+    });
+  });
+</script>
+</body>
+</html>

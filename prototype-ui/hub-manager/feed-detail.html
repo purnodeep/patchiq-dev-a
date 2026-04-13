@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Hub — NVD Feed Detail</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#141c2e;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#6366f1;--primary-dark:#4f46e5;
+  --secondary:#8b5cf6;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --radius:8px;--sidebar-w:260px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:13px}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+#sidebar{width:var(--sidebar-w);min-height:100vh;background:#0d1120;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:width .2s}
+#sidebar.collapsed{width:64px}
+.sidebar-brand{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;overflow:hidden}
+.sidebar-brand-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sidebar-brand-text{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.sidebar-brand-sub{font-size:10px;color:var(--muted);display:block}
+.sidebar-nav{flex:1;padding:10px 0;overflow-y:auto;overflow-x:hidden}
+.nav-group-label{padding:8px 16px 3px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 16px;cursor:pointer;color:var(--muted);transition:all .15s;position:relative;font-size:12.5px;white-space:nowrap;text-decoration:none}
+.nav-item:hover{color:var(--text);background:rgba(99,102,241,.07)}
+.nav-item.active{color:var(--primary);background:rgba(99,102,241,.12)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--primary);border-radius:0 2px 2px 0}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--warning);color:#000;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.nav-badge.primary{background:var(--primary);color:#fff}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.collapse-btn{position:absolute;top:50%;right:-12px;transform:translateY(-50%);width:24px;height:24px;background:var(--card);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:var(--muted);z-index:101}
+#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .2s}
+#main.sidebar-collapsed{margin-left:64px}
+#topbar{height:52px;background:#0d1120;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:90}
+.topbar-brand{font-size:13px;font-weight:700;color:var(--primary)}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.breadcrumb span.active{color:var(--text)}
+.breadcrumb .sep{color:var(--border)}
+.client-switcher{margin-left:auto;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:16px}
+.topbar-icon-btn{width:32px;height:32px;border-radius:6px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.topbar-icon-btn:hover{border-color:var(--primary);color:var(--primary)}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--danger);border-radius:50%;font-size:8px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center}
+.page-body{padding:24px}
+.btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.badge-success{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-warning{background:rgba(245,158,11,.15);color:var(--warning)}
+.badge-danger{background:rgba(239,68,68,.15);color:var(--danger)}
+.badge-primary{background:rgba(99,102,241,.15);color:var(--primary)}
+.badge-muted{background:rgba(100,116,139,.15);color:var(--muted)}
+.badge-blue{background:rgba(59,130,246,.15);color:#60a5fa}
+/* DETAIL HEADER */
+.detail-header{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.detail-title{font-size:20px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.detail-url{font-family:monospace;font-size:11px;color:var(--muted);background:var(--card2);padding:4px 10px;border-radius:4px;border:1px solid var(--border);display:inline-flex;align-items:center;gap:8px;max-width:480px;overflow:hidden}
+.detail-meta{display:flex;gap:10px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.detail-actions{display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border);margin-top:14px}
+.orb{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.orb-green{background:var(--success);box-shadow:0 0 0 2px rgba(16,185,129,.2)}
+.orb-pulse{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.4)}}
+/* TOGGLE SWITCH */
+.toggle{width:38px;height:21px;border-radius:11px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;display:inline-block}
+.toggle.on{background:var(--success)}
+.toggle.off{background:var(--muted)}
+.toggle-thumb{position:absolute;top:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on .toggle-thumb{left:20px}
+.toggle.off .toggle-thumb{left:3px}
+/* CONTEXT RING */
+.context-ring{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+.ctx-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.ctx-label{font-size:10px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.ctx-value{font-size:19px;font-weight:700;line-height:1}
+.ctx-sub{font-size:10px;color:var(--muted);margin-top:3px}
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:9px 18px;font-size:12.5px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;font-weight:600;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid rgba(30,41,59,.5);font-size:12.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(99,102,241,.03)}
+.tr-error td{background:rgba(239,68,68,.04)}
+/* EXPAND */
+.expand-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:3px;transition:all .15s}
+.expand-btn:hover{color:var(--text)}
+.log-pre{background:#060a12;border:1px solid var(--border);border-radius:5px;padding:10px 12px;font-family:monospace;font-size:11px;line-height:1.6;overflow-x:auto;color:#94a3b8;max-height:200px;overflow-y:auto}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+/* FORM */
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:500;color:var(--text);margin-bottom:5px;display:block}
+.form-input{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:12px}
+.form-input:focus{outline:none;border-color:var(--primary)}
+.form-select{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:12px;cursor:pointer}
+.form-select:focus{outline:none;border-color:var(--primary)}
+.form-hint{font-size:11px;color:var(--muted);margin-top:3px}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.cb-item{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer}
+.cb-item input{accent-color:var(--primary);width:13px;height:13px}
+/* MAPPING ROW */
+.mapping-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(30,41,59,.5)}
+.mapping-row:last-child{border-bottom:none}
+.mapping-arrow{text-align:center;color:var(--muted);font-size:16px}
+/* BACK */
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:16px;cursor:pointer;transition:color .15s}
+.back-link:hover{color:var(--primary)}
+/* META ROW */
+.meta-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(30,41,59,.5);font-size:12.5px}
+.meta-row:last-child{border-bottom:none}
+.meta-label{color:var(--muted)}
+/* PAGINATION */
+.pagination{display:flex;align-items:center;gap:4px;padding:12px 16px;border-top:1px solid var(--border)}
+.pag-btn{width:28px;height:28px;border-radius:5px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pag-btn:hover{border-color:var(--primary);color:var(--primary)}
+.pag-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.pag-info{font-size:12px;color:var(--muted);margin-left:auto}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div style="position:relative">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">H</div>
+      <div>
+        <div class="sidebar-brand-text">PatchIQ Hub</div>
+        <span class="sidebar-brand-sub">Control Plane</span>
+      </div>
+    </div>
+    <button class="collapse-btn" onclick="toggleSidebar()">◀</button>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="../hub-manager.html" class="nav-item"><span class="nav-icon">⬡</span> Dashboard</a>
+    <div class="nav-group-label">Fleet</div>
+    <a href="clients.html" class="nav-item"><span class="nav-icon">🖥</span> Clients <span class="nav-badge">8</span></a>
+    <a href="deployments.html" class="nav-item"><span class="nav-icon">🚀</span> Deployments <span class="nav-badge primary">2</span></a>
+    <div class="nav-group-label">Catalog</div>
+    <a href="catalog.html" class="nav-item"><span class="nav-icon">📦</span> Catalog</a>
+    <a href="feeds.html" class="nav-item active"><span class="nav-icon">⚡</span> Feeds</a>
+    <div class="nav-group-label">Licensing</div>
+    <a href="licenses.html" class="nav-item"><span class="nav-icon">🔑</span> Licenses</a>
+    <div class="nav-group-label">Configuration</div>
+    <a href="configuration.html" class="nav-item"><span class="nav-icon">⚙</span> Settings</a>
+  </div>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer">
+      <div class="avatar">HA</div>
+      <div style="overflow:hidden">
+        <div style="font-size:12px;font-weight:500;white-space:nowrap">hubadmin</div>
+        <div style="font-size:10px;color:var(--muted);white-space:nowrap">hubadmin@msp.com</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <span class="topbar-brand">PatchIQ Hub</span>
+    <div class="breadcrumb">
+      <span class="sep">/</span><span>Home</span>
+      <span class="sep">/</span><a href="feeds.html" style="color:var(--muted)">Feeds</a>
+      <span class="sep">/</span><span class="active">NVD</span>
+    </div>
+    <div class="client-switcher" style="margin-left:auto">🏢 All Clients ▾</div>
+    <div class="topbar-right">
+      <div style="position:relative">
+        <button class="topbar-icon-btn">🔔<div class="notif-badge">2</div></button>
+      </div>
+      <button class="topbar-icon-btn" onclick="toggleDark()">🌙</button>
+      <div class="avatar" style="width:30px;height:30px;font-size:11px;cursor:pointer">HA</div>
+    </div>
+  </div>
+
+  <div class="page-body">
+    <a href="feeds.html" class="back-link">← Back to Feeds</a>
+
+    <!-- IDENTITY HEADER -->
+    <div class="detail-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="flex:1">
+          <div class="detail-title">
+            <div style="width:40px;height:40px;background:rgba(59,130,246,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🛡</div>
+            NVD — National Vulnerability Database
+            <div style="display:flex;align-items:center;gap:5px;font-size:12px">
+              <div class="orb orb-green orb-pulse"></div>
+              <span style="color:var(--success)">Healthy</span>
+            </div>
+          </div>
+          <div class="detail-meta">
+            <div class="detail-url">
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">https://nvd.nist.gov/feeds/json/cve/1.1</span>
+              <button onclick="navigator.clipboard.writeText('https://nvd.nist.gov/feeds/json/cve/1.1')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;flex-shrink:0">📋</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+            <div class="toggle on" onclick="toggleSwitch(this)" id="feedToggle"><div class="toggle-thumb"></div></div>
+            <span style="font-size:12px;color:var(--muted)" id="feedToggleLabel">Enabled</span>
+            <span class="badge badge-blue">NVD</span>
+            <span style="font-size:12px;color:var(--muted)">Sync interval: 6h</span>
+          </div>
+        </div>
+        <div class="detail-actions" style="padding-top:0;border-top:none;margin-top:0;flex-shrink:0">
+          <button class="btn btn-primary" onclick="triggerSync(this)">⚡ Sync Now</button>
+          <button class="btn btn-outline">⚙ Edit Configuration</button>
+          <button class="btn btn-danger">Disable</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTEXT RING -->
+    <div class="context-ring">
+      <div class="ctx-card">
+        <div class="ctx-label">Total Entries</div>
+        <div class="ctx-value" style="color:var(--primary)">1,247</div>
+        <div class="ctx-sub">In catalog</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">New This Week</div>
+        <div class="ctx-value" style="color:var(--success)">23</div>
+        <div class="ctx-sub" style="color:var(--success)">↑ +4 vs last wk</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">Sync Interval</div>
+        <div class="ctx-value" style="font-size:16px">6h</div>
+        <div class="ctx-sub">Every 6 hours</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">Success Rate</div>
+        <div class="ctx-value" style="color:var(--success)">99.8%</div>
+        <div style="margin-top:5px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+          <div style="width:99.8%;height:100%;background:var(--success);border-radius:2px"></div>
+        </div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">Avg Duration</div>
+        <div class="ctx-value" style="font-size:16px">2m 34s</div>
+        <div class="ctx-sub">Per sync cycle</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">Last Error</div>
+        <div class="ctx-value" style="font-size:16px;color:var(--success)">None</div>
+        <div class="ctx-sub">All clear</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
+      <div class="tab" onclick="switchTab('history',this)">Sync History</div>
+      <div class="tab" onclick="switchTab('entries',this)">Entries</div>
+      <div class="tab" onclick="switchTab('config',this)">Configuration</div>
+    </div>
+
+    <!-- TAB: OVERVIEW -->
+    <div id="tab-overview" class="tab-panel active">
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">📈 Sync Health — Last 30 Days</div>
+          <div style="height:200px;position:relative"><canvas id="healthChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📦 Entry Volume — Last 12 Weeks</div>
+          <div style="height:200px;position:relative"><canvas id="volumeChart"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚙ Current Configuration Summary</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div class="meta-row"><span class="meta-label">Feed URL</span><span style="font-family:monospace;font-size:11px;color:var(--muted)">https://nvd.nist.gov/feeds/json/cve/1.1</span></div>
+            <div class="meta-row"><span class="meta-label">Sync Interval</span><span>Every 6 hours</span></div>
+            <div class="meta-row"><span class="meta-label">Severity Filter</span><span>Critical, High, Medium, Low</span></div>
+          </div>
+          <div>
+            <div class="meta-row"><span class="meta-label">OS Filter</span><span>Windows, Ubuntu, RHEL, Debian</span></div>
+            <div class="meta-row"><span class="meta-label">Auth Type</span><span>None (public feed)</span></div>
+            <div class="meta-row"><span class="meta-label">Last Sync</span><span>2 hours ago — Success</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SYNC HISTORY -->
+    <div id="tab-history" class="tab-panel">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Duration</th>
+              <th>New Entries</th>
+              <th>Updated</th>
+              <th>Total Scanned</th>
+              <th>Errors</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: ENTRIES -->
+    <div id="tab-entries" class="tab-panel">
+      <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+        <input type="text" placeholder="🔍  Search entries…" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;width:220px">
+        <select style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px">
+          <option>All Severity</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+        </select>
+        <span style="margin-left:auto;font-size:12px;color:var(--muted)">1,247 entries</span>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <table>
+          <thead>
+            <tr>
+              <th>Entry ID</th>
+              <th>Name</th>
+              <th>Severity</th>
+              <th>CVE Count</th>
+              <th>Published</th>
+              <th>Synced At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="entriesBody"></tbody>
+        </table>
+        <div class="pagination">
+          <button class="pag-btn">◀</button>
+          <button class="pag-btn active">1</button>
+          <button class="pag-btn">2</button>
+          <button class="pag-btn">3</button>
+          <button class="pag-btn">…</button>
+          <button class="pag-btn">63</button>
+          <button class="pag-btn">▶</button>
+          <span class="pag-info">Showing 1–20 of 1,247 entries</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CONFIGURATION -->
+    <div id="tab-config" class="tab-panel">
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">🔗 Feed Connection</div>
+          <div class="form-group">
+            <label class="form-label">Feed URL</label>
+            <input class="form-input" value="https://nvd.nist.gov/feeds/json/cve/1.1" type="url">
+            <div class="form-hint">The HTTPS endpoint to fetch feed data from</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sync Interval</label>
+            <select class="form-select">
+              <option>1 hour</option><option selected>6 hours</option><option>12 hours</option><option>24 hours</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Authentication</label>
+            <select class="form-select">
+              <option selected>None (public)</option><option>API Key</option><option>Bearer Token</option><option>Basic Auth</option>
+            </select>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="testConnection(this)">🔌 Test Connection</button>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">🎯 Filters</div>
+            <div class="form-group">
+              <label class="form-label">Severity Filter</label>
+              <div class="checkbox-group">
+                <label class="cb-item"><input type="checkbox" checked> Critical</label>
+                <label class="cb-item"><input type="checkbox" checked> High</label>
+                <label class="cb-item"><input type="checkbox" checked> Medium</label>
+                <label class="cb-item"><input type="checkbox" checked> Low</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">OS Filter</label>
+              <div class="checkbox-group">
+                <label class="cb-item"><input type="checkbox" checked> Windows</label>
+                <label class="cb-item"><input type="checkbox" checked> Ubuntu</label>
+                <label class="cb-item"><input type="checkbox" checked> RHEL</label>
+                <label class="cb-item"><input type="checkbox" checked> Debian</label>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🗺 Severity Mapping</div>
+            <div class="mapping-row" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-bottom:4px">
+              <div>Source Severity</div><div></div><div>PatchIQ Severity</div>
+            </div>
+            <div class="mapping-row">
+              <span class="badge badge-danger">CRITICAL</span>
+              <div class="mapping-arrow">→</div>
+              <select class="form-select" style="padding:4px 8px;font-size:11px"><option selected>Critical</option><option>High</option></select>
+            </div>
+            <div class="mapping-row">
+              <span class="badge badge-warning">HIGH</span>
+              <div class="mapping-arrow">→</div>
+              <select class="form-select" style="padding:4px 8px;font-size:11px"><option>Critical</option><option selected>High</option><option>Medium</option></select>
+            </div>
+            <div class="mapping-row">
+              <span class="badge badge-primary">MEDIUM</span>
+              <div class="mapping-arrow">→</div>
+              <select class="form-select" style="padding:4px 8px;font-size:11px"><option>High</option><option selected>Medium</option><option>Low</option></select>
+            </div>
+            <div class="mapping-row">
+              <span class="badge badge-muted">LOW</span>
+              <div class="mapping-arrow">→</div>
+              <select class="form-select" style="padding:4px 8px;font-size:11px"><option>Medium</option><option selected>Low</option></select>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="btn btn-primary">💾 Save Configuration</button>
+              <button class="btn btn-outline">Reset to Defaults</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+if(localStorage.getItem('theme')==='light') document.documentElement.classList.remove('dark');
+function toggleDark(){ document.documentElement.classList.toggle('dark'); localStorage.setItem('theme',document.documentElement.classList.contains('dark')?'dark':'light'); }
+let sidebarCollapsed=false;
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed',sidebarCollapsed);
+  document.getElementById('main').classList.toggle('sidebar-collapsed',sidebarCollapsed);
+}
+function toggleSwitch(el){
+  el.classList.toggle('on');
+  el.classList.toggle('off');
+  document.getElementById('feedToggleLabel').textContent = el.classList.contains('on') ? 'Enabled' : 'Disabled';
+}
+function switchTab(id, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  if(id==='overview') { renderHealthChart(); renderVolumeChart(); }
+  if(id==='history') renderHistory();
+  if(id==='entries') renderEntries();
+  history.replaceState(null,'','#'+id);
+}
+(function(){
+  const h=location.hash.replace('#','');
+  if(h){ const t=document.querySelector(`.tab[onclick*="'${h}'"]`); if(t) switchTab(h,t); else { renderHealthChart(); renderVolumeChart(); } }
+  else { renderHealthChart(); renderVolumeChart(); }
+})();
+
+let healthChartInst=null, volumeChartInst=null;
+function renderHealthChart(){
+  if(healthChartInst) return;
+  const ctx=document.getElementById('healthChart');
+  if(!ctx) return;
+  const labels=[];
+  const d=new Date('2026-03-10');
+  for(let i=29;i>=0;i--){ const x=new Date(d); x.setDate(d.getDate()-i); labels.push(x.toLocaleDateString('en',{month:'short',day:'numeric'})); }
+  healthChartInst=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label:'Sync Duration (s)',
+        data:[140,155,148,162,145,158,152,144,160,156,142,150,165,143,157,149,163,147,155,152,144,161,148,156,143,159,151,146,163,154],
+        borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,.08)',tension:.4,fill:true,yAxisID:'y',
+      },{
+        label:'Entries Ingested',
+        data:[18,22,20,25,19,24,21,23,26,20,22,28,25,21,23,27,24,20,26,22,25,24,21,28,23,26,22,24,27,23],
+        borderColor:'#10b981',backgroundColor:'transparent',tension:.4,yAxisID:'y1',pointRadius:2,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},
+      scales:{
+        x:{ticks:{color:'#64748b',font:{size:9},maxTicksLimit:8},grid:{color:'rgba(30,41,59,.4)'}},
+        y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(30,41,59,.4)'},title:{display:true,text:'Duration (s)',color:'#64748b',font:{size:10}}},
+        y1:{position:'right',ticks:{color:'#64748b',font:{size:10}},grid:{display:false},title:{display:true,text:'Entries',color:'#64748b',font:{size:10}}}
+      }
+    }
+  });
+}
+function renderVolumeChart(){
+  if(volumeChartInst) return;
+  const ctx=document.getElementById('volumeChart');
+  if(!ctx) return;
+  volumeChartInst=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['Dec 4','Dec 11','Dec 18','Dec 25','Jan 1','Jan 8','Jan 15','Jan 22','Jan 29','Feb 5','Feb 12','Mar 4'],
+      datasets:[{
+        label:'Entries Ingested',
+        data:[42,38,51,29,60,85,48,52,43,67,55,72],
+        backgroundColor:'rgba(99,102,241,.5)',borderColor:'rgba(99,102,241,.8)',borderWidth:1,borderRadius:3,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},
+      scales:{
+        x:{ticks:{color:'#64748b',font:{size:9}},grid:{display:false}},
+        y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(30,41,59,.4)'}}
+      }
+    }
+  });
+}
+
+function renderHistory(){
+  const tbody=document.getElementById('historyBody');
+  if(tbody.children.length>0) return;
+  const rows=[
+    {ts:'Mar 10, 2026 06:12',dur:'2m 31s',new_:23,upd:45,total:1247,errs:0,ok:true},
+    {ts:'Mar 10, 2026 00:12',dur:'2m 44s',new_:0,upd:12,total:1224,errs:0,ok:true},
+    {ts:'Mar 9, 2026 18:11',dur:'2m 38s',new_:0,upd:8,total:1224,errs:0,ok:true},
+    {ts:'Mar 9, 2026 12:10',dur:'2m 27s',new_:5,upd:33,total:1224,errs:0,ok:true},
+    {ts:'Mar 9, 2026 06:09',dur:'2m 52s',new_:0,upd:6,total:1219,errs:0,ok:true},
+    {ts:'Mar 9, 2026 00:09',dur:'2m 35s',new_:0,upd:14,total:1219,errs:0,ok:true},
+    {ts:'Mar 8, 2026 18:08',dur:'2m 40s',new_:8,upd:22,total:1219,errs:0,ok:true},
+    {ts:'Mar 8, 2026 12:08',dur:'2m 33s',new_:0,upd:9,total:1211,errs:0,ok:true},
+    {ts:'Mar 8, 2026 06:07',dur:'2m 28s',new_:0,upd:17,total:1211,errs:0,ok:true},
+    {ts:'Mar 8, 2026 00:07',dur:'2m 46s',new_:3,upd:28,total:1211,errs:0,ok:true},
+    {ts:'Mar 7, 2026 18:06',dur:'2m 22s',new_:0,upd:5,total:1208,errs:0,ok:true},
+    {ts:'Mar 7, 2026 12:05',dur:'2m 51s',new_:0,upd:11,total:1208,errs:0,ok:true},
+    {ts:'Mar 7, 2026 06:05',dur:'2m 38s',new_:12,upd:38,total:1208,errs:0,ok:true},
+    {ts:'Mar 7, 2026 00:04',dur:'2m 29s',new_:0,upd:7,total:1196,errs:0,ok:true},
+    {ts:'Mar 6, 2026 18:04',dur:'—',new_:0,upd:0,total:1196,errs:1,ok:false,errMsg:'Connection timeout after 30s'},
+    {ts:'Mar 6, 2026 12:03',dur:'2m 44s',new_:0,upd:19,total:1196,errs:0,ok:true},
+    {ts:'Mar 6, 2026 06:02',dur:'2m 31s',new_:6,upd:24,total:1196,errs:0,ok:true},
+    {ts:'Mar 6, 2026 00:02',dur:'2m 37s',new_:0,upd:13,total:1190,errs:0,ok:true},
+    {ts:'Mar 5, 2026 18:01',dur:'2m 43s',new_:0,upd:8,total:1190,errs:0,ok:true},
+    {ts:'Mar 5, 2026 12:00',dur:'2m 26s',new_:9,upd:31,total:1190,errs:0,ok:true},
+  ];
+  rows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    if(!r.ok) tr.className='tr-error';
+    tr.innerHTML=`
+      <td style="font-size:11.5px;color:var(--muted);font-family:monospace">${r.ts}</td>
+      <td style="font-family:monospace;font-size:11.5px">${r.dur}</td>
+      <td style="color:${r.new_>0?'var(--success)':'var(--muted)'};font-weight:${r.new_>0?700:400}">${r.new_>0?'+'+r.new_:r.new_}</td>
+      <td style="color:var(--muted)">${r.upd}</td>
+      <td style="color:var(--muted)">${r.total.toLocaleString()}</td>
+      <td style="color:${r.errs>0?'var(--danger)':'var(--muted)'}">${r.errs}</td>
+      <td><span class="badge ${r.ok?'badge-success':'badge-danger'}">${r.ok?'Success':'Failed'}</span></td>
+      <td><button class="expand-btn" onclick="toggleHistDetail(${i},this)">▼</button></td>`;
+    tbody.appendChild(tr);
+    const expTr=document.createElement('tr');
+    expTr.id=`hd-${i}`;
+    expTr.style.display='none';
+    expTr.innerHTML=`<td colspan="8" style="padding:0">
+      <div style="padding:12px 16px;background:rgba(10,14,26,.7)">
+        ${!r.ok?`<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:5px;padding:10px;margin-bottom:10px;font-size:12px;color:var(--danger)">⚠ Error: ${r.errMsg||'Unknown error'}</div>`:''}
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Log Output</div>
+        <div class="log-pre">[${r.ts}] Starting NVD feed sync
+[${r.ts}] Fetching: https://nvd.nist.gov/feeds/json/cve/1.1
+${r.ok?`[${r.ts}] Response: 200 OK (size: 14.2 MB)
+[${r.ts}] Parsed ${(r.total+r.new_+r.upd).toLocaleString()} CVE records
+[${r.ts}] New entries: ${r.new_} | Updated: ${r.upd} | Unchanged: ${r.total-r.new_-r.upd}
+[${r.ts}] Sync complete in ${r.dur}`:`[${r.ts}] Request timeout (30000ms exceeded)
+[${r.ts}] Retry 1/3 failed — scheduling retry in 5m
+[${r.ts}] Sync failed — will retry at next scheduled interval`}</div>
+      </div>
+    </td>`;
+    tbody.appendChild(expTr);
+  });
+}
+
+function toggleHistDetail(i, btn){
+  const row=document.getElementById(`hd-${i}`);
+  const v=row.style.display!=='none';
+  row.style.display=v?'none':'table-row';
+  btn.textContent=v?'▼':'▲';
+}
+
+function renderEntries(){
+  const tbody=document.getElementById('entriesBody');
+  if(tbody && tbody.children.length>0) return;
+  if(!tbody) return;
+  const entries=[
+    {id:'NVD-2024-21307',name:'KB5034441 — Windows Security Update','sev':'Critical','sc':'badge-danger',cves:4,pub:'Jan 9, 2024',sync:'Jan 11, 2024 09:42'},
+    {id:'NVD-2023-46218',name:'USN-6548-1 — curl Vulnerability Fix','sev':'Medium','sc':'badge-primary',cves:1,pub:'Dec 2, 2023',sync:'Dec 3, 2023 08:15'},
+    {id:'NVD-2023-51780',name:'USN-6570-1 — Linux Kernel','sev':'High','sc':'badge-warning',cves:3,pub:'Jan 8, 2024',sync:'Jan 9, 2024 07:22'},
+    {id:'NVD-2024-0056',name:'KB5034122 — .NET Framework Update','sev':'High','sc':'badge-warning',cves:2,pub:'Jan 9, 2024',sync:'Jan 10, 2024 10:30'},
+    {id:'NVD-2023-6246',name:'RHSA-2024:0033 — glibc Security Update','sev':'Critical','sc':'badge-danger',cves:3,pub:'Jan 4, 2024',sync:'Jan 5, 2024 06:18'},
+    {id:'NVD-2024-0741',name:'USN-6605-1 — Firefox Security Update','sev':'High','sc':'badge-warning',cves:6,pub:'Jan 31, 2024',sync:'Feb 1, 2024 11:05'},
+    {id:'NVD-2024-20918',name:'USN-6640-1 — OpenJDK 21 Update','sev':'Medium','sc':'badge-primary',cves:3,pub:'Feb 20, 2024',sync:'Feb 21, 2024 08:40'},
+    {id:'NVD-2023-4408',name:'RHSA-2024:1063 — bind Security Update','sev':'High','sc':'badge-warning',cves:2,pub:'Mar 5, 2024',sync:'Mar 5, 2024 07:12'},
+    {id:'NVD-2024-21410',name:'KB5034763 — Exchange Server Patch','sev':'Critical','sc':'badge-danger',cves:5,pub:'Feb 13, 2024',sync:'Feb 14, 2024 09:55'},
+    {id:'NVD-2024-29473',name:'USN-6697-1 — Linux Kernel Update','sev':'High','sc':'badge-warning',cves:4,pub:'Mar 14, 2024',sync:'Mar 15, 2024 06:30'},
+    {id:'NVD-2024-30088',name:'KB5036893 — Windows Server 2022','sev':'Critical','sc':'badge-danger',cves:3,pub:'Apr 9, 2024',sync:'Apr 10, 2024 08:20'},
+    {id:'NVD-2024-2961',name:'RHSA-2024:1903 — glibc Security Fix','sev':'High','sc':'badge-warning',cves:2,pub:'Apr 17, 2024',sync:'Apr 18, 2024 07:45'},
+    {id:'NVD-2024-28085',name:'USN-6702-1 — Linux Kernel AMD','sev':'High','sc':'badge-warning',cves:2,pub:'Mar 12, 2024',sync:'Mar 13, 2024 09:00'},
+    {id:'NVD-2024-26182',name:'KB5035942 — Windows 10 Cumulative','sev':'High','sc':'badge-warning',cves:8,pub:'Mar 5, 2024',sync:'Mar 6, 2024 07:35'},
+    {id:'NVD-2024-3094',name:'USN-6681-1 — xz-utils Backdoor','sev':'Critical','sc':'badge-danger',cves:1,pub:'Mar 29, 2024',sync:'Mar 29, 2024 16:20'},
+    {id:'NVD-2024-23897',name:'RHSA-2024:1351 — Jenkins Security','sev':'High','sc':'badge-warning',cves:3,pub:'Jan 24, 2024',sync:'Jan 25, 2024 10:10'},
+    {id:'NVD-2024-21762',name:'USN-6658-1 — curl Update','sev':'High','sc':'badge-warning',cves:2,pub:'Feb 7, 2024',sync:'Feb 8, 2024 08:55'},
+    {id:'NVD-2023-7104',name:'USN-6574-1 — SQLite Update','sev':'Medium','sc':'badge-primary',cves:1,pub:'Jan 9, 2024',sync:'Jan 9, 2024 14:22'},
+    {id:'NVD-2024-24557',name:'USN-6718-1 — Node.js Update','sev':'High','sc':'badge-warning',cves:3,pub:'Apr 3, 2024',sync:'Apr 4, 2024 09:30'},
+    {id:'NVD-2024-1086',name:'RHSA-2024:0723 — Kernel Security','sev':'High','sc':'badge-warning',cves:2,pub:'Feb 6, 2024',sync:'Feb 7, 2024 07:18'},
+  ];
+  entries.forEach(e=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-family:monospace;font-size:11px;color:var(--muted)">${e.id}</td>
+      <td><a href="catalog-detail.html" style="color:var(--primary);font-size:12px;font-family:monospace">${e.name}</a></td>
+      <td><span class="badge ${e.sc}">${e.sev}</span></td>
+      <td style="color:var(--primary);font-weight:600">${e.cves}</td>
+      <td style="color:var(--muted);font-size:11.5px">${e.pub}</td>
+      <td style="color:var(--muted);font-size:11.5px">${e.sync}</td>
+      <td><a href="catalog-detail.html" style="color:var(--primary);font-size:11px">→ View in Catalog</a></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function triggerSync(btn){
+  const orig=btn.innerHTML;
+  btn.innerHTML='⏳ Syncing…';
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.innerHTML='✓ Synced';
+    btn.style.background='var(--success)';
+    setTimeout(()=>{ btn.innerHTML=orig; btn.style.background=''; btn.disabled=false; },2500);
+  },2200);
+}
+
+function testConnection(btn){
+  const orig=btn.innerHTML;
+  btn.innerHTML='⏳ Testing…';
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.innerHTML='✓ Connection OK';
+    btn.style.borderColor='var(--success)';
+    btn.style.color='var(--success)';
+    setTimeout(()=>{ btn.innerHTML=orig; btn.style.borderColor=''; btn.style.color=''; btn.disabled=false; },2500);
+  },1800);
+}
+</script>
+</body>
+</html>

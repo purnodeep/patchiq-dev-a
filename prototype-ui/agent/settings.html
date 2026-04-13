@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Agent — Settings</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --teal:#14b8a6;--teal-dim:#0d9488;
+  --bg:#0f172a;--card:#1e293b;--card2:#162032;--border:#2d3f52;
+  --text:#e2e8f0;--muted:#64748b;
+  --success:#10b981;--warn:#f59e0b;--danger:#ef4444;
+  --topbar-h:64px;--tabbar-h:48px;
+}
+html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+body{min-height:100vh;background:var(--bg)}
+html.light{background:#f1f5f9;color:#0f172a}
+html.light body{background:#f1f5f9;color:#0f172a}
+html.light #topbar,html.light #tabbar{background:#fff;border-color:#e2e8f0}
+html.light .card{background:#fff;border-color:#e2e8f0;border-left-color:var(--teal)}
+html.light .card:hover{border-color:#94a3b8;border-left-color:var(--teal)}
+html.light .card-title{color:#64748b}
+html.light .stat-key{color:#64748b}
+html.light .stat-val{color:#0f172a}
+html.light .mono-val{color:#0f172a}
+html.light .req-table th{color:#64748b;border-color:#e2e8f0}
+html.light .req-table td{border-color:#e2e8f0;color:#0f172a}
+html.light .copy-btn{background:#f1f5f9;border-color:#e2e8f0;color:#64748b}
+html.light .copy-btn:hover{border-color:var(--teal);color:var(--teal)}
+html.light .masked{color:#64748b}
+
+#topbar{height:var(--topbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:fixed;top:0;left:0;right:0;z-index:100}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-name{font-size:16px;font-weight:700;color:var(--teal);letter-spacing:-.3px}
+.hostname{font-family:monospace;font-size:13px;color:var(--muted);background:#ffffff08;padding:3px 10px;border-radius:20px;border:1px solid var(--border)}
+.status-dot-wrap{display:flex;align-items:center;gap:6px;font-size:12px;color:#10b981}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;position:relative}
+.status-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:#10b981;opacity:.4;animation:pulse-ring 2s ease-out infinite}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.4}70%{transform:scale(1.8);opacity:0}100%{transform:scale(1.8);opacity:0}}
+.topbar-right{margin-left:auto}
+.toggle-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:.15s}
+.toggle-btn:hover{background:#ffffff0d;color:var(--text)}
+.toggle-btn svg{width:18px;height:18px}
+
+#tabbar{height:var(--tabbar-h);background:#0d1b2e;border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 24px;gap:2px;position:fixed;top:var(--topbar-h);left:0;right:0;z-index:99}
+.tab{padding:0 18px;display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;position:relative;transition:.15s;white-space:nowrap;border-bottom:2px solid transparent}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.tab-inactive:hover{background:rgba(20,184,166,.08);color:var(--teal)}
+.tab-badge{background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;border:1px solid #ef444430}
+.tab-dot{width:7px;height:7px;border-radius:50%;background:#10b981}
+
+#page{padding:calc(var(--topbar-h) + var(--tabbar-h) + 24px) 24px 40px;max-width:1100px;margin:0 auto}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:12px;padding:20px;transition:.15s}
+.card:hover{border-color:#3d5168;border-left-color:var(--teal)}
+.card-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px}
+@media(max-width:800px){.grid-2{grid-template-columns:1fr}}
+
+/* Stat rows */
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-key{color:var(--muted);font-size:12px;flex-shrink:0;margin-right:12px}
+.stat-val{font-size:12px;font-weight:500;color:var(--text);text-align:right}
+.mono-val{font-family:monospace;font-size:12px;color:var(--text)}
+.masked{font-family:monospace;font-size:12px;color:var(--muted)}
+
+/* Copy button */
+.copy-wrap{display:flex;align-items:center;gap:8px}
+.copy-btn{padding:2px 8px;border-radius:5px;font-size:10px;cursor:pointer;background:#1e3a5f;border:1px solid var(--border);color:var(--muted);transition:.15s;white-space:nowrap}
+.copy-btn:hover{border-color:var(--teal);color:var(--teal)}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.badge.green{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge.teal{background:rgba(20,184,166,.15);color:var(--teal);border:1px solid rgba(20,184,166,.3)}
+.badge.gray{background:#1e293b;color:var(--muted);border:1px solid var(--border)}
+.badge.amber{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+
+/* Conn status */
+.conn-dot{width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;position:relative;margin-right:5px}
+.conn-dot::after{content:'';position:absolute;inset:-2px;border-radius:50%;background:#10b981;opacity:.3;animation:pulse-ring 2s ease-out infinite}
+
+/* Requirements table */
+.req-table{width:100%;border-collapse:collapse;font-size:12px}
+.req-table th{text-align:left;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--border);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.req-table td{padding:8px 10px;border-bottom:1px solid #1e2d3d;color:var(--text)}
+.req-table tr:last-child td{border-bottom:none}
+.req-table tr:hover td{background:#ffffff04}
+.check-icon{color:#10b981}
+
+/* Package tags */
+.tag-list{display:flex;gap:6px;flex-wrap:wrap}
+.pkg-tag{background:#1e3a5f;color:#94a3b8;border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace}
+
+/* Countdown */
+.countdown{font-family:monospace;font-size:14px;color:var(--teal);font-weight:700}
+
+/* Full-width chart card */
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:0}
+.chart-wrap{position:relative;height:200px}
+
+/* Cert countdown */
+.cert-bar{height:4px;background:#1e3a5f;border-radius:2px;margin-top:4px;overflow:hidden}
+.cert-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#0d9488,#14b8a6);width:89%}
+
+/* Tooltip */
+.tooltip{position:fixed;background:#0f172a;border:1px solid var(--teal);color:var(--teal);padding:4px 10px;border-radius:6px;font-size:11px;pointer-events:none;z-index:9999;opacity:0;transition:opacity .15s}
+.tooltip.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="tooltip" id="tooltip">Copied!</div>
+
+<header id="topbar">
+  <div class="brand">
+    <span class="brand-name">PatchIQ Agent</span>
+    <span class="hostname">prod-web-01</span>
+    <div class="status-dot-wrap">
+      <div class="status-dot"></div>
+      <span>Healthy</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="toggle-btn" onclick="toggleTheme()" title="Toggle dark/light">
+      <svg id="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<nav id="tabbar">
+  <a href="index.html" class="tab tab-inactive">
+    <div class="tab-dot"></div>
+    Overview
+  </a>
+  <a href="patches.html" class="tab tab-inactive">
+    Patches
+    <span class="tab-badge">20</span>
+  </a>
+  <a href="history.html" class="tab tab-inactive">History</a>
+  <a href="logs.html" class="tab tab-inactive">Logs</a>
+  <a href="settings.html" class="tab active">Settings</a>
+</nav>
+
+<main id="page">
+
+  <!-- 2-column grid -->
+  <div class="grid-2">
+
+    <!-- Card 1: Agent Configuration -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M19.07 4.93A10 10 0 0 1 19.07 19.07M4.93 4.93A10 10 0 0 0 4.93 19.07"/></svg>
+        Agent Configuration
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Agent ID</span>
+        <div class="copy-wrap">
+          <span class="mono-val" style="font-size:11px">agt-a1b2c3d4-e5f6-7890</span>
+          <button class="copy-btn" onclick="copyVal('agt-a1b2c3d4-e5f6-7890',this)">Copy</button>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Version</span>
+        <span class="stat-val">1.2.3</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Config file</span>
+        <div class="copy-wrap">
+          <span class="mono-val" style="font-size:11px">/etc/patchiq/agent.yaml</span>
+          <button class="copy-btn" onclick="copyVal('/etc/patchiq/agent.yaml',this)">Copy Path</button>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Data directory</span>
+        <span class="mono-val">/var/lib/patchiq/</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Log file</span>
+        <div class="copy-wrap">
+          <span class="mono-val" style="font-size:11px">/var/log/patchiq/agent.log</span>
+          <button class="copy-btn" onclick="copyVal('/var/log/patchiq/agent.log',this)">Copy Path</button>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">PID file</span>
+        <span class="mono-val">/var/run/patchiq/agent.pid</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Server Connection -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        Server Connection
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Server URL</span>
+        <span class="mono-val">https://pm.acme.com:8443</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Status</span>
+        <span style="display:flex;align-items:center;font-size:12px;color:#10b981">
+          <span class="conn-dot"></span>Connected
+        </span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Connection uptime</span>
+        <span class="stat-val">45d 12h</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Cert fingerprint</span>
+        <div class="copy-wrap">
+          <span class="mono-val" style="font-size:11px">SHA256:a1b2c3d4e5f6...</span>
+          <button class="copy-btn" onclick="copyVal('SHA256:a1b2c3d4e5f67890abcdef1234567890abcdef12',this)">Copy</button>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">mTLS</span>
+        <span class="badge teal">Enabled</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Retry interval</span>
+        <span class="stat-val">30 seconds</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Enrollment Details -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+        Enrollment Details
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Enrolled</span>
+        <span class="stat-val">January 15, 2026</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Enrolled by</span>
+        <span class="mono-val">admin@acme.com</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Tenant</span>
+        <span class="stat-val">Acme Corp</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Enrollment token</span>
+        <div class="copy-wrap">
+          <span class="masked">••••••••••••••••1234</span>
+          <span style="font-size:10px;color:var(--muted);margin-left:4px">(masked)</span>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Cert expires</span>
+        <div>
+          <div class="stat-val" style="color:#10b981">January 15, 2027</div>
+          <div class="cert-bar" style="margin-top:6px;width:160px">
+            <div class="cert-fill"></div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">309 days remaining</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Scan Configuration -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Scan Configuration
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Scan interval</span>
+        <span class="stat-val">6 hours</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Next scan</span>
+        <span class="countdown" id="scan-countdown">3:58:44</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Package sources</span>
+        <div class="tag-list">
+          <span class="pkg-tag">apt</span>
+          <span class="pkg-tag">dpkg</span>
+          <span class="pkg-tag">snap</span>
+        </div>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Scan timeout</span>
+        <span class="stat-val">300 seconds</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Auto-deploy</span>
+        <span class="badge gray">Disabled</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;padding:8px;background:#0f1e30;border-radius:6px;border:1px solid var(--border)">
+        Auto-deploy is controlled by Patch Manager policies and cannot be changed from this dashboard.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Card 5: System Requirements (full width) -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,11 12,14 22,4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      System Requirements
+    </div>
+    <table class="req-table">
+      <thead>
+        <tr>
+          <th>Resource</th>
+          <th>Required</th>
+          <th>Current</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:500">Disk Space</td>
+          <td style="color:var(--muted)">500 MB</td>
+          <td style="font-family:monospace;color:#10b981">50.4 GB free</td>
+          <td>
+            <span class="check-icon" style="display:inline-flex;align-items:center;gap:5px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+              <span style="font-size:12px;color:#10b981">Sufficient</span>
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Memory</td>
+          <td style="color:var(--muted)">64 MB</td>
+          <td style="font-family:monospace;color:#10b981">4.5 GB free</td>
+          <td>
+            <span class="check-icon" style="display:inline-flex;align-items:center;gap:5px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+              <span style="font-size:12px;color:#10b981">Sufficient</span>
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Network (outbound)</td>
+          <td style="color:var(--muted)">Port 8443</td>
+          <td style="font-family:monospace;color:#10b981">Connected</td>
+          <td>
+            <span class="check-icon" style="display:inline-flex;align-items:center;gap:5px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+              <span style="font-size:12px;color:#10b981">Reachable</span>
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">OS Support</td>
+          <td style="color:var(--muted)">Ubuntu 20.04+</td>
+          <td style="font-family:monospace;color:#10b981">Ubuntu 22.04</td>
+          <td>
+            <span class="check-icon" style="display:inline-flex;align-items:center;gap:5px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+              <span style="font-size:12px;color:#10b981">Supported</span>
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Privileges</td>
+          <td style="color:var(--muted)">systemd root</td>
+          <td style="font-family:monospace;color:#10b981">Running as root</td>
+          <td>
+            <span class="check-icon" style="display:inline-flex;align-items:center;gap:5px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+              <span style="font-size:12px;color:#10b981">OK</span>
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Connection Health Chart (full width) -->
+  <div class="chart-card">
+    <div class="card-title" style="margin-bottom:4px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+      Connection Latency — Last 24 Hours
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Latency to pm.acme.com:8443. Green zone &lt;100ms · Amber zone 100–500ms</div>
+    <div class="chart-wrap">
+      <canvas id="latencyChart"></canvas>
+    </div>
+  </div>
+
+</main>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  if(h.classList.contains('dark')){h.classList.replace('dark','light');localStorage.setItem('theme','light');document.getElementById('sun-icon').style.display='block';document.getElementById('moon-icon').style.display='none';}
+  else{h.classList.replace('light','dark');localStorage.setItem('theme','dark');document.getElementById('sun-icon').style.display='none';document.getElementById('moon-icon').style.display='block';}
+}
+(function(){const t=localStorage.getItem('theme')||'dark';document.documentElement.classList.add(t);if(t==='light'){document.getElementById('sun-icon').style.display='block';document.getElementById('moon-icon').style.display='none';}})();
+
+// Copy to clipboard
+function copyVal(val,btn){
+  navigator.clipboard.writeText(val).then(function(){
+    const orig=btn.textContent;
+    btn.textContent='Copied!';
+    btn.style.color='#14b8a6';
+    btn.style.borderColor='#14b8a6';
+    setTimeout(function(){btn.textContent=orig;btn.style.color='';btn.style.borderColor='';},1500);
+  }).catch(function(){});
+}
+
+// Scan countdown
+let scanSec=14324;
+function updateScan(){
+  scanSec--;if(scanSec<0)scanSec=21600;
+  const h=Math.floor(scanSec/3600),m=Math.floor((scanSec%3600)/60),s=scanSec%60;
+  const el=document.getElementById('scan-countdown');
+  if(el)el.textContent=`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+setInterval(updateScan,1000);
+
+// Latency chart
+(function(){
+  const ctx=document.getElementById('latencyChart').getContext('2d');
+  const hours=[];for(let i=23;i>=0;i--){const h=(new Date().getHours()-i+24)%24;hours.push(`${String(h).padStart(2,'0')}:00`);}
+  const data=[12,11,13,14,12,11,10,13,12,14,450,380,15,12,11,13,14,12,11,13,12,14,11,12];
+
+  // Background annotations for zones
+  const plugin={id:'zones',beforeDraw:function(chart){
+    const{ctx,chartArea:{left,right,top,bottom},scales:{y}}=chart;
+    // green zone 0-100ms
+    const y100=y.getPixelForValue(100);
+    const gradient=ctx.createLinearGradient(0,top,0,bottom);
+    gradient.addColorStop(0,'rgba(16,185,129,0)');
+    gradient.addColorStop(1,'rgba(16,185,129,0.05)');
+    ctx.save();
+    ctx.fillStyle=gradient;
+    ctx.fillRect(left,y100,right-left,bottom-y100);
+    // amber zone 100-500ms
+    const y500=y.getPixelForValue(500);
+    const gradient2=ctx.createLinearGradient(0,y500,0,y100);
+    gradient2.addColorStop(0,'rgba(245,158,11,0)');
+    gradient2.addColorStop(1,'rgba(245,158,11,0.05)');
+    ctx.fillStyle=gradient2;
+    ctx.fillRect(left,y500,right-left,y100-y500);
+    ctx.restore();
+  }};
+
+  const pointColors=data.map(function(v){return v>100?'#f59e0b':v>50?'#14b8a6':'#10b981'});
+  const bgGrad=ctx.createLinearGradient(0,0,0,200);
+  bgGrad.addColorStop(0,'rgba(20,184,166,0.3)');
+  bgGrad.addColorStop(1,'rgba(20,184,166,0.0)');
+
+  new Chart(ctx,{
+    type:'line',
+    plugins:[plugin],
+    data:{
+      labels:hours,
+      datasets:[{
+        label:'Latency (ms)',
+        data,
+        borderColor:'#14b8a6',
+        borderWidth:2,
+        backgroundColor:bgGrad,
+        fill:true,
+        tension:.3,
+        pointRadius:function(ctx2){return ctx2.parsed.y>100?5:3},
+        pointBackgroundColor:pointColors,
+        pointBorderColor:'transparent',
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      scales:{
+        x:{grid:{color:'#1e2d3d'},ticks:{color:'#4a6075',font:{size:10}}},
+        y:{grid:{color:'#1e2d3d'},ticks:{color:'#4a6075',font:{size:10}},beginAtZero:true,max:600,
+          title:{display:true,text:'ms',color:'#4a6075',font:{size:10}}}
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#0f172a',
+          borderColor:'#2d3f52',
+          borderWidth:1,
+          titleColor:'#e2e8f0',
+          bodyColor:'#94a3b8',
+          callbacks:{
+            label:function(c){return` ${c.raw}ms ${c.raw>100?'⚠ spike':''}`;},
+          }
+        }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>

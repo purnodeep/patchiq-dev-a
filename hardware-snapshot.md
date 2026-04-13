@@ -1,0 +1,118 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: PatchIQ Agent
+        - generic [ref=e7]: garage
+        - generic [ref=e10]: Healthy
+      - button "Toggle dark mode" [ref=e12]:
+        - img
+    - navigation [ref=e13]:
+      - link "Overview" [ref=e14] [cursor=pointer]:
+        - /url: /
+      - link "Patches" [ref=e15] [cursor=pointer]:
+        - /url: /pending
+      - link "Hardware" [ref=e16] [cursor=pointer]:
+        - /url: /hardware
+      - link "Software" [ref=e17] [cursor=pointer]:
+        - /url: /software
+      - link "Services" [ref=e18] [cursor=pointer]:
+        - /url: /services
+      - link "History" [ref=e19] [cursor=pointer]:
+        - /url: /history
+      - link "Logs" [ref=e20] [cursor=pointer]:
+        - /url: /logs
+      - link "Settings" [active] [ref=e21] [cursor=pointer]:
+        - /url: /settings
+    - main [ref=e22]:
+      - generic [ref=e798]:
+        - generic [ref=e799]:
+          - generic [ref=e800]:
+            - img [ref=e801]
+            - paragraph [ref=e804]: Agent Configuration
+          - generic [ref=e805]:
+            - generic [ref=e806]:
+              - generic [ref=e807]:
+                - generic [ref=e808]: Scan Interval
+                - generic [ref=e809]: How often the agent scans for available patches
+              - combobox [ref=e810] [cursor=pointer]:
+                - option "1 hour"
+                - option "3 hours"
+                - option "6 hours" [selected]
+                - option "12 hours"
+                - option "24 hours"
+            - generic [ref=e811]:
+              - generic [ref=e812]:
+                - generic [ref=e813]: Log Level
+                - generic [ref=e814]: Controls the verbosity of agent log output
+              - combobox [ref=e815] [cursor=pointer]:
+                - option "Debug"
+                - option "Info" [selected]
+                - option "Warn"
+                - option "Error"
+            - generic [ref=e816]:
+              - generic [ref=e817]:
+                - generic [ref=e818]: Auto Deploy
+                - generic [ref=e819]: Automatically install approved patches without manual intervention
+              - switch [ref=e820] [cursor=pointer]
+            - generic [ref=e821]:
+              - button "Save Changes" [disabled]:
+                - img
+                - text: Save Changes
+        - generic [ref=e822]:
+          - generic [ref=e823]:
+            - img [ref=e824]
+            - paragraph [ref=e827]: Actions
+          - generic [ref=e828]:
+            - generic [ref=e829]:
+              - generic [ref=e830]: Trigger Scan Now
+              - generic [ref=e831]: Immediately scan for available patches on this endpoint
+            - button "Scan Now" [ref=e832]:
+              - img
+              - text: Scan Now
+        - generic [ref=e833]:
+          - generic [ref=e834]:
+            - img [ref=e835]
+            - paragraph [ref=e837]: Agent Information
+            - generic [ref=e838]: Read-only
+          - generic [ref=e839]:
+            - generic [ref=e840]:
+              - generic [ref=e841]: Agent Version
+              - generic [ref=e842]: dev
+            - generic [ref=e843]:
+              - generic [ref=e844]: Agent ID
+              - generic [ref=e846]:
+                - generic [ref=e847]: 5eb09c4f-f2fb-42ac-9537-36230ff9a0ce
+                - button [ref=e848] [cursor=pointer]:
+                  - img [ref=e849]
+            - generic [ref=e852]:
+              - generic [ref=e853]: Server URL
+              - generic [ref=e855]:
+                - generic [ref=e856]: localhost:50051
+                - button [ref=e857] [cursor=pointer]:
+                  - img [ref=e858]
+            - generic [ref=e861]:
+              - generic [ref=e862]: Data Directory
+              - generic [ref=e864]:
+                - generic [ref=e865]: /root/.patchiq
+                - button [ref=e866] [cursor=pointer]:
+                  - img [ref=e867]
+            - generic [ref=e870]:
+              - generic [ref=e871]: Database Path
+              - generic [ref=e873]:
+                - generic [ref=e874]: /root/.patchiq/agent.db
+                - button [ref=e875] [cursor=pointer]:
+                  - img [ref=e876]
+            - generic [ref=e879]:
+              - generic [ref=e880]: HTTP Address
+              - generic [ref=e881]: 127.0.0.1:8090
+            - generic [ref=e882]:
+              - generic [ref=e883]: Config File
+              - generic [ref=e885]:
+                - generic [ref=e886]: /root/.patchiq/agent.yaml
+                - button [ref=e887] [cursor=pointer]:
+                  - img [ref=e888]
+            - generic [ref=e891]:
+              - generic [ref=e892]: Server Connection
+              - generic [ref=e896]: Connected
+  - region "Notifications alt+T"

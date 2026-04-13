@@ -1,0 +1,128 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: self-hosted-ci
+  cancel-in-progress: false
+
+jobs:
+  go-build:
+    name: Go Build (${{ matrix.binary }}/${{ matrix.goarch }})
+    runs-on: self-hosted
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - binary: server
+            goos: linux
+            goarch: amd64
+          - binary: hub
+            goos: linux
+            goarch: amd64
+          - binary: agent
+            goos: linux
+            goarch: amd64
+          - binary: agent
+            goos: linux
+            goarch: arm64
+          - binary: agent
+            goos: darwin
+            goarch: arm64
+          - binary: agent
+            goos: darwin
+            goarch: amd64
+    steps:
+      - name: Check disk space
+        run: |
+          USAGE=$(df / --output=pcent | tail -1 | tr -d ' %')
+          echo "Disk usage: ${USAGE}%"
+          if [ "$USAGE" -gt 85 ]; then
+            echo "::error::Disk usage at ${USAGE}% — aborting to prevent filling disk"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build
+        timeout-minutes: 10
+        env:
+          CGO_ENABLED: 0
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -o bin/${{ matrix.binary }}-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/${{ matrix.binary }}
+
+  frontend-build:
+    name: Frontend Build
+    runs-on: self-hosted
+    timeout-minutes: 10
+    steps:
+      - name: Check disk space
+        run: |
+          USAGE=$(df / --output=pcent | tail -1 | tr -d ' %')
+          echo "Disk usage: ${USAGE}%"
+          if [ "$USAGE" -gt 85 ]; then
+            echo "::error::Disk usage at ${USAGE}% — aborting to prevent filling disk"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build all workspaces
+        run: pnpm -r build
+
+  docker-build:
+    name: Docker Build (${{ matrix.image }})
+    runs-on: self-hosted
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        image: [server, hub]
+    steps:
+      - name: Check disk space
+        run: |
+          USAGE=$(df / --output=pcent | tail -1 | tr -d ' %')
+          echo "Disk usage: ${USAGE}%"
+          if [ "$USAGE" -gt 85 ]; then
+            echo "::error::Disk usage at ${USAGE}% — aborting to prevent filling disk"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.${{ matrix.image }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker cleanup
+        if: always()
+        run: |
+          docker system prune -f --filter "until=24h"
+          docker builder prune -f --filter "until=24h"

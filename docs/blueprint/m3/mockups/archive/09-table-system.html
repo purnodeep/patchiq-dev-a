@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — Table Design System</title>
+<style>
+@font-face {
+  font-family: 'Geist';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'GeistMono';
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #09090b;
+  --card: #18181b;
+  --card-hover: #1c1c1f;
+  --border: #27272a;
+  --border-subtle: #1f1f22;
+  --text: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-dim: #71717a;
+  --primary: #10b981;
+  --primary-bg: rgba(16,185,129,0.08);
+  --primary-border: rgba(16,185,129,0.2);
+  --crit: #ef4444;
+  --crit-bg: rgba(239,68,68,0.1);
+  --high: #f97316;
+  --high-bg: rgba(249,115,22,0.1);
+  --med: #eab308;
+  --med-bg: rgba(234,179,8,0.1);
+  --low: #3b82f6;
+  --low-bg: rgba(59,130,246,0.1);
+  --mono: 'GeistMono', monospace;
+  --sans: 'Geist', -apple-system, sans-serif;
+}
+
+html { scrollbar-width: thin; scrollbar-color: #3f3f46 #09090b; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #09090b; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 48px 32px 80px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── Page header ── */
+.page-header {
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+.page-header p {
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-size: 14px;
+}
+.badge-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--primary-bg);
+  border: 1px solid var(--primary-border);
+  border-radius: 4px;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--mono);
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+/* ── Section ── */
+.section {
+  margin-bottom: 56px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.section-subtitle {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.section-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* ── Toolbar ── */
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.toolbar-left { display: flex; align-items: center; gap: 8px; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  width: 240px;
+}
+.search-box input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  width: 100%;
+}
+.search-box input::placeholder { color: var(--text-dim); }
+.search-icon { color: var(--text-dim); font-size: 13px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.btn-ghost:hover { background: #27272a; color: var(--text); }
+.btn-primary {
+  background: var(--primary);
+  color: #000;
+}
+.btn-primary:hover { background: #0ea472; }
+.btn-sm { padding: 4px 8px; font-size: 12px; }
+.btn-icon { padding: 6px; }
+
+.density-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+}
+.density-btn {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-family: var(--sans);
+  transition: all 0.15s;
+}
+.density-btn.active {
+  background: var(--card);
+  color: var(--text);
+}
+
+/* ── Table ── */
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+thead { border-bottom: 1px solid var(--border); }
+thead th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dim);
+  white-space: nowrap;
+  user-select: none;
+  position: relative;
+}
+thead th:first-child { padding-left: 16px; }
+thead th:last-child { padding-right: 16px; }
+thead th.sortable { cursor: pointer; }
+thead th.sortable:hover { color: var(--text-muted); }
+thead th .sort-indicator { margin-left: 4px; color: var(--text-dim); font-size: 10px; }
+thead th .sort-indicator.active { color: var(--primary); }
+
+tbody tr {
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(39,39,42,0.5); }
+tbody tr.selected {
+  background: rgba(16,185,129,0.05);
+  border-left: 2px solid var(--primary);
+}
+tbody tr.selected td:first-child { padding-left: 14px; }
+
+tbody td {
+  padding: 12px 12px;
+  vertical-align: middle;
+  color: var(--text-muted);
+}
+tbody td:first-child { padding-left: 16px; }
+tbody td:last-child { padding-right: 16px; }
+
+/* Comfortable density */
+.density-comfortable tbody td { padding: 14px 12px; }
+/* Compact density */
+.density-compact tbody td { padding: 8px 12px; }
+.density-compact thead th { padding: 8px 12px; }
+
+/* ── Checkbox ── */
+.cb {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #52525b;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.cb.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.cb.checked::after {
+  content: '';
+  width: 9px;
+  height: 6px;
+  border-left: 2px solid #000;
+  border-bottom: 2px solid #000;
+  transform: rotate(-45deg) translateY(-1px);
+  display: block;
+}
+.cb.indeterminate {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.cb.indeterminate::after {
+  content: '';
+  width: 8px;
+  height: 2px;
+  background: #000;
+  display: block;
+}
+
+/* ── Status dot ── */
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.status-dot.online { background: var(--primary); box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
+.status-dot.offline { background: #52525b; }
+.status-dot.patching { background: #3b82f6; }
+.status-dot.warning { background: var(--med); }
+
+/* ── Badge ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+/* Fixed 80px severity badges */
+.badge-sev {
+  width: 80px;
+  justify-content: center;
+}
+.badge-critical { background: var(--crit-bg); color: var(--crit); border: 1px solid rgba(239,68,68,0.2); }
+.badge-high { background: var(--high-bg); color: var(--high); border: 1px solid rgba(249,115,22,0.2); }
+.badge-medium { background: var(--med-bg); color: var(--med); border: 1px solid rgba(234,179,8,0.2); }
+.badge-low { background: var(--low-bg); color: var(--low); border: 1px solid rgba(59,130,246,0.2); }
+.badge-online { background: rgba(16,185,129,0.1); color: var(--primary); border: 1px solid rgba(16,185,129,0.2); }
+.badge-offline { background: rgba(82,82,91,0.2); color: #71717a; border: 1px solid rgba(82,82,91,0.3); }
+.badge-running { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+.badge-completed { background: rgba(16,185,129,0.1); color: var(--primary); border: 1px solid rgba(16,185,129,0.2); }
+.badge-failed { background: var(--crit-bg); color: var(--crit); border: 1px solid rgba(239,68,68,0.2); }
+.badge-patching { background: rgba(59,130,246,0.1); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+.badge-pending { background: rgba(234,179,8,0.1); color: var(--med); border: 1px solid rgba(234,179,8,0.2); }
+
+/* Pulse animation for active statuses */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
+  70% { box-shadow: 0 0 0 4px rgba(59,130,246,0); }
+  100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+}
+.pulse { animation: pulse-ring 2s infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+/* ── Tags ── */
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tag-emerald { background: rgba(16,185,129,0.1); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.2); }
+.tag-blue { background: rgba(59,130,246,0.1); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+.tag-purple { background: rgba(168,85,247,0.1); color: #c4b5fd; border: 1px solid rgba(168,85,247,0.2); }
+.tag-amber { background: rgba(234,179,8,0.1); color: #fcd34d; border: 1px solid rgba(234,179,8,0.2); }
+.tag-red { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+.tag-cyan { background: rgba(6,182,212,0.1); color: #67e8f9; border: 1px solid rgba(6,182,212,0.2); }
+.tag-rose { background: rgba(244,63,94,0.1); color: #fda4af; border: 1px solid rgba(244,63,94,0.2); }
+.tag-orange { background: rgba(249,115,22,0.1); color: #fdba74; border: 1px solid rgba(249,115,22,0.2); }
+
+/* ── Risk score bar ── */
+.risk-cell { display: flex; align-items: center; gap: 8px; }
+.risk-score { font-family: var(--mono); font-size: 13px; width: 24px; text-align: right; }
+.risk-bar-bg {
+  width: 60px; height: 4px;
+  background: #27272a;
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.risk-bar-fill { height: 100%; border-radius: 2px; }
+.risk-fill-low { background: var(--primary); }
+.risk-fill-med { background: var(--med); }
+.risk-fill-high { background: var(--high); }
+.risk-fill-crit { background: var(--crit); }
+
+/* ── Severity dots ── */
+.sev-dots { display: flex; gap: 3px; align-items: center; }
+.sev-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.sev-dot-crit { background: var(--crit); }
+.sev-dot-high { background: var(--high); }
+.sev-dot-med { background: var(--med); }
+.sev-dot-low { background: var(--low); }
+
+/* ── Monospace link ── */
+.mono-link {
+  font-family: var(--mono);
+  color: var(--primary);
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.mono-link:hover { text-decoration: underline; }
+.mono-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── CVSS circular badge ── */
+.cvss-circle {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+.cvss-crit { background: var(--crit-bg); color: var(--crit); border: 1.5px solid rgba(239,68,68,0.3); }
+.cvss-high { background: var(--high-bg); color: var(--high); border: 1.5px solid rgba(249,115,22,0.3); }
+.cvss-med { background: var(--med-bg); color: var(--med); border: 1.5px solid rgba(234,179,8,0.3); }
+.cvss-low { background: var(--low-bg); color: var(--low); border: 1.5px solid rgba(59,130,246,0.3); }
+
+/* ── Large CVSS number ── */
+.cvss-large { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+.cvss-large-crit { color: var(--crit); }
+.cvss-large-high { color: var(--high); }
+.cvss-large-med { color: var(--med); }
+.cvss-large-low { color: var(--low); }
+
+/* ── Proportion bar ── */
+.prop-cell { display: flex; align-items: center; gap: 8px; }
+.prop-bar-bg {
+  width: 80px; height: 4px;
+  background: #27272a; border-radius: 2px; overflow: hidden; flex-shrink: 0;
+}
+.prop-bar-fill { height: 100%; border-radius: 2px; background: var(--primary); }
+
+/* ── Segmented progress bar ── */
+.seg-bar {
+  width: 120px; height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  gap: 1px;
+  background: #1f1f22;
+  flex-shrink: 0;
+}
+.seg-success { background: var(--primary); }
+.seg-inprogress { background: #3b82f6; }
+.seg-failed { background: var(--crit); }
+.seg-pending { background: #3f3f46; }
+
+/* ── Avatar ── */
+.avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600;
+  flex-shrink: 0;
+  color: #000;
+}
+.av-emerald { background: #10b981; }
+.av-blue { background: #3b82f6; }
+.av-purple { background: #a855f7; }
+.av-amber { background: #eab308; }
+.av-red { background: #ef4444; }
+
+.actor-cell { display: flex; align-items: center; gap: 6px; }
+
+/* ── OS icon ── */
+.os-cell { display: flex; align-items: center; gap: 6px; }
+.os-icon { font-size: 14px; flex-shrink: 0; }
+
+/* ── Hostname cell ── */
+.hostname-cell { display: flex; align-items: center; gap: 8px; }
+.hostname-text { font-weight: 500; color: var(--text); }
+.hostname-sub { font-size: 11px; color: var(--text-dim); font-family: var(--mono); }
+
+/* ── CVE IDs ── */
+.cve-list { display: flex; flex-direction: column; gap: 2px; }
+.cve-id { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+/* ── Expand row ── */
+.row-expanded { background: #141416; }
+.row-expanded td { padding: 0 !important; border-bottom: 1px solid var(--border); }
+.expanded-content {
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+.exp-section h4 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.exp-kv { display: flex; flex-direction: column; gap: 4px; }
+.exp-row { display: flex; justify-content: space-between; align-items: center; }
+.exp-label { font-size: 12px; color: var(--text-dim); }
+.exp-value { font-size: 12px; color: var(--text-muted); font-family: var(--mono); }
+.exp-patch-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--border-subtle); }
+.exp-patch-row:last-child { border-bottom: none; }
+.exp-patch-name { font-size: 12px; color: var(--text-muted); flex: 1; }
+.exp-actions { display: flex; gap: 6px; }
+
+/* ── Attack vector badge ── */
+.av-badge {
+  display: inline-flex;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--mono);
+  letter-spacing: 0.3px;
+}
+.av-network { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+.av-adjacent { background: rgba(249,115,22,0.1); color: #fdba74; border: 1px solid rgba(249,115,22,0.2); }
+.av-local { background: rgba(234,179,8,0.1); color: #fcd34d; border: 1px solid rgba(234,179,8,0.2); }
+.av-physical { background: rgba(82,82,91,0.2); color: #a1a1aa; border: 1px solid rgba(82,82,91,0.3); }
+
+/* ── Check / Dash ── */
+.check-yes { color: var(--crit); font-weight: 700; font-size: 14px; }
+.check-kev { color: var(--med); font-weight: 700; font-size: 14px; }
+.check-no { color: var(--text-dim); font-size: 14px; }
+
+/* ── Category badge ── */
+.cat-badge {
+  display: inline-flex;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(82,82,91,0.2);
+  color: var(--text-dim);
+  border: 1px solid rgba(82,82,91,0.3);
+}
+
+/* ── Actions menu ── */
+.actions-btn {
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  font-size: 16px;
+  transition: all 0.15s;
+}
+.actions-btn:hover { background: #27272a; color: var(--text-muted); }
+
+/* ── Timeline cell ── */
+.timestamp-cell { font-family: var(--mono); font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+
+/* ── Inline compact table ── */
+.compact-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.compact-table th {
+  padding: 6px 12px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+.compact-table td {
+  padding: 7px 12px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.compact-table tbody tr:last-child td { border-bottom: none; }
+.compact-table-footer {
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  text-align: right;
+}
+.view-all-link {
+  font-size: 12px;
+  color: var(--primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+.view-all-link:hover { text-decoration: underline; }
+
+/* ── Design reference section ── */
+.ref-section { margin-bottom: 56px; }
+.ref-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+}
+.ref-subtitle {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 28px;
+}
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.ref-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.ref-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.ref-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ref-row + .ref-row { margin-top: 8px; }
+
+/* ── Empty state ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  gap: 12px;
+}
+.empty-icon {
+  width: 48px; height: 48px;
+  background: #1f1f22;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+.empty-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.empty-text { font-size: 13px; color: var(--text-dim); text-align: center; max-width: 280px; }
+
+/* ── Skeleton loader ── */
+.skeleton {
+  background: linear-gradient(90deg, #1f1f22 25%, #27272a 50%, #1f1f22 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+.skel-row td { padding: 12px; }
+.skel-line { height: 12px; border-radius: 3px; }
+
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.pagination-info { display: flex; align-items: center; gap: 6px; }
+.pagination-info strong { color: var(--text-muted); }
+.pagination-controls { display: flex; align-items: center; gap: 2px; }
+.page-btn {
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--sans);
+  transition: all 0.15s;
+}
+.page-btn:hover { background: #27272a; color: var(--text-muted); border-color: var(--border); }
+.page-btn.active { background: var(--primary-bg); color: var(--primary); border-color: var(--primary-border); }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.page-btn:disabled:hover { background: transparent; border-color: transparent; }
+.per-page-select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 3px 6px;
+  font-family: var(--sans);
+  cursor: pointer;
+}
+.page-dots { color: var(--text-dim); padding: 0 4px; font-size: 12px; }
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 32px 0;
+}
+
+/* ── Deploy button ── */
+.btn-deploy {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px;
+  background: var(--primary-bg);
+  border: 1px solid var(--primary-border);
+  border-radius: 4px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: all 0.15s;
+}
+.btn-deploy:hover { background: rgba(16,185,129,0.15); }
+
+/* ── Expand chevron ── */
+.chevron {
+  width: 20px; height: 20px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--text-dim);
+  transition: all 0.15s;
+}
+.chevron:hover { background: #27272a; }
+.chevron.expanded { transform: rotate(90deg); color: var(--primary); border-color: var(--primary-border); background: var(--primary-bg); }
+
+/* ── Remediation status ── */
+.rem-badge {
+  display: inline-flex;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.rem-patched { background: rgba(16,185,129,0.1); color: var(--primary); border: 1px solid rgba(16,185,129,0.2); }
+.rem-available { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+.rem-none { background: rgba(239,68,68,0.1); color: var(--crit); border: 1px solid rgba(239,68,68,0.2); }
+.rem-partial { background: rgba(234,179,8,0.1); color: var(--med); border: 1px solid rgba(234,179,8,0.2); }
+
+/* ── Progress cell ── */
+.progress-cell { display: flex; align-items: center; gap: 8px; }
+.progress-pct { font-family: var(--mono); font-size: 11px; color: var(--text-dim); width: 30px; }
+
+/* Audit category badges */
+.audit-cat {
+  display: inline-flex;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--mono);
+  letter-spacing: 0.2px;
+}
+.audit-endpoint { background: rgba(16,185,129,0.1); color: var(--primary); border: 1px solid rgba(16,185,129,0.2); }
+.audit-policy { background: rgba(168,85,247,0.1); color: #c4b5fd; border: 1px solid rgba(168,85,247,0.2); }
+.audit-deploy { background: rgba(59,130,246,0.1); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+.audit-auth { background: rgba(249,115,22,0.1); color: #fdba74; border: 1px solid rgba(249,115,22,0.2); }
+.audit-compliance { background: rgba(234,179,8,0.1); color: #fcd34d; border: 1px solid rgba(234,179,8,0.2); }
+.audit-system { background: rgba(82,82,91,0.2); color: #a1a1aa; border: 1px solid rgba(82,82,91,0.3); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ PAGE HEADER ══ -->
+<div class="page-header">
+  <h1>PatchIQ — Table Design System <span class="badge-version">M3 v1.0</span></h1>
+  <p>Reference implementation of all table variants, density modes, states, and design tokens used across the Patch Manager UI.</p>
+</div>
+
+
+<!-- ══════════════════════════════════════════ TABLE 1: ENDPOINTS ══ -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">1 — Endpoints Table</div>
+      <div class="section-subtitle">Full-featured: checkbox, status, OS, risk score, patches, tags, actions. One expanded row shown.</div>
+    </div>
+    <div class="section-controls">
+      <div class="density-toggle">
+        <button class="density-btn">Compact</button>
+        <button class="density-btn active">Comfortable</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- Toolbar -->
+    <div class="table-toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Search endpoints…" readonly>
+        </div>
+        <button class="btn btn-ghost btn-sm">
+          <span>⊞</span> Filter
+        </button>
+        <button class="btn btn-ghost btn-sm">
+          <span>↕</span> Sort
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <span style="font-size:12px;color:var(--text-dim);">1,247 endpoints</span>
+        <button class="btn btn-ghost btn-sm">↓ Export</button>
+        <button class="btn btn-primary btn-sm">+ Enroll</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table class="density-comfortable">
+        <thead>
+          <tr>
+            <th style="width:40px;"><div class="cb indeterminate"></div></th>
+            <th class="sortable">Hostname <span class="sort-indicator active">▲</span></th>
+            <th class="sortable">OS <span class="sort-indicator">⇅</span></th>
+            <th class="sortable">Status <span class="sort-indicator">⇅</span></th>
+            <th class="sortable">Risk Score <span class="sort-indicator">⇅</span></th>
+            <th class="sortable">Pending Patches <span class="sort-indicator">⇅</span></th>
+            <th>Tags</th>
+            <th class="sortable">Last Seen <span class="sort-indicator">⇅</span></th>
+            <th style="width:40px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Row 1 — selected + expanded -->
+          <tr class="selected">
+            <td><div class="cb checked"></div></td>
+            <td>
+              <div class="hostname-cell">
+                <span class="status-dot online"></span>
+                <div>
+                  <div class="hostname-text">prod-web-01</div>
+                  <div class="hostname-sub">10.0.1.42</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="os-cell">
+                <span class="os-icon">🐧</span>
+                <span>Ubuntu 22.04.3</span>
+              </div>
+            </td>
+            <td><span class="badge badge-online">Online</span></td>
+            <td>
+              <div class="risk-cell">
+                <span class="risk-score" style="color:var(--crit)">87</span>
+                <div class="risk-bar-bg"><div class="risk-bar-fill risk-fill-crit" style="width:87%"></div></div>
+              </div>
+            </td>
+            <td>
+              <div class="risk-cell">
+                <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)">14</span>
+                <div class="sev-dots">
+                  <div class="sev-dot sev-dot-crit" title="3 Critical"></div>
+                  <div class="sev-dot sev-dot-crit"></div>
+                  <div class="sev-dot sev-dot-crit"></div>
+                  <div class="sev-dot sev-dot-high" title="5 High"></div>
+                  <div class="sev-dot sev-dot-high"></div>
+                  <div class="sev-dot sev-dot-high"></div>
+                  <div class="sev-dot sev-dot-med" title="4 Medium"></div>
+                  <div class="sev-dot sev-dot-med"></div>
+                  <div class="sev-dot sev-dot-low"></div>
+                  <div class="sev-dot sev-dot-low"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="tags">
+                <span class="tag tag-emerald">env:production</span>
+                <span class="tag tag-blue">tier:web</span>
+                <span class="tag tag-purple">team:platform</span>
+              </div>
+            </td>
+            <td><span style="color:var(--text-dim);font-size:12px;">just now</span></td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <div class="chevron expanded">›</div>
+                <button class="actions-btn">⋯</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Expanded row -->
+          <tr class="row-expanded">
+            <td colspan="9">
+              <div class="expanded-content">
+                <div class="exp-section">
+                  <h4>System Info</h4>
+                  <div class="exp-kv">
+                    <div class="exp-row"><span class="exp-label">Hostname</span><span class="exp-value">prod-web-01.internal</span></div>
+                    <div class="exp-row"><span class="exp-label">IP Address</span><span class="exp-value">10.0.1.42</span></div>
+                    <div class="exp-row"><span class="exp-label">Kernel</span><span class="exp-value">5.15.0-91-generic</span></div>
+                    <div class="exp-row"><span class="exp-label">Architecture</span><span class="exp-value">x86_64</span></div>
+                    <div class="exp-row"><span class="exp-label">Agent Version</span><span class="exp-value">v1.4.2</span></div>
+                    <div class="exp-row"><span class="exp-label">Enrolled</span><span class="exp-value">2024-01-15</span></div>
+                  </div>
+                </div>
+                <div class="exp-section">
+                  <h4>Critical Patches</h4>
+                  <div>
+                    <div class="exp-patch-row">
+                      <span class="badge badge-critical badge-sev" style="font-size:10px;padding:1px 0;">Critical</span>
+                      <span class="exp-patch-name">openssl 3.0.2-0ubuntu1.12</span>
+                    </div>
+                    <div class="exp-patch-row">
+                      <span class="badge badge-critical badge-sev" style="font-size:10px;padding:1px 0;">Critical</span>
+                      <span class="exp-patch-name">linux-image-5.15.0-91</span>
+                    </div>
+                    <div class="exp-patch-row">
+                      <span class="badge badge-high badge-sev" style="font-size:10px;padding:1px 0;">High</span>
+                      <span class="exp-patch-name">curl 7.81.0-1ubuntu1.14</span>
+                    </div>
+                    <div class="exp-patch-row">
+                      <span class="badge badge-high badge-sev" style="font-size:10px;padding:1px 0;">High</span>
+                      <span class="exp-patch-name">libssl3 3.0.2-0ubuntu1.12</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="exp-section">
+                  <h4>Quick Actions</h4>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <button class="btn btn-primary btn-sm" style="justify-content:center;">▶ Deploy Critical Patches</button>
+                    <button class="btn btn-ghost btn-sm" style="justify-content:center;">⟳ Trigger Scan</button>
+                    <button class="btn btn-ghost btn-sm" style="justify-content:center;">📋 View Full Details</button>
+                    <button class="btn btn-ghost btn-sm" style="justify-content:center;">🏷 Manage Tags</button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 2 -->
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div class="hostname-cell">
+                <span class="status-dot patching pulse"></span>
+                <div>
+                  <div class="hostname-text">prod-db-02</div>
+                  <div class="hostname-sub">10.0.2.11</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="os-cell">
+                <span class="os-icon">🐧</span>
+                <span>Ubuntu 20.04.6</span>
+              </div>
+            </td>
+            <td><span class="badge badge-patching">Patching</span></td>
+            <td>
+              <div class="risk-cell">
+                <span class="risk-score" style="color:var(--high)">74</span>
+                <div class="risk-bar-bg"><div class="risk-bar-fill risk-fill-high" style="width:74%"></div></div>
+              </div>
+            </td>
+            <td>
+              <div class="risk-cell">
+                <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)">8</span>
+                <div class="sev-dots">
+                  <div class="sev-dot sev-dot-high"></div>
+                  <div class="sev-dot sev-dot-high"></div>
+                  <div class="sev-dot sev-dot-med"></div>
+                  <div class="sev-dot sev-dot-med"></div>
+                  <div class="sev-dot sev-dot-med"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="tags">
+                <span class="tag tag-emerald">env:production</span>
+                <span class="tag tag-amber">tier:database</span>
+              </div>
+            </td>
+            <td><span style="color:var(--text-dim);font-size:12px;">2m ago</span></td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <div class="chevron">›</div>
+                <button class="actions-btn">⋯</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 3 -->
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div class="hostname-cell">
+                <span class="status-dot online"></span>
+                <div>
+                  <div class="hostname-text">staging-api-01</div>
+                  <div class="hostname-sub">10.0.3.5</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="os-cell">
+                <span class="os-icon">🪟</span>
+                <span>Windows Server 2022</span>
+              </div>
+            </td>
+            <td><span class="badge badge-online">Online</span></td>
+            <td>
+              <div class="risk-cell">
+                <span class="risk-score" style="color:var(--med)">45</span>
+                <div class="risk-bar-bg"><div class="risk-bar-fill risk-fill-med" style="width:45%"></div></div>
+              </div>
+            </td>
+            <td>
+              <div class="risk-cell">
+                <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)">5</span>
+                <div class="sev-dots">
+                  <div class="sev-dot sev-dot-med"></div>
+                  <div class="sev-dot sev-dot-med"></div>
+                  <div class="sev-dot sev-dot-low"></div>
+                  <div class="sev-dot sev-dot-low"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="tags">
+                <span class="tag tag-cyan">env:staging</span>
+                <span class="tag tag-blue">tier:api</span>
+                <span class="tag tag-purple">team:backend</span>
+              </div>
+            </td>
+            <td><span style="color:var(--text-dim);font-size:12px;">8m ago</span></td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <div class="chevron">›</div>
+                <button class="actions-btn">⋯</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 4 -->
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div class="hostname-cell">
+                <span class="status-dot offline"></span>
+                <div>
+                  <div class="hostname-text">dev-worker-03</div>
+                  <div class="hostname-sub">10.0.4.22</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="os-cell">
+                <span class="os-icon">🍎</span>
+                <span>macOS 14.3.1</span>
+              </div>
+            </td>
+            <td><span class="badge badge-offline">Offline</span></td>
+            <td>
+              <div class="risk-cell">
+                <span class="risk-score" style="color:var(--primary)">12</span>
+                <div class="risk-bar-bg"><div class="risk-bar-fill risk-fill-low" style="width:12%"></div></div>
+              </div>
+            </td>
+            <td>
+              <div class="risk-cell">
+                <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)">2</span>
+                <div class="sev-dots">
+                  <div class="sev-dot sev-dot-low"></div>
+                  <div class="sev-dot sev-dot-low"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="tags">
+                <span class="tag tag-rose">env:dev</span>
+                <span class="tag tag-orange">team:mobile</span>
+              </div>
+            </td>
+            <td><span style="color:var(--text-dim);font-size:12px;">3h ago</span></td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <div class="chevron">›</div>
+                <button class="actions-btn">⋯</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 5 -->
+          <tr>
+            <td><div class="cb checked"></div></td>
+            <td>
+              <div class="hostname-cell">
+                <span class="status-dot online"></span>
+                <div>
+                  <div class="hostname-text">prod-cache-01</div>
+                  <div class="hostname-sub">10.0.1.78</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="os-cell">
+                <span class="os-icon">🐧</span>
+                <span>RHEL 9.2</span>
+              </div>
+            </td>
+            <td><span class="badge badge-online">Online</span></td>
+            <td>
+              <div class="risk-cell">
+                <span class="risk-score" style="color:var(--high)">62</span>
+                <div class="risk-bar-bg"><div class="risk-bar-fill risk-fill-high" style="width:62%"></div></div>
+              </div>
+            </td>
+            <td>
+              <div class="risk-cell">
+                <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)">6</span>
+                <div class="sev-dots">
+                  <div class="sev-dot sev-dot-crit"></div>
+                  <div class="sev-dot sev-dot-high"></div>
+                  <div class="sev-dot sev-dot-high"></div>
+                  <div class="sev-dot sev-dot-med"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="tags">
+                <span class="tag tag-emerald">env:production</span>
+                <span class="tag tag-cyan">tier:cache</span>
+              </div>
+            </td>
+            <td><span style="color:var(--text-dim);font-size:12px;">1m ago</span></td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <div class="chevron">›</div>
+                <button class="actions-btn">⋯</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 6 -->
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div class="hostname-cell">
+                <span class="status-dot online"></span>
+                <div>
+                  <div class="hostname-text">prod-lb-02</div>
+                  <div class="hostname-sub">10.0.0.5</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="os-cell">
+                <span class="os-icon">🐧</span>
+                <span>Debian 12.4</span>
+              </div>
+            </td>
+            <td><span class="badge badge-online">Online</span></td>
+            <td>
+              <div class="risk-cell">
+                <span class="risk-score" style="color:var(--primary)">28</span>
+                <div class="risk-bar-bg"><div class="risk-bar-fill risk-fill-low" style="width:28%"></div></div>
+              </div>
+            </td>
+            <td>
+              <div class="risk-cell">
+                <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)">3</span>
+                <div class="sev-dots">
+                  <div class="sev-dot sev-dot-med"></div>
+                  <div class="sev-dot sev-dot-low"></div>
+                  <div class="sev-dot sev-dot-low"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="tags">
+                <span class="tag tag-emerald">env:production</span>
+                <span class="tag tag-blue">tier:lb</span>
+              </div>
+            </td>
+            <td><span style="color:var(--text-dim);font-size:12px;">5m ago</span></td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <div class="chevron">›</div>
+                <button class="actions-btn">⋯</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 7 -->
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div class="hostname-cell">
+                <span class="status-dot warning"></span>
+                <div>
+                  <div class="hostname-text">prod-monitor-01</div>
+                  <div class="hostname-sub">10.0.5.100</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="os-cell">
+                <span class="os-icon">🐧</span>
+                <span>Ubuntu 22.04.3</span>
+              </div>
+            </td>
+            <td><span class="badge badge-pending">Degraded</span></td>
+            <td>
+              <div class="risk-cell">
+                <span class="risk-score" style="color:var(--med)">51</span>
+                <div class="risk-bar-bg"><div class="risk-bar-fill risk-fill-med" style="width:51%"></div></div>
+              </div>
+            </td>
+            <td>
+              <div class="risk-cell">
+                <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)">7</span>
+                <div class="sev-dots">
+                  <div class="sev-dot sev-dot-high"></div>
+                  <div class="sev-dot sev-dot-med"></div>
+                  <div class="sev-dot sev-dot-med"></div>
+                  <div class="sev-dot sev-dot-low"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="tags">
+                <span class="tag tag-emerald">env:production</span>
+                <span class="tag tag-amber">role:observability</span>
+              </div>
+            </td>
+            <td><span style="color:var(--text-dim);font-size:12px;">12m ago</span></td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <div class="chevron">›</div>
+                <button class="actions-btn">⋯</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 8 -->
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div class="hostname-cell">
+                <span class="status-dot offline"></span>
+                <div>
+                  <div class="hostname-text">legacy-app-server</div>
+                  <div class="hostname-sub">192.168.1.200</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="os-cell">
+                <span class="os-icon">🪟</span>
+                <span>Windows Server 2016</span>
+              </div>
+            </td>
+            <td><span class="badge badge-offline">Offline</span></td>
+            <td>
+              <div class="risk-cell">
+                <span class="risk-score" style="color:var(--crit)">93</span>
+                <div class="risk-bar-bg"><div class="risk-bar-fill risk-fill-crit" style="width:93%"></div></div>
+              </div>
+            </td>
+            <td>
+              <div class="risk-cell">
+                <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)">21</span>
+                <div class="sev-dots">
+                  <div class="sev-dot sev-dot-crit"></div>
+                  <div class="sev-dot sev-dot-crit"></div>
+                  <div class="sev-dot sev-dot-crit"></div>
+                  <div class="sev-dot sev-dot-crit"></div>
+                  <div class="sev-dot sev-dot-high"></div>
+                  <div class="sev-dot sev-dot-high"></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="tags">
+                <span class="tag tag-rose">env:legacy</span>
+                <span class="tag tag-red">risk:critical</span>
+              </div>
+            </td>
+            <td><span style="color:var(--text-dim);font-size:12px;">2d ago</span></td>
+            <td>
+              <div style="display:flex;gap:4px;">
+                <div class="chevron">›</div>
+                <button class="actions-btn">⋯</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <div class="pagination-info">
+        Showing <strong>1–50</strong> of <strong>1,247</strong> endpoints
+        &nbsp;&nbsp;
+        <select class="per-page-select">
+          <option>50 / page</option>
+          <option>100 / page</option>
+          <option>200 / page</option>
+        </select>
+      </div>
+      <div class="pagination-controls">
+        <button class="page-btn" disabled>‹</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span class="page-dots">…</span>
+        <button class="page-btn">25</button>
+        <button class="page-btn">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ TABLE 2: PATCHES ══ -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">2 — Patches Table</div>
+      <div class="section-subtitle">Severity-focused: fixed-width 80px severity badges, CVSS large score, affected endpoint proportion bar.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Search patches or CVEs…" readonly>
+        </div>
+        <button class="btn btn-ghost btn-sm">Severity ▾</button>
+        <button class="btn btn-ghost btn-sm">Category ▾</button>
+      </div>
+      <div class="toolbar-right">
+        <span style="font-size:12px;color:var(--text-dim);">3,841 patches</span>
+        <button class="btn btn-ghost btn-sm">↓ Export CSV</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;"><div class="cb"></div></th>
+            <th class="sortable">Patch Name <span class="sort-indicator active">▲</span></th>
+            <th>Severity</th>
+            <th>Category</th>
+            <th>CVE IDs</th>
+            <th class="sortable">CVSS <span class="sort-indicator">⇅</span></th>
+            <th class="sortable">Affected Endpoints <span class="sort-indicator">⇅</span></th>
+            <th class="sortable">Published <span class="sort-indicator">⇅</span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div>
+                <div style="font-weight:500;color:var(--text);">openssl 3.0.2-0ubuntu1.12</div>
+                <div style="font-size:11px;color:var(--text-dim);font-family:var(--mono);">libssl3, libssl-dev</div>
+              </div>
+            </td>
+            <td><span class="badge badge-critical badge-sev">Critical</span></td>
+            <td><span class="cat-badge">Security</span></td>
+            <td>
+              <div class="cve-list">
+                <span class="cve-id">CVE-2024-0727</span>
+                <span class="cve-id">CVE-2023-6129</span>
+              </div>
+            </td>
+            <td><span class="cvss-large cvss-large-crit">9.8</span></td>
+            <td>
+              <div class="prop-cell">
+                <span style="font-family:var(--mono);font-size:12px;color:var(--text);">847</span>
+                <div class="prop-bar-bg"><div class="prop-bar-fill" style="width:68%;background:var(--crit);"></div></div>
+                <span style="font-size:11px;color:var(--text-dim);">68%</span>
+              </div>
+            </td>
+            <td><span class="mono-text">2024-01-25</span></td>
+            <td><button class="btn-deploy">▶ Deploy</button></td>
+          </tr>
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div>
+                <div style="font-weight:500;color:var(--text);">linux-image-5.15.0-91-generic</div>
+                <div style="font-size:11px;color:var(--text-dim);font-family:var(--mono);">linux-headers-5.15.0-91</div>
+              </div>
+            </td>
+            <td><span class="badge badge-critical badge-sev">Critical</span></td>
+            <td><span class="cat-badge">Kernel</span></td>
+            <td>
+              <div class="cve-list">
+                <span class="cve-id">CVE-2024-1086</span>
+                <span class="cve-id">CVE-2024-0646</span>
+                <span class="cve-id">CVE-2023-6817</span>
+              </div>
+            </td>
+            <td><span class="cvss-large cvss-large-crit">9.1</span></td>
+            <td>
+              <div class="prop-cell">
+                <span style="font-family:var(--mono);font-size:12px;color:var(--text);">612</span>
+                <div class="prop-bar-bg"><div class="prop-bar-fill" style="width:49%;background:var(--crit);"></div></div>
+                <span style="font-size:11px;color:var(--text-dim);">49%</span>
+              </div>
+            </td>
+            <td><span class="mono-text">2024-02-08</span></td>
+            <td><button class="btn-deploy">▶ Deploy</button></td>
+          </tr>
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div>
+                <div style="font-weight:500;color:var(--text);">curl 7.81.0-1ubuntu1.14</div>
+                <div style="font-size:11px;color:var(--text-dim);font-family:var(--mono);">libcurl4, libcurl4-openssl-dev</div>
+              </div>
+            </td>
+            <td><span class="badge badge-high badge-sev">High</span></td>
+            <td><span class="cat-badge">Security</span></td>
+            <td>
+              <div class="cve-list">
+                <span class="cve-id">CVE-2024-2004</span>
+                <span class="cve-id">CVE-2024-2398</span>
+              </div>
+            </td>
+            <td><span class="cvss-large cvss-large-high">8.3</span></td>
+            <td>
+              <div class="prop-cell">
+                <span style="font-family:var(--mono);font-size:12px;color:var(--text);">1,024</span>
+                <div class="prop-bar-bg"><div class="prop-bar-fill" style="width:82%;background:var(--high);"></div></div>
+                <span style="font-size:11px;color:var(--text-dim);">82%</span>
+              </div>
+            </td>
+            <td><span class="mono-text">2024-03-01</span></td>
+            <td><button class="btn-deploy">▶ Deploy</button></td>
+          </tr>
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div>
+                <div style="font-weight:500;color:var(--text);">KB5034765 — Windows Server 2022</div>
+                <div style="font-size:11px;color:var(--text-dim);font-family:var(--mono);">Cumulative Update 2024-02</div>
+              </div>
+            </td>
+            <td><span class="badge badge-high badge-sev">High</span></td>
+            <td><span class="cat-badge">OS Update</span></td>
+            <td>
+              <div class="cve-list">
+                <span class="cve-id">CVE-2024-21413</span>
+                <span class="cve-id">CVE-2024-21351</span>
+                <span class="cve-id">+4 more</span>
+              </div>
+            </td>
+            <td><span class="cvss-large cvss-large-high">8.8</span></td>
+            <td>
+              <div class="prop-cell">
+                <span style="font-family:var(--mono);font-size:12px;color:var(--text);">203</span>
+                <div class="prop-bar-bg"><div class="prop-bar-fill" style="width:16%;background:var(--high);"></div></div>
+                <span style="font-size:11px;color:var(--text-dim);">16%</span>
+              </div>
+            </td>
+            <td><span class="mono-text">2024-02-13</span></td>
+            <td><button class="btn-deploy">▶ Deploy</button></td>
+          </tr>
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div>
+                <div style="font-weight:500;color:var(--text);">python3 3.10.12-1~22.04.3</div>
+                <div style="font-size:11px;color:var(--text-dim);font-family:var(--mono);">python3-minimal, python3-dev</div>
+              </div>
+            </td>
+            <td><span class="badge badge-medium badge-sev">Medium</span></td>
+            <td><span class="cat-badge">Runtime</span></td>
+            <td>
+              <div class="cve-list">
+                <span class="cve-id">CVE-2023-6507</span>
+              </div>
+            </td>
+            <td><span class="cvss-large cvss-large-med">5.9</span></td>
+            <td>
+              <div class="prop-cell">
+                <span style="font-family:var(--mono);font-size:12px;color:var(--text);">756</span>
+                <div class="prop-bar-bg"><div class="prop-bar-fill" style="width:61%;background:var(--med);"></div></div>
+                <span style="font-size:11px;color:var(--text-dim);">61%</span>
+              </div>
+            </td>
+            <td><span class="mono-text">2024-01-18</span></td>
+            <td><button class="btn-deploy">▶ Deploy</button></td>
+          </tr>
+          <tr>
+            <td><div class="cb"></div></td>
+            <td>
+              <div>
+                <div style="font-weight:500;color:var(--text);">nginx 1.18.0-6ubuntu14.4</div>
+                <div style="font-size:11px;color:var(--text-dim);font-family:var(--mono);">nginx-common, nginx-core</div>
+              </div>
+            </td>
+            <td><span class="badge badge-low badge-sev">Low</span></td>
+            <td><span class="cat-badge">Web Server</span></td>
+            <td>
+              <div class="cve-list">
+                <span class="cve-id">CVE-2023-44487</span>
+              </div>
+            </td>
+            <td><span class="cvss-large cvss-large-low">4.1</span></td>
+            <td>
+              <div class="prop-cell">
+                <span style="font-family:var(--mono);font-size:12px;color:var(--text);">91</span>
+                <div class="prop-bar-bg"><div class="prop-bar-fill" style="width:7%;"></div></div>
+                <span style="font-size:11px;color:var(--text-dim);">7%</span>
+              </div>
+            </td>
+            <td><span class="mono-text">2024-03-12</span></td>
+            <td><button class="btn-deploy">▶ Deploy</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="pagination-info">Showing <strong>1–50</strong> of <strong>3,841</strong> patches &nbsp;&nbsp;<select class="per-page-select"><option>50 / page</option></select></div>
+      <div class="pagination-controls">
+        <button class="page-btn" disabled>‹</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span class="page-dots">…</span>
+        <button class="page-btn">77</button>
+        <button class="page-btn">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ TABLE 3: CVE ══ -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">3 — CVE Table</div>
+      <div class="section-subtitle">Dense: circular CVSS badge, attack vector, exploit/KEV indicators, remediation status.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="CVE-YYYY-NNNNN…" readonly>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="background:var(--crit-bg);border-color:rgba(239,68,68,0.3);color:var(--crit);">
+          ⚡ Exploited
+        </button>
+        <button class="btn btn-ghost btn-sm" style="background:var(--med-bg);border-color:rgba(234,179,8,0.3);color:var(--med);">
+          🏛 KEV
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <span style="font-size:12px;color:var(--text-dim);">18,492 CVEs</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="density-compact">
+        <thead>
+          <tr>
+            <th>CVE ID</th>
+            <th>CVSS</th>
+            <th>Severity</th>
+            <th>Attack Vector</th>
+            <th>Exploit</th>
+            <th>KEV</th>
+            <th>Affected Software</th>
+            <th class="sortable">Endpoints <span class="sort-indicator active">▼</span></th>
+            <th>Remediation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a class="mono-link">CVE-2024-1086</a></td>
+            <td><div class="cvss-circle cvss-crit">9.8</div></td>
+            <td><span class="badge badge-critical badge-sev">Critical</span></td>
+            <td><span class="av-badge av-local">LOCAL</span></td>
+            <td><span class="check-yes">✓</span></td>
+            <td><span class="check-kev">✓</span></td>
+            <td style="font-size:12px;color:var(--text-muted);">Linux Kernel &lt; 6.6.14</td>
+            <td><span class="mono-text">612</span></td>
+            <td><span class="rem-badge rem-available">Patch Available</span></td>
+          </tr>
+          <tr>
+            <td><a class="mono-link">CVE-2024-21413</a></td>
+            <td><div class="cvss-circle cvss-crit">9.8</div></td>
+            <td><span class="badge badge-critical badge-sev">Critical</span></td>
+            <td><span class="av-badge av-network">NETWORK</span></td>
+            <td><span class="check-yes">✓</span></td>
+            <td><span class="check-kev">✓</span></td>
+            <td style="font-size:12px;color:var(--text-muted);">Microsoft Outlook</td>
+            <td><span class="mono-text">203</span></td>
+            <td><span class="rem-badge rem-patched">Patched</span></td>
+          </tr>
+          <tr>
+            <td><a class="mono-link">CVE-2024-0727</a></td>
+            <td><div class="cvss-circle cvss-high">7.5</div></td>
+            <td><span class="badge badge-high badge-sev">High</span></td>
+            <td><span class="av-badge av-network">NETWORK</span></td>
+            <td><span class="check-no">—</span></td>
+            <td><span class="check-no">—</span></td>
+            <td style="font-size:12px;color:var(--text-muted);">OpenSSL 3.0.x &lt; 3.0.13</td>
+            <td><span class="mono-text">847</span></td>
+            <td><span class="rem-badge rem-available">Patch Available</span></td>
+          </tr>
+          <tr>
+            <td><a class="mono-link">CVE-2024-2004</a></td>
+            <td><div class="cvss-circle cvss-high">8.3</div></td>
+            <td><span class="badge badge-high badge-sev">High</span></td>
+            <td><span class="av-badge av-network">NETWORK</span></td>
+            <td><span class="check-yes">✓</span></td>
+            <td><span class="check-no">—</span></td>
+            <td style="font-size:12px;color:var(--text-muted);">curl &lt; 8.7.0</td>
+            <td><span class="mono-text">1,024</span></td>
+            <td><span class="rem-badge rem-partial">Partial</span></td>
+          </tr>
+          <tr>
+            <td><a class="mono-link">CVE-2023-6507</a></td>
+            <td><div class="cvss-circle cvss-med">5.9</div></td>
+            <td><span class="badge badge-medium badge-sev">Medium</span></td>
+            <td><span class="av-badge av-local">LOCAL</span></td>
+            <td><span class="check-no">—</span></td>
+            <td><span class="check-no">—</span></td>
+            <td style="font-size:12px;color:var(--text-muted);">Python 3.x &lt; 3.12.1</td>
+            <td><span class="mono-text">756</span></td>
+            <td><span class="rem-badge rem-available">Patch Available</span></td>
+          </tr>
+          <tr>
+            <td><a class="mono-link">CVE-2023-44487</a></td>
+            <td><div class="cvss-circle cvss-low">4.1</div></td>
+            <td><span class="badge badge-low badge-sev">Low</span></td>
+            <td><span class="av-badge av-network">NETWORK</span></td>
+            <td><span class="check-no">—</span></td>
+            <td><span class="check-no">—</span></td>
+            <td style="font-size:12px;color:var(--text-muted);">HTTP/2 implementations</td>
+            <td><span class="mono-text">91</span></td>
+            <td><span class="rem-badge rem-none">No Fix</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="pagination-info">Showing <strong>1–50</strong> of <strong>18,492</strong> CVEs &nbsp;&nbsp;<select class="per-page-select"><option>50 / page</option></select></div>
+      <div class="pagination-controls">
+        <button class="page-btn" disabled>‹</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span class="page-dots">…</span>
+        <button class="page-btn">370</button>
+        <button class="page-btn">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ TABLE 4: DEPLOYMENTS ══ -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">4 — Deployments Table</div>
+      <div class="section-subtitle">Progress-focused: segmented progress bars (succeeded / in-progress / failed / pending), triggered-by avatars.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Search deployments…" readonly>
+        </div>
+        <button class="btn btn-ghost btn-sm">Status ▾</button>
+        <button class="btn btn-ghost btn-sm">Policy ▾</button>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-primary btn-sm">+ New Deployment</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Deploy ID</th>
+            <th>Policy</th>
+            <th>Status</th>
+            <th>Progress</th>
+            <th class="sortable">Targets <span class="sort-indicator">⇅</span></th>
+            <th class="sortable">Created <span class="sort-indicator active">▼</span></th>
+            <th>Duration</th>
+            <th>Triggered By</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mono-text">DEP-2024-0892</span></td>
+            <td style="font-weight:500;color:var(--text);">Critical Security — Prod Wave 3</td>
+            <td>
+              <span class="badge badge-running" style="display:inline-flex;align-items:center;gap:5px;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#3b82f6;animation:pulse-ring 2s infinite;flex-shrink:0;"></span>
+                Running
+              </span>
+            </td>
+            <td>
+              <div class="progress-cell">
+                <div class="seg-bar">
+                  <div class="seg-success" style="flex:42;"></div>
+                  <div class="seg-inprogress" style="flex:18;"></div>
+                  <div class="seg-failed" style="flex:3;"></div>
+                  <div class="seg-pending" style="flex:37;"></div>
+                </div>
+                <span class="progress-pct">63%</span>
+              </div>
+            </td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-muted);">100</td>
+            <td><span class="mono-text">2024-03-23 09:15</span></td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">47m</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-emerald">H</div>
+                <span style="font-size:12px;color:var(--text-muted);">heramb</span>
+              </div>
+            </td>
+            <td><button class="actions-btn">⋯</button></td>
+          </tr>
+          <tr>
+            <td><span class="mono-text">DEP-2024-0891</span></td>
+            <td style="font-weight:500;color:var(--text);">Monthly Patch Cycle — All Staging</td>
+            <td><span class="badge badge-completed">Completed</span></td>
+            <td>
+              <div class="progress-cell">
+                <div class="seg-bar">
+                  <div class="seg-success" style="flex:95;"></div>
+                  <div class="seg-failed" style="flex:5;"></div>
+                </div>
+                <span class="progress-pct">95%</span>
+              </div>
+            </td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-muted);">64</td>
+            <td><span class="mono-text">2024-03-22 02:00</span></td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">1h 23m</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-blue" style="background:#6b7280;font-size:9px;">SYS</div>
+                <span style="font-size:12px;color:var(--text-dim);">Scheduler</span>
+              </div>
+            </td>
+            <td><button class="actions-btn">⋯</button></td>
+          </tr>
+          <tr>
+            <td><span class="mono-text">DEP-2024-0888</span></td>
+            <td style="font-weight:500;color:var(--text);">Emergency — CVE-2024-1086 Linux Kernel</td>
+            <td><span class="badge badge-failed">Failed</span></td>
+            <td>
+              <div class="progress-cell">
+                <div class="seg-bar">
+                  <div class="seg-success" style="flex:31;"></div>
+                  <div class="seg-failed" style="flex:69;"></div>
+                </div>
+                <span class="progress-pct" style="color:var(--crit);">31%</span>
+              </div>
+            </td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-muted);">612</td>
+            <td><span class="mono-text">2024-03-20 14:30</span></td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">12m</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-purple">S</div>
+                <span style="font-size:12px;color:var(--text-muted);">sandy</span>
+              </div>
+            </td>
+            <td><button class="actions-btn">⋯</button></td>
+          </tr>
+          <tr>
+            <td><span class="mono-text">DEP-2024-0885</span></td>
+            <td style="font-weight:500;color:var(--text);">Q1 2024 Compliance Rollout</td>
+            <td><span class="badge badge-completed">Completed</span></td>
+            <td>
+              <div class="progress-cell">
+                <div class="seg-bar">
+                  <div class="seg-success" style="flex:100;"></div>
+                </div>
+                <span class="progress-pct">100%</span>
+              </div>
+            </td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-muted);">1,247</td>
+            <td><span class="mono-text">2024-03-15 00:00</span></td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">4h 51m</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-amber">D</div>
+                <span style="font-size:12px;color:var(--text-muted);">danish</span>
+              </div>
+            </td>
+            <td><button class="actions-btn">⋯</button></td>
+          </tr>
+          <tr>
+            <td><span class="mono-text">DEP-2024-0881</span></td>
+            <td style="font-weight:500;color:var(--text);">OpenSSL Emergency Patch</td>
+            <td>
+              <span class="badge badge-running" style="display:inline-flex;align-items:center;gap:5px;background:rgba(234,179,8,0.1);color:var(--med);border-color:rgba(234,179,8,0.2);">
+                ⏸ Paused
+              </span>
+            </td>
+            <td>
+              <div class="progress-cell">
+                <div class="seg-bar">
+                  <div class="seg-success" style="flex:55;"></div>
+                  <div class="seg-pending" style="flex:45;"></div>
+                </div>
+                <span class="progress-pct">55%</span>
+              </div>
+            </td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-muted);">847</td>
+            <td><span class="mono-text">2024-03-10 11:00</span></td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">2h 04m</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-red">R</div>
+                <span style="font-size:12px;color:var(--text-muted);">rishab</span>
+              </div>
+            </td>
+            <td><button class="actions-btn">⋯</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="pagination-info">Showing <strong>1–25</strong> of <strong>142</strong> deployments &nbsp;&nbsp;<select class="per-page-select"><option>25 / page</option></select></div>
+      <div class="pagination-controls">
+        <button class="page-btn" disabled>‹</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span class="page-dots">…</span>
+        <button class="page-btn">6</button>
+        <button class="page-btn">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ TABLE 5: AUDIT ══ -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">5 — Audit Events</div>
+      <div class="section-subtitle">Timeline: precise monospace timestamps, colored category badges, actor avatars, expand chevron.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Search events…" readonly>
+        </div>
+        <button class="btn btn-ghost btn-sm">Category ▾</button>
+        <button class="btn btn-ghost btn-sm">Actor ▾</button>
+        <button class="btn btn-ghost btn-sm">📅 2024-03-23 ▾</button>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-ghost btn-sm">↓ Export</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="density-compact">
+        <thead>
+          <tr>
+            <th style="width:180px;">Timestamp</th>
+            <th style="width:120px;">Category</th>
+            <th>Event Description</th>
+            <th style="width:140px;">Actor</th>
+            <th style="width:180px;">Target</th>
+            <th style="width:36px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="timestamp-cell">2024-03-23 09:47:32.412</span></td>
+            <td><span class="audit-cat audit-deploy">DEPLOYMENT</span></td>
+            <td style="color:var(--text);">Wave 3 dispatch started — 37 targets queued for patching</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-blue" style="background:#6b7280;font-size:9px;">SYS</div>
+                <span style="font-size:12px;color:var(--text-dim);">System</span>
+              </div>
+            </td>
+            <td><a class="mono-link" style="font-size:11px;">DEP-2024-0892</a></td>
+            <td><div class="chevron">›</div></td>
+          </tr>
+          <tr>
+            <td><span class="timestamp-cell">2024-03-23 09:15:04.891</span></td>
+            <td><span class="audit-cat audit-deploy">DEPLOYMENT</span></td>
+            <td style="color:var(--text);">Deployment created by heramb — policy: Critical Security Prod</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-emerald">H</div>
+                <span style="font-size:12px;color:var(--text-muted);">heramb</span>
+              </div>
+            </td>
+            <td><a class="mono-link" style="font-size:11px;">DEP-2024-0892</a></td>
+            <td><div class="chevron">›</div></td>
+          </tr>
+          <tr>
+            <td><span class="timestamp-cell">2024-03-23 08:30:17.220</span></td>
+            <td><span class="audit-cat audit-compliance">COMPLIANCE</span></td>
+            <td style="color:var(--text);">CIS Benchmark evaluation completed — score 87/100 (+3 vs last run)</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-blue" style="background:#6b7280;font-size:9px;">SYS</div>
+                <span style="font-size:12px;color:var(--text-dim);">System</span>
+              </div>
+            </td>
+            <td><a class="mono-link" style="font-size:11px;">CIS-L2-Ubuntu</a></td>
+            <td><div class="chevron">›</div></td>
+          </tr>
+          <tr>
+            <td><span class="timestamp-cell">2024-03-23 07:55:03.118</span></td>
+            <td><span class="audit-cat audit-policy">POLICY</span></td>
+            <td style="color:var(--text);">Policy "Critical Security — Prod" updated — maintenance window changed</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-purple">S</div>
+                <span style="font-size:12px;color:var(--text-muted);">sandy</span>
+              </div>
+            </td>
+            <td><a class="mono-link" style="font-size:11px;">POL-0042</a></td>
+            <td><div class="chevron">›</div></td>
+          </tr>
+          <tr>
+            <td><span class="timestamp-cell">2024-03-23 06:00:00.000</span></td>
+            <td><span class="audit-cat audit-endpoint">ENDPOINT</span></td>
+            <td style="color:var(--text);">Inventory scan completed on prod-web-01 — 14 new patches detected</td>
+            <td>
+              <div class="actor-cell">
+                <div class="avatar av-blue" style="background:#6b7280;font-size:9px;">AGT</div>
+                <span style="font-size:12px;color:var(--text-dim);">Agent v1.4.2</span>
+              </div>
+            </td>
+            <td><a class="mono-link" style="font-size:11px;">prod-web-01</a></td>
+            <td><div class="chevron">›</div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="pagination-info">Showing <strong>1–50</strong> of <strong>284,910</strong> events &nbsp;&nbsp;<select class="per-page-select"><option>50 / page</option></select></div>
+      <div class="pagination-controls">
+        <button class="page-btn" disabled>‹</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span class="page-dots">…</span>
+        <button class="page-btn">5,699</button>
+        <button class="page-btn">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ TABLE 6: COMPACT INLINE ══ -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">6 — Compact Inline Table</div>
+      <div class="section-subtitle">For use inside cards: 12px font, 8px padding, no checkbox, no hover state, "View all →" footer link.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <!-- Card A: Recent Patches -->
+    <div class="card">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:600;color:var(--text);">Recent Patches</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">prod-web-01</div>
+      </div>
+      <table class="compact-table">
+        <thead>
+          <tr>
+            <th>Package</th>
+            <th>Severity</th>
+            <th>Applied</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:var(--text);font-weight:500;">openssl</td>
+            <td><span class="badge badge-critical" style="font-size:10px;padding:1px 5px;">Critical</span></td>
+            <td><span style="font-family:var(--mono);font-size:11px;">Mar 22</span></td>
+            <td><span class="badge badge-completed" style="font-size:10px;padding:1px 5px;">Done</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--text);font-weight:500;">curl</td>
+            <td><span class="badge badge-high" style="font-size:10px;padding:1px 5px;">High</span></td>
+            <td><span style="font-family:var(--mono);font-size:11px;">Mar 21</span></td>
+            <td><span class="badge badge-completed" style="font-size:10px;padding:1px 5px;">Done</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--text);font-weight:500;">python3</td>
+            <td><span class="badge badge-medium" style="font-size:10px;padding:1px 5px;">Medium</span></td>
+            <td><span style="font-family:var(--mono);font-size:11px;">Mar 20</span></td>
+            <td><span class="badge badge-pending" style="font-size:10px;padding:1px 5px;">Pending</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--text);font-weight:500;">nginx</td>
+            <td><span class="badge badge-low" style="font-size:10px;padding:1px 5px;">Low</span></td>
+            <td><span style="font-family:var(--mono);font-size:11px;">Mar 18</span></td>
+            <td><span class="badge badge-completed" style="font-size:10px;padding:1px 5px;">Done</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="compact-table-footer">
+        <a class="view-all-link">View all 14 patches →</a>
+      </div>
+    </div>
+
+    <!-- Card B: Top CVEs -->
+    <div class="card">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:600;color:var(--text);">Top Unmitigated CVEs</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">Sorted by CVSS score</div>
+      </div>
+      <table class="compact-table">
+        <thead>
+          <tr>
+            <th>CVE ID</th>
+            <th>CVSS</th>
+            <th>Severity</th>
+            <th>Endpoints</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a class="mono-link" style="font-size:11px;">CVE-2024-1086</a></td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--crit);font-weight:700;">9.8</td>
+            <td><span class="badge badge-critical" style="font-size:10px;padding:1px 5px;">Critical</span></td>
+            <td style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">612</td>
+          </tr>
+          <tr>
+            <td><a class="mono-link" style="font-size:11px;">CVE-2024-21413</a></td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--crit);font-weight:700;">9.8</td>
+            <td><span class="badge badge-critical" style="font-size:10px;padding:1px 5px;">Critical</span></td>
+            <td style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">203</td>
+          </tr>
+          <tr>
+            <td><a class="mono-link" style="font-size:11px;">CVE-2024-2004</a></td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--high);font-weight:700;">8.3</td>
+            <td><span class="badge badge-high" style="font-size:10px;padding:1px 5px;">High</span></td>
+            <td style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">1,024</td>
+          </tr>
+          <tr>
+            <td><a class="mono-link" style="font-size:11px;">CVE-2024-0727</a></td>
+            <td style="font-family:var(--mono);font-size:12px;color:var(--high);font-weight:700;">7.5</td>
+            <td><span class="badge badge-high" style="font-size:10px;padding:1px 5px;">High</span></td>
+            <td style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">847</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="compact-table-footer">
+        <a class="view-all-link">View all CVEs →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ DESIGN REFERENCE ══ -->
+<div class="ref-section">
+  <div class="ref-title">Design Reference</div>
+  <div class="ref-subtitle">Tokens, patterns, and states used across all table variants.</div>
+
+  <div class="ref-grid">
+
+    <!-- Severity badges -->
+    <div class="ref-card">
+      <div class="ref-card-title">Severity Badges — Fixed 80px</div>
+      <div class="ref-row">
+        <span class="badge badge-critical badge-sev">Critical</span>
+        <span class="badge badge-high badge-sev">High</span>
+        <span class="badge badge-medium badge-sev">Medium</span>
+        <span class="badge badge-low badge-sev">Low</span>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-dim);">All 80px wide for column alignment regardless of text length.</div>
+    </div>
+
+    <!-- Status badges -->
+    <div class="ref-card">
+      <div class="ref-card-title">Status Badges</div>
+      <div class="ref-row" style="flex-wrap:wrap;gap:6px;">
+        <span class="badge badge-online">Online</span>
+        <span class="badge badge-offline">Offline</span>
+        <span class="badge badge-patching">Patching</span>
+        <span class="badge badge-running">Running</span>
+        <span class="badge badge-completed">Completed</span>
+        <span class="badge badge-failed">Failed</span>
+        <span class="badge badge-pending">Pending</span>
+      </div>
+    </div>
+
+    <!-- Tag color palette -->
+    <div class="ref-card">
+      <div class="ref-card-title">Tag Palette — 8 Colors</div>
+      <div class="ref-row" style="flex-wrap:wrap;gap:4px;">
+        <span class="tag tag-emerald">env:production</span>
+        <span class="tag tag-blue">tier:web</span>
+        <span class="tag tag-purple">team:platform</span>
+        <span class="tag tag-amber">tier:database</span>
+        <span class="tag tag-red">risk:critical</span>
+        <span class="tag tag-cyan">env:staging</span>
+        <span class="tag tag-rose">env:dev</span>
+        <span class="tag tag-orange">team:mobile</span>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="ref-card">
+      <div class="ref-card-title">Empty State</div>
+      <div class="empty-state" style="padding:24px 16px;">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">No endpoints found</div>
+        <div class="empty-text">No endpoints match your current filters. Try adjusting your search.</div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:4px;">Clear filters</button>
+      </div>
+    </div>
+
+    <!-- Loading skeleton -->
+    <div class="ref-card">
+      <div class="ref-card-title">Loading State — Skeleton Rows</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tbody>
+          <tr class="skel-row" style="border-bottom:1px solid var(--border-subtle);">
+            <td style="padding:10px 0;"><div class="skeleton skel-line" style="width:16px;height:16px;border-radius:3px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:120px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:80px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:60px;"></div></td>
+          </tr>
+          <tr class="skel-row" style="border-bottom:1px solid var(--border-subtle);">
+            <td style="padding:10px 0;"><div class="skeleton skel-line" style="width:16px;height:16px;border-radius:3px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:95px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:70px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:50px;"></div></td>
+          </tr>
+          <tr class="skel-row" style="border-bottom:1px solid var(--border-subtle);">
+            <td style="padding:10px 0;"><div class="skeleton skel-line" style="width:16px;height:16px;border-radius:3px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:140px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:60px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:55px;"></div></td>
+          </tr>
+          <tr class="skel-row" style="border-bottom:1px solid var(--border-subtle);">
+            <td style="padding:10px 0;"><div class="skeleton skel-line" style="width:16px;height:16px;border-radius:3px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:105px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:90px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:45px;"></div></td>
+          </tr>
+          <tr class="skel-row">
+            <td style="padding:10px 0;"><div class="skeleton skel-line" style="width:16px;height:16px;border-radius:3px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:130px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:75px;"></div></td>
+            <td style="padding:10px 8px;"><div class="skeleton skel-line" style="width:65px;"></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination reference -->
+    <div class="ref-card">
+      <div class="ref-card-title">Pagination Pattern</div>
+      <div style="margin-bottom:12px;">
+        <div class="card" style="border-radius:6px;">
+          <div class="pagination" style="border-top:none;">
+            <div class="pagination-info">
+              Showing <strong>1–50</strong> of <strong>1,247</strong>
+              &nbsp;
+              <select class="per-page-select">
+                <option>50 / page</option>
+                <option>100 / page</option>
+              </select>
+            </div>
+            <div class="pagination-controls">
+              <button class="page-btn" disabled>‹‹</button>
+              <button class="page-btn" disabled>‹</button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <span class="page-dots">…</span>
+              <button class="page-btn">25</button>
+              <button class="page-btn">›</button>
+              <button class="page-btn">››</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);">Active page: emerald tint. Disabled: 30% opacity. Per-page selector: left-aligned with count info.</div>
+    </div>
+
+  </div>
+
+  <!-- Design tokens -->
+  <div style="margin-top:16px;">
+    <div class="ref-card" style="grid-column:1/-1;">
+      <div class="ref-card-title">Row State Tokens</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px;">
+        <div>
+          <div style="background:transparent;border:1px solid var(--border-subtle);border-radius:4px;padding:10px 12px;font-size:12px;color:var(--text-dim);">
+            Default row — transparent bg
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">background: transparent</div>
+        </div>
+        <div>
+          <div style="background:rgba(39,39,42,0.5);border:1px solid var(--border-subtle);border-radius:4px;padding:10px 12px;font-size:12px;color:var(--text-muted);">
+            Hover row — zinc-800/50
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">background: #27272a at 50%</div>
+        </div>
+        <div>
+          <div style="background:rgba(16,185,129,0.05);border-left:2px solid var(--primary);border-top:1px solid var(--border-subtle);border-right:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);border-radius:4px;padding:10px 12px;font-size:12px;color:var(--text);">
+            Selected row — emerald tint
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">emerald/5 bg + 2px left border</div>
+        </div>
+        <div>
+          <div style="background:#141416;border:1px solid var(--border-subtle);border-radius:4px;padding:10px 12px;font-size:12px;color:var(--text-dim);">
+            Expanded row — darker bg
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">background: #141416</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div style="border-top:1px solid var(--border);padding-top:24px;display:flex;align-items:center;justify-content:space-between;">
+  <div style="font-size:12px;color:var(--text-dim);">
+    PatchIQ Table Design System — Milestone 3 Mockup
+  </div>
+  <div style="font-size:12px;font-family:var(--mono);color:var(--text-dim);">
+    09-table-system.html
+  </div>
+</div>
+
+</body>
+</html>

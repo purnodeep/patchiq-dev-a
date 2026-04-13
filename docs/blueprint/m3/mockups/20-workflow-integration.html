@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Workflow Integration Patterns</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    /* ─── Design Tokens: Dark (default) ─────────────────────── */
+    :root {
+      --bg-page:          #000000;
+      --bg-card:          #111113;
+      --bg-card-elevated: #161618;
+      --bg-overlay:       rgba(0,0,0,0.7);
+      --border-subtle:    #222222;
+      --border-divider:   #1c1c1c;
+      --shadow-card:      0 1px 2px rgba(0,0,0,0.5);
+      --shadow-modal:     0 24px 64px rgba(0,0,0,0.7);
+
+      --text-emphasis:    #ffffff;
+      --text-primary:     #d4d4d4;
+      --text-secondary:   #a1a1a1;
+      --text-muted:       #737373;
+      --text-faint:       #525252;
+
+      --brand:            #10b981;
+      --brand-hover:      #0d9668;
+      --brand-subtle:     rgba(16,185,129,0.08);
+      --brand-border:     rgba(16,185,129,0.3);
+      --brand-accent:     #10b981;
+
+      --input-bg:         #111113;
+      --input-border:     #222222;
+      --input-focus:      #10b981;
+      --input-placeholder: #525252;
+
+      --btn-ghost-border: #333333;
+      --btn-ghost-text:   #737373;
+      --btn-ghost-hover:  #1c1c1c;
+
+      --signal-green:     #10b981;
+      --signal-amber:     #f59e0b;
+      --signal-red:       #ef4444;
+      --signal-blue:      #3b82f6;
+
+      --signal-green-subtle: rgba(16,185,129,0.1);
+      --signal-amber-subtle: rgba(245,158,11,0.1);
+      --signal-red-subtle:   rgba(239,68,68,0.1);
+      --signal-blue-subtle:  rgba(59,130,246,0.1);
+
+      --toggle-off-bg:    #333333;
+      --toggle-on-bg:     #10b981;
+
+      --scrollbar-thumb:  #333333;
+
+      --node-trigger:     #10b981;
+      --node-trigger-bg:  rgba(16,185,129,0.12);
+      --node-trigger-border: rgba(16,185,129,0.35);
+      --node-action:      #3b82f6;
+      --node-action-bg:   rgba(59,130,246,0.10);
+      --node-action-border: rgba(59,130,246,0.3);
+      --node-gate:        #f59e0b;
+      --node-gate-bg:     rgba(245,158,11,0.10);
+      --node-gate-border: rgba(245,158,11,0.3);
+      --node-rollback:    #ef4444;
+      --node-rollback-bg: rgba(239,68,68,0.08);
+      --node-rollback-border: rgba(239,68,68,0.3);
+      --node-end:         #525252;
+      --node-end-bg:      rgba(82,82,82,0.15);
+      --node-end-border:  rgba(82,82,82,0.4);
+      --flow-arrow:       #444444;
+    }
+
+    /* ─── Design Tokens: Light ──────────────────────────────── */
+    html.light {
+      --bg-page:          #f2f2f5;
+      --bg-card:          #ffffff;
+      --bg-card-elevated: #f8f8fa;
+      --bg-overlay:       rgba(0,0,0,0.4);
+      --border-subtle:    #e0e0e0;
+      --border-divider:   #ebebeb;
+      --shadow-card:      0 1px 3px rgba(0,0,0,0.08);
+      --shadow-modal:     0 24px 64px rgba(0,0,0,0.2);
+
+      --text-emphasis:    #0a0a0a;
+      --text-primary:     #1a1a1a;
+      --text-secondary:   #525252;
+      --text-muted:       #737373;
+      --text-faint:       #a1a1a1;
+
+      --brand:            #059669;
+      --brand-hover:      #047857;
+      --brand-subtle:     rgba(5,150,105,0.07);
+      --brand-border:     rgba(5,150,105,0.3);
+      --brand-accent:     #7c3aed;
+
+      --input-bg:         #ffffff;
+      --input-border:     #e0e0e0;
+      --input-focus:      #7c3aed;
+      --input-placeholder: #b0b0b0;
+
+      --btn-ghost-border: #d4d4d4;
+      --btn-ghost-text:   #737373;
+      --btn-ghost-hover:  #f5f5f5;
+
+      --signal-green:     #059669;
+      --signal-amber:     #d97706;
+      --signal-red:       #dc2626;
+      --signal-blue:      #2563eb;
+
+      --signal-green-subtle: rgba(5,150,105,0.1);
+      --signal-amber-subtle: rgba(217,119,6,0.1);
+      --signal-red-subtle:   rgba(220,38,38,0.1);
+      --signal-blue-subtle:  rgba(37,99,235,0.1);
+
+      --toggle-off-bg:    #d4d4d4;
+      --toggle-on-bg:     #059669;
+
+      --scrollbar-thumb:  #d4d4d4;
+
+      --node-trigger:     #059669;
+      --node-trigger-bg:  rgba(5,150,105,0.10);
+      --node-trigger-border: rgba(5,150,105,0.35);
+      --node-action:      #2563eb;
+      --node-action-bg:   rgba(37,99,235,0.08);
+      --node-action-border: rgba(37,99,235,0.3);
+      --node-gate:        #d97706;
+      --node-gate-bg:     rgba(217,119,6,0.08);
+      --node-gate-border: rgba(217,119,6,0.3);
+      --node-rollback:    #dc2626;
+      --node-rollback-bg: rgba(220,38,38,0.07);
+      --node-rollback-border: rgba(220,38,38,0.3);
+      --node-end:         #a1a1a1;
+      --node-end-bg:      rgba(161,161,161,0.12);
+      --node-end-border:  rgba(161,161,161,0.4);
+      --flow-arrow:       #c0c0c0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+    /* ─── Page Header ─────────────────────────────────────────── */
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-page);
+      border-bottom: 1px solid var(--border-divider);
+      padding: 0 40px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-mark {
+      width: 26px; height: 26px;
+      background: var(--brand);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #000;
+      font-family: 'GeistMono', monospace;
+      flex-shrink: 0;
+    }
+    .page-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .page-subtitle {
+      font-size: 11px;
+      color: var(--text-faint);
+      font-family: 'GeistMono', monospace;
+    }
+    .theme-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 10px;
+      background: transparent;
+      border: 1px solid var(--btn-ghost-border);
+      border-radius: 6px;
+      color: var(--btn-ghost-text);
+      font-size: 11px;
+      font-family: 'GeistMono', monospace;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .theme-btn:hover {
+      background: var(--btn-ghost-hover);
+      color: var(--text-primary);
+      border-color: var(--border-subtle);
+    }
+
+    /* ─── Main Layout ─────────────────────────────────────────── */
+    .main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 40px 100px;
+    }
+
+    /* ─── Page Intro ─────────────────────────────────────────── */
+    .page-intro {
+      margin-bottom: 56px;
+    }
+    .page-intro h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    .page-intro p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      max-width: 580px;
+      line-height: 1.6;
+    }
+
+    /* ─── Section ─────────────────────────────────────────────── */
+    .section {
+      margin-bottom: 72px;
+    }
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-divider);
+    }
+    .section-badge {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-family: 'GeistMono', monospace;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      margin-top: 2px;
+    }
+    .section-info h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      margin-bottom: 4px;
+    }
+    .section-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Card ────────────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      box-shadow: var(--shadow-card);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-divider);
+    }
+    .card-header-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .card-icon {
+      width: 28px; height: 28px;
+      background: var(--brand-subtle);
+      border: 1px solid var(--brand-border);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+    }
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .card-body {
+      padding: 16px;
+    }
+
+    /* ─── Option Cards (radio-style) ─────────────────────────── */
+    .option-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .option-card {
+      background: var(--bg-card-elevated);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .option-card:hover {
+      border-color: var(--brand-border);
+    }
+    .option-card.selected {
+      border-color: var(--brand);
+      background: var(--brand-subtle);
+    }
+    .option-card.selected .option-radio {
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+    .option-card.selected .option-radio::after {
+      opacity: 1;
+    }
+    .option-radio {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-subtle);
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .option-radio::after {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #000;
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+    .option-icon {
+      font-size: 16px;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .option-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      margin-bottom: 3px;
+    }
+    .option-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ─── Mini Flow Diagram ───────────────────────────────────── */
+    .mini-flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+    .mini-flow::-webkit-scrollbar { display: none; }
+    .flow-node {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 100px;
+      font-size: 10px;
+      font-weight: 500;
+      white-space: nowrap;
+      border: 1px solid;
+    }
+    .flow-node.trigger {
+      background: var(--node-trigger-bg);
+      border-color: var(--node-trigger-border);
+      color: var(--node-trigger);
+    }
+    .flow-node.action {
+      background: var(--node-action-bg);
+      border-color: var(--node-action-border);
+      color: var(--node-action);
+    }
+    .flow-node.gate {
+      background: var(--node-gate-bg);
+      border-color: var(--node-gate-border);
+      color: var(--node-gate);
+    }
+    .flow-node.end {
+      background: var(--node-end-bg);
+      border-color: var(--node-end-border);
+      color: var(--node-end);
+    }
+    .flow-node .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+    .flow-arrow {
+      color: var(--flow-arrow);
+      font-size: 11px;
+      padding: 0 3px;
+      flex-shrink: 0;
+    }
+
+    /* ─── Template Selector ───────────────────────────────────── */
+    .template-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .template-item {
+      background: var(--bg-card-elevated);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .template-item:hover,
+    .template-item.selected {
+      border-color: var(--brand-border);
+      background: var(--brand-subtle);
+    }
+    .template-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
+    .template-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+    }
+    .template-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: 'GeistMono', monospace;
+    }
+
+    /* ─── Inline Node Chain (Custom Builder) ─────────────────── */
+    .node-chain {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 10px 12px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+    }
+    .node-chain::-webkit-scrollbar { display: none; }
+    .chain-node {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+      border: 1.5px solid;
+    }
+    .chain-node.trigger {
+      background: var(--node-trigger-bg);
+      border-color: var(--node-trigger-border);
+      color: var(--node-trigger);
+    }
+    .chain-node.action {
+      background: var(--node-action-bg);
+      border-color: var(--node-action-border);
+      color: var(--node-action);
+    }
+    .chain-node.gate {
+      background: var(--node-gate-bg);
+      border-color: var(--node-gate-border);
+      color: var(--node-gate);
+    }
+    .chain-arrow {
+      color: var(--flow-arrow);
+      font-size: 13px;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+    .chain-add {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1.5px dashed var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .chain-add:hover {
+      border-color: var(--brand-border);
+      color: var(--brand);
+    }
+    .open-editor-link {
+      font-size: 11px;
+      color: var(--brand-accent);
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      transition: opacity 0.15s;
+      margin-top: 8px;
+      display: block;
+    }
+    .open-editor-link:hover { opacity: 0.8; text-decoration: underline; }
+
+    /* ─── Preview Banner ──────────────────────────────────────── */
+    .preview-banner {
+      background: var(--brand-subtle);
+      border: 1px solid var(--brand-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .preview-banner-icon {
+      font-size: 13px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .preview-banner-text {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .preview-banner-text strong {
+      color: var(--brand);
+      font-weight: 600;
+    }
+
+    /* ─── Toggle ──────────────────────────────────────────────── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toggle {
+      position: relative;
+      width: 32px;
+      height: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .toggle input { display: none; }
+    .toggle-track {
+      width: 32px; height: 18px;
+      border-radius: 100px;
+      background: var(--toggle-off-bg);
+      transition: background 0.2s;
+      position: relative;
+    }
+    .toggle input:checked + .toggle-track {
+      background: var(--toggle-on-bg);
+    }
+    .toggle-thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #ffffff;
+      transition: left 0.2s;
+      pointer-events: none;
+    }
+    .toggle input:checked ~ .toggle-thumb {
+      left: 17px;
+    }
+    .toggle-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ─── Expanded content (shown when toggle is on) ─────────── */
+    .expandable {
+      margin-top: 14px;
+      display: none;
+    }
+    .expandable.visible {
+      display: block;
+    }
+
+    /* ─── Pill Picker ─────────────────────────────────────────── */
+    .pill-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1.5px solid var(--border-subtle);
+      background: var(--bg-card-elevated);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill:hover {
+      border-color: var(--brand-border);
+      color: var(--text-primary);
+    }
+    .pill.selected {
+      border-color: var(--brand);
+      background: var(--brand-subtle);
+      color: var(--brand);
+    }
+    .pill-icon { font-size: 12px; }
+
+    /* ─── Section Divider ─────────────────────────────────────── */
+    .subsection-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+      margin-top: 14px;
+    }
+
+    /* ─── Context Note ────────────────────────────────────────── */
+    .context-note {
+      font-size: 11px;
+      color: var(--text-faint);
+      font-style: italic;
+      margin-top: 8px;
+    }
+
+    /* ─── Compliance Table ────────────────────────────────────── */
+    .compliance-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .compliance-table th {
+      text-align: left;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-divider);
+    }
+    .compliance-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border-divider);
+      vertical-align: top;
+    }
+    .compliance-table tr:last-child td {
+      border-bottom: none;
+    }
+    .control-id {
+      font-family: 'GeistMono', monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .control-name {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .status-fail {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--signal-red);
+      font-weight: 500;
+    }
+    .status-fail-count {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .remediation-btns {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .rem-btn {
+      padding: 3px 9px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1.5px solid;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: transparent;
+      font-family: inherit;
+    }
+    .rem-btn.autofix {
+      border-color: var(--brand-border);
+      color: var(--brand);
+    }
+    .rem-btn.autofix:hover,
+    .rem-btn.autofix.active {
+      background: var(--brand-subtle);
+    }
+    .rem-btn.manual {
+      border-color: var(--border-subtle);
+      color: var(--text-muted);
+    }
+    .rem-btn.manual:hover { background: var(--bg-card-elevated); }
+    .rem-btn.ignore {
+      border-color: var(--border-subtle);
+      color: var(--text-faint);
+    }
+    .rem-btn.ignore:hover { background: var(--bg-card-elevated); }
+
+    /* Remediation flow (inline, per row) */
+    .rem-flow-row {
+      margin-top: 8px;
+      display: none;
+    }
+    .rem-flow-row.visible {
+      display: block;
+    }
+    .rem-flow-note {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ─── Active summary bar ──────────────────────────────────── */
+    .summary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+    }
+    .summary-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .summary-bar-count {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brand);
+    }
+    .summary-bar-right {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Workflow Chip ───────────────────────────────────────── */
+    .chip-demo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .chip-demo-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .chip-demo-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .wf-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1.5px dashed;
+      white-space: nowrap;
+    }
+    .wf-chip.none {
+      border-color: var(--border-subtle);
+      color: var(--text-muted);
+      background: transparent;
+    }
+    .wf-chip.none:hover {
+      border-color: var(--brand-border);
+      color: var(--brand);
+    }
+    .wf-chip.template {
+      border-style: solid;
+      border-color: var(--brand-border);
+      color: var(--brand);
+      background: var(--brand-subtle);
+    }
+    .wf-chip.custom {
+      border-style: solid;
+      border-color: var(--brand-border);
+      color: var(--brand);
+      background: var(--brand-subtle);
+    }
+    .wf-chip-dots {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .wf-chip-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+    }
+    .wf-chip-dot.t { background: var(--node-trigger); }
+    .wf-chip-dot.a { background: var(--node-action); }
+    .wf-chip-dot.g { background: var(--node-gate); }
+    .wf-chip-arrow-small {
+      font-size: 8px;
+      color: var(--flow-arrow);
+    }
+
+    .chip-appears-in {
+      padding: 12px 14px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .chip-appears-in strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* ─── Form context header ─────────────────────────────────── */
+    .form-context {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 8px 12px;
+      background: var(--bg-card-elevated);
+      border: 1px solid var(--border-divider);
+      border-radius: 7px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .form-context-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .crumb { color: var(--text-faint); }
+    .crumb-sep { color: var(--text-faint); }
+    .crumb.active { color: var(--brand); font-weight: 500; }
+
+    /* ─── Scenario 2 specific ─────────────────────────────────── */
+    .wizard-step-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 20px;
+    }
+    .wizard-step {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .wizard-step.done .step-num { background: var(--brand); border-color: var(--brand); color: #000; }
+    .wizard-step.active .step-num { border-color: var(--brand); color: var(--brand); }
+    .step-num {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-subtle);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .step-name { white-space: nowrap; }
+    .wizard-step.active .step-name { color: var(--text-primary); font-weight: 500; }
+    .step-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border-divider);
+      margin: 0 8px;
+      min-width: 20px;
+    }
+
+    .post-deploy-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .post-deploy-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-divider);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .post-deploy-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .post-deploy-body {
+      padding: 14px 16px;
+    }
+
+    /* ─── Scenario 3 specific ─────────────────────────────────── */
+    .compliance-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .framework-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--signal-blue-subtle);
+      color: var(--signal-blue);
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+
+    /* ─── Inline info note ────────────────────────────────────── */
+    .info-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      padding: 8px 12px;
+      background: var(--brand-subtle);
+      border: 1px solid var(--brand-border);
+      border-radius: 7px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+    .info-note .icon { flex-shrink: 0; margin-top: 1px; }
+  </style>
+</head>
+<body>
+
+<!-- ─── Page Header ───────────────────────────────────────────── -->
+<header class="page-header">
+  <div class="page-header-left">
+    <div class="logo-mark">P</div>
+    <div>
+      <div class="page-title">PatchIQ — Workflow Integration Patterns</div>
+      <div class="page-subtitle">How workflows surface in creation forms across the platform</div>
+    </div>
+  </div>
+  <button class="theme-btn" id="themeToggle">
+    <span id="themeIcon">☀</span>
+    <span id="themeLabel">Light</span>
+  </button>
+</header>
+
+<!-- ─── Main ──────────────────────────────────────────────────── -->
+<main class="main">
+
+  <div class="page-intro">
+    <h1>Workflow Integration Patterns</h1>
+    <p>Policies, deployments, and compliance rules become more powerful when automated. Instead of forcing users to create workflows separately, PatchIQ offers inline workflow attachment during creation — offered, never required.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SCENARIO 1: Policy Creation → Workflow Attachment          -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">
+        <span>01</span>
+      </div>
+      <div class="section-info">
+        <h2>Policy Creation → Workflow Attachment</h2>
+        <p>The Automation card appears after the Schedule section in the Policy Creation form</p>
+      </div>
+    </div>
+
+    <!-- Breadcrumb context -->
+    <div class="form-context">
+      <div class="form-context-breadcrumb">
+        <span class="crumb">Create Policy</span>
+        <span class="crumb-sep">›</span>
+        <span class="crumb">Scope</span>
+        <span class="crumb-sep">›</span>
+        <span class="crumb">Rules</span>
+        <span class="crumb-sep">›</span>
+        <span class="crumb">Schedule</span>
+        <span class="crumb-sep">›</span>
+        <span class="crumb active">Automation</span>
+        <span class="crumb-sep">›</span>
+        <span class="crumb">Review</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon">⚡</div>
+          <div>
+            <div class="card-title">Automation</div>
+            <div class="card-subtitle">Attach a workflow to automate actions when this policy runs</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Three option cards -->
+        <div class="option-grid">
+
+          <!-- Option 1: No automation (default selected) -->
+          <div class="option-card" id="opt-none" onclick="selectPolicyOption('none')">
+            <div class="option-radio" id="radio-none"></div>
+            <span class="option-icon">—</span>
+            <div class="option-label">No automation</div>
+            <div class="option-desc">Policy runs standalone. Deploy manually or on schedule.</div>
+          </div>
+
+          <!-- Option 2: Use template -->
+          <div class="option-card" id="opt-template" onclick="selectPolicyOption('template')">
+            <div class="option-radio" id="radio-template"></div>
+            <span class="option-icon">📋</span>
+            <div class="option-label">Use template</div>
+            <div class="option-desc">Start from a pre-built automation pattern.</div>
+          </div>
+
+          <!-- Option 3: Build custom -->
+          <div class="option-card" id="opt-custom" onclick="selectPolicyOption('custom')">
+            <div class="option-radio" id="radio-custom"></div>
+            <span class="option-icon">⌥</span>
+            <div class="option-label">Build custom</div>
+            <div class="option-desc">Create a custom workflow for this policy.</div>
+          </div>
+
+        </div>
+
+        <!-- Template selector (shown when "Use template" is selected) -->
+        <div class="expandable" id="template-panel">
+          <div class="subsection-label">Choose a template</div>
+          <div class="template-list">
+
+            <!-- Template 1: Standard Deployment -->
+            <div class="template-item" id="tpl-standard" onclick="selectTemplate('standard')">
+              <div class="template-item-header">
+                <div class="template-name">Standard Deployment</div>
+                <div class="template-desc">4 nodes</div>
+              </div>
+              <div class="mini-flow">
+                <div class="flow-node trigger"><div class="dot"></div>Filter</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node gate"><div class="dot"></div>Approve</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node action"><div class="dot"></div>Deploy</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node action"><div class="dot"></div>Verify</div>
+              </div>
+            </div>
+
+            <!-- Template 2: Critical Fast-Track -->
+            <div class="template-item" id="tpl-critical" onclick="selectTemplate('critical')">
+              <div class="template-item-header">
+                <div class="template-name">Critical Fast-Track</div>
+                <div class="template-desc">3 nodes</div>
+              </div>
+              <div class="mini-flow">
+                <div class="flow-node trigger"><div class="dot"></div>Filter</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node action"><div class="dot"></div>Deploy (no approval)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node action"><div class="dot"></div>Alert</div>
+              </div>
+            </div>
+
+            <!-- Template 3: Canary Rollout -->
+            <div class="template-item" id="tpl-canary" onclick="selectTemplate('canary')">
+              <div class="template-item-header">
+                <div class="template-name">Canary Rollout</div>
+                <div class="template-desc">5 nodes</div>
+              </div>
+              <div class="mini-flow">
+                <div class="flow-node trigger"><div class="dot"></div>Filter</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node action"><div class="dot"></div>Wave 1 (5%)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node gate"><div class="dot"></div>Gate</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node action"><div class="dot"></div>Wave 2 (95%)</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node action"><div class="dot"></div>Verify</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Custom builder (shown when "Build custom" is selected) -->
+        <div class="expandable" id="custom-panel">
+          <div class="subsection-label">Custom workflow chain</div>
+          <div class="node-chain">
+            <div class="chain-node trigger">⚡ Trigger: Policy Run</div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-node action">🔍 Filter</div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-node gate">✋ Approval</div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-node action">🚀 Deploy Wave</div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-add" title="Add node">+</div>
+          </div>
+          <a class="open-editor-link" href="#">⬡ Open Full Editor — design this workflow on the canvas →</a>
+          <p class="context-note">This workflow will execute each time the policy triggers.</p>
+        </div>
+
+        <!-- Preview banner (shown when any workflow is selected) -->
+        <div class="preview-banner" id="policy-preview" style="display:none;">
+          <div class="preview-banner-icon">💡</div>
+          <div class="preview-banner-text" id="policy-preview-text">
+            When this policy runs → <strong>Filter critical patches</strong> → <strong>Request approval from Security Lead</strong> → <strong>Deploy in 2 waves</strong>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SCENARIO 2: Deployment Wizard Step 3 → Workflow Override   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">
+        <span>02</span>
+      </div>
+      <div class="section-info">
+        <h2>Deployment Wizard Step 3 → Post-Deployment Actions</h2>
+        <p>A pill picker at the bottom of Step 3 lets users select automated post-deployment actions without building a full workflow</p>
+      </div>
+    </div>
+
+    <!-- Wizard step indicator -->
+    <div class="wizard-step-indicator">
+      <div class="wizard-step done">
+        <div class="step-num">✓</div>
+        <span class="step-name">Targets</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="wizard-step done">
+        <div class="step-num">✓</div>
+        <span class="step-name">Patches</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="wizard-step active">
+        <div class="step-num">3</div>
+        <span class="step-name">Strategy</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="wizard-step">
+        <div class="step-num">4</div>
+        <span class="step-name">Schedule</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="wizard-step">
+        <div class="step-num">5</div>
+        <span class="step-name">Review</span>
+      </div>
+    </div>
+
+    <div class="post-deploy-card">
+      <div class="post-deploy-header">
+        <div class="post-deploy-title">
+          <span>⚡</span>
+          Post-Deployment Actions
+        </div>
+        <!-- Toggle -->
+        <div class="toggle-row">
+          <span class="toggle-label" id="postdeploy-label">Enable post-deployment workflow</span>
+          <label class="toggle" style="cursor:pointer;">
+            <input type="checkbox" id="postdeploy-toggle" onchange="togglePostDeploy(this)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="post-deploy-body">
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:0;">
+          Run after deployment completes
+        </p>
+
+        <!-- Expanded post-deploy options -->
+        <div class="expandable" id="postdeploy-panel">
+
+          <div class="subsection-label" style="margin-top:14px;">Select actions to run automatically</div>
+          <div class="pill-picker" id="postdeploy-pills">
+            <div class="pill" id="pill-compliance" onclick="togglePill('compliance')" data-selected="false">
+              <span class="pill-icon">🛡</span> Compliance Check
+            </div>
+            <div class="pill selected" id="pill-report" onclick="togglePill('report')" data-selected="true">
+              <span class="pill-icon">📧</span> Send Report
+            </div>
+            <div class="pill" id="pill-remediate" onclick="togglePill('remediate')" data-selected="false">
+              <span class="pill-icon">🔄</span> Auto-Remediate Failures
+            </div>
+            <div class="pill selected" id="pill-notify" onclick="togglePill('notify')" data-selected="true">
+              <span class="pill-icon">🔔</span> Notify Stakeholders
+            </div>
+            <div class="pill" id="pill-script" onclick="togglePill('script')" data-selected="false">
+              <span class="pill-icon">⌨</span> Run Verification Script
+            </div>
+          </div>
+
+          <!-- Dynamic mini flow diagram -->
+          <div style="margin-top:14px;">
+            <div class="subsection-label">Generated workflow</div>
+            <div class="node-chain" id="postdeploy-flow">
+              <!-- Updated dynamically by JS -->
+            </div>
+          </div>
+
+          <p class="context-note" style="margin-top:8px;">These actions run automatically after deployment finishes.</p>
+          <a class="open-editor-link" href="#">⬡ Customize this workflow in the full editor →</a>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SCENARIO 3: Compliance Framework → Remediation Workflow    -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">
+        <span>03</span>
+      </div>
+      <div class="section-info">
+        <h2>Compliance Framework → Auto-Remediation Workflow</h2>
+        <p>Each failing compliance control can be assigned a remediation action inline, and PatchIQ builds the workflow automatically</p>
+      </div>
+    </div>
+
+    <!-- Compliance context -->
+    <div class="compliance-header-row">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="framework-badge">🛡 CIS Benchmarks v8</div>
+        <div class="framework-badge" style="background:var(--signal-amber-subtle); color:var(--signal-amber); border-color:rgba(245,158,11,0.25);">23 failing controls</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon">🔁</div>
+          <div>
+            <div class="card-title">Auto-Remediation</div>
+            <div class="card-subtitle">Automatically remediate failing compliance controls</div>
+          </div>
+        </div>
+        <!-- Toggle -->
+        <div class="toggle-row">
+          <span class="toggle-label">Enable auto-remediation</span>
+          <label class="toggle" style="cursor:pointer;">
+            <input type="checkbox" id="autorem-toggle" onchange="toggleAutoRem(this)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="card-body">
+
+        <div class="expandable" id="autorem-panel">
+
+          <table class="compliance-table">
+            <thead>
+              <tr>
+                <th>Control</th>
+                <th>Status</th>
+                <th>Remediation</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <!-- Row 1: CIS-5.2.4 -->
+              <tr>
+                <td>
+                  <div class="control-id">CIS-5.2.4</div>
+                  <div class="control-name">SSH root login disabled</div>
+                </td>
+                <td>
+                  <div class="status-fail">✗ Failing</div>
+                  <div class="status-fail-count">12 endpoints affected</div>
+                </td>
+                <td>
+                  <div class="remediation-btns">
+                    <button class="rem-btn autofix active" id="rem-cis524-autofix" onclick="setRemediation('cis524','autofix')">Auto-fix</button>
+                    <button class="rem-btn manual" id="rem-cis524-manual" onclick="setRemediation('cis524','manual')">Manual</button>
+                    <button class="rem-btn ignore" id="rem-cis524-ignore" onclick="setRemediation('cis524','ignore')">Ignore</button>
+                  </div>
+                  <div class="rem-flow-row visible" id="flow-cis524">
+                    <div class="mini-flow">
+                      <div class="flow-node trigger"><div class="dot"></div>Detect Failure</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node action"><div class="dot"></div>Create Deployment</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node action"><div class="dot"></div>Deploy Fix</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node gate"><div class="dot"></div>Re-evaluate</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node end"><div class="dot"></div>Alert if Still Failing</div>
+                    </div>
+                    <div class="rem-flow-note">Auto-fix will deploy patches to CIS-5.2.4 on 12 affected endpoints.</div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 2: PCI-6.3.3 -->
+              <tr>
+                <td>
+                  <div class="control-id">PCI-6.3.3</div>
+                  <div class="control-name">Security patches within 30 days</div>
+                </td>
+                <td>
+                  <div class="status-fail">✗ Failing</div>
+                  <div class="status-fail-count">8 endpoints affected</div>
+                </td>
+                <td>
+                  <div class="remediation-btns">
+                    <button class="rem-btn autofix active" id="rem-pci633-autofix" onclick="setRemediation('pci633','autofix')">Auto-fix</button>
+                    <button class="rem-btn manual" id="rem-pci633-manual" onclick="setRemediation('pci633','manual')">Manual</button>
+                    <button class="rem-btn ignore" id="rem-pci633-ignore" onclick="setRemediation('pci633','ignore')">Ignore</button>
+                  </div>
+                  <div class="rem-flow-row visible" id="flow-pci633">
+                    <div class="mini-flow">
+                      <div class="flow-node trigger"><div class="dot"></div>Detect Failure</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node action"><div class="dot"></div>Create Deployment</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node action"><div class="dot"></div>Deploy Fix</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node gate"><div class="dot"></div>Re-evaluate</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node end"><div class="dot"></div>Alert if Still Failing</div>
+                    </div>
+                    <div class="rem-flow-note">Auto-fix will enforce patch currency on PCI-6.3.3 across 8 endpoints.</div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 3: NIST-SI-2 -->
+              <tr>
+                <td>
+                  <div class="control-id">NIST-SI-2</div>
+                  <div class="control-name">Flaw remediation</div>
+                </td>
+                <td>
+                  <div class="status-fail">✗ Failing</div>
+                  <div class="status-fail-count">3 endpoints affected</div>
+                </td>
+                <td>
+                  <div class="remediation-btns">
+                    <button class="rem-btn autofix" id="rem-nistsi2-autofix" onclick="setRemediation('nistsi2','autofix')">Auto-fix</button>
+                    <button class="rem-btn manual active" id="rem-nistsi2-manual" onclick="setRemediation('nistsi2','manual')" style="background:var(--bg-card-elevated);">Manual</button>
+                    <button class="rem-btn ignore" id="rem-nistsi2-ignore" onclick="setRemediation('nistsi2','ignore')">Ignore</button>
+                  </div>
+                  <div class="rem-flow-row" id="flow-nistsi2">
+                    <div class="mini-flow">
+                      <div class="flow-node trigger"><div class="dot"></div>Detect Failure</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node action"><div class="dot"></div>Create Deployment</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node action"><div class="dot"></div>Deploy Fix</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node gate"><div class="dot"></div>Re-evaluate</div>
+                      <div class="flow-arrow">→</div>
+                      <div class="flow-node end"><div class="dot"></div>Alert if Still Failing</div>
+                    </div>
+                    <div class="rem-flow-note">Auto-fix will remediate NIST-SI-2 flaws on 3 endpoints.</div>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+
+          <!-- Summary bar -->
+          <div class="summary-bar">
+            <div class="summary-bar-left">
+              <span>🔁</span>
+              <span>Active auto-remediation workflows: <span class="summary-bar-count">2</span></span>
+              <span style="color:var(--text-faint);">·</span>
+              <span>CIS-5.2.4, PCI-6.3.3</span>
+            </div>
+            <div class="summary-bar-right">20 endpoints will be remediated on drift detection</div>
+          </div>
+
+          <div class="info-note">
+            <span class="icon">💡</span>
+            <span>PatchIQ will automatically remediate <strong>20 endpoints</strong> when compliance drift is detected. Workflows are triggered by the compliance engine on each evaluation cycle (every 6 hours).</span>
+          </div>
+
+        </div>
+
+        <!-- Collapsed state message -->
+        <div id="autorem-off-msg" style="font-size:12px; color:var(--text-muted);">
+          Auto-remediation is disabled. Enable to automatically fix failing controls when compliance drift is detected.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SCENARIO 4: Universal Workflow Quick-Attach Chip           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-badge">
+        <span>04</span>
+      </div>
+      <div class="section-info">
+        <h2>Universal Workflow Quick-Attach Chip</h2>
+        <p>A reusable compact component that embeds inline in any card or form across the platform</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon">🧩</div>
+          <div>
+            <div class="card-title">Workflow Chip</div>
+            <div class="card-subtitle">All three states side by side</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <div class="chip-demo-grid">
+
+          <!-- State 1: No workflow -->
+          <div class="chip-demo-item">
+            <div class="chip-demo-label">State 1 — No workflow</div>
+            <div class="wf-chip none" onclick="this.style.borderColor='var(--brand-border)';this.style.color='var(--brand)'">
+              <span>＋</span>
+              <span>Add workflow</span>
+            </div>
+            <p style="font-size:11px; color:var(--text-muted); line-height:1.5; max-width:180px;">
+              Gray dashed pill. Clicking opens a dropdown with available templates and the option to build custom.
+            </p>
+          </div>
+
+          <!-- State 2: Template attached -->
+          <div class="chip-demo-item">
+            <div class="chip-demo-label">State 2 — Template attached</div>
+            <div class="wf-chip template">
+              <div class="wf-chip-dots">
+                <div class="wf-chip-dot t"></div>
+                <div class="wf-chip-arrow-small">→</div>
+                <div class="wf-chip-dot a"></div>
+                <div class="wf-chip-arrow-small">→</div>
+                <div class="wf-chip-dot g"></div>
+                <div class="wf-chip-arrow-small">→</div>
+                <div class="wf-chip-dot a"></div>
+              </div>
+              <span>Standard Deployment</span>
+              <span style="font-size:10px; opacity:0.7;">›</span>
+            </div>
+            <p style="font-size:11px; color:var(--text-muted); line-height:1.5; max-width:180px;">
+              Brand-colored pill with a tiny inline dot flow. Clicking opens the workflow template for editing or replacement.
+            </p>
+          </div>
+
+          <!-- State 3: Custom workflow -->
+          <div class="chip-demo-item">
+            <div class="chip-demo-label">State 3 — Custom workflow</div>
+            <div class="wf-chip custom">
+              <span>⬡</span>
+              <span>Custom: 5 nodes</span>
+              <span style="font-size:10px; opacity:0.7;">›</span>
+            </div>
+            <p style="font-size:11px; color:var(--text-muted); line-height:1.5; max-width:180px;">
+              Brand pill with node count. Clicking opens the full canvas editor for that workflow.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="chip-appears-in">
+          <strong>This component appears in:</strong> Policy forms · Deployment wizard · Compliance frameworks · Schedule configuration · Alert pipeline setup <span style="color:var(--text-faint); font-size:10px;">(future)</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- DESIGN PRINCIPLES                                           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="section" style="margin-bottom:0;">
+    <div class="section-header">
+      <div class="section-badge">—</div>
+      <div class="section-info">
+        <h2>Design Principles</h2>
+        <p>Constraints that shape all four integration patterns</p>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+
+      <div style="padding:12px 14px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:8px;">
+        <div style="font-size:11px; font-weight:600; color:var(--brand); margin-bottom:4px;">1. Workflows are offered, never required</div>
+        <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">"No automation" is always the default selected state. Users discover the power without being forced into complexity.</div>
+      </div>
+
+      <div style="padding:12px 14px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:8px;">
+        <div style="font-size:11px; font-weight:600; color:var(--brand); margin-bottom:4px;">2. Templates show mini inline flow diagrams</div>
+        <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">Users see the structure before choosing. Small colored dots connected by arrows convey the whole flow in 24px of height.</div>
+      </div>
+
+      <div style="padding:12px 14px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:8px;">
+        <div style="font-size:11px; font-weight:600; color:var(--brand); margin-bottom:4px;">3. Pill picker for simple automations</div>
+        <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">Post-deployment actions use a pill picker — simpler than building a full workflow. The workflow diagram is generated from selections.</div>
+      </div>
+
+      <div style="padding:12px 14px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:8px;">
+        <div style="font-size:11px; font-weight:600; color:var(--brand); margin-bottom:4px;">4. "Open Full Editor" is always one click away</div>
+        <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">Every inline workflow builder links to the full canvas editor. Power users are never blocked. Casual users never see it unless they want to.</div>
+      </div>
+
+      <div style="padding:12px 14px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:8px;">
+        <div style="font-size:11px; font-weight:600; color:var(--signal-amber); margin-bottom:4px;">5. Three-color system for node types</div>
+        <div style="font-size:11px; color:var(--text-muted); line-height:1.5;"><span style="color:var(--brand);">Brand (green/purple)</span> for triggers/actions · <span style="color:var(--signal-amber);">Amber</span> for gates/approvals · <span style="color:var(--signal-red);">Red</span> for rollback · <span style="color:var(--text-faint);">Gray</span> for end/neutral nodes</div>
+      </div>
+
+      <div style="padding:12px 14px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:8px;">
+        <div style="font-size:11px; font-weight:600; color:var(--brand); margin-bottom:4px;">6. Plain-English preview summarizes the flow</div>
+        <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">Below the visual diagram, a natural-language sentence explains what will happen. No jargon. Reviewable before saving.</div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<script>
+  /* ─── Theme Toggle ─────────────────────────────────────────── */
+  const btn = document.getElementById('themeToggle');
+  const icon = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
+  btn.addEventListener('click', () => {
+    const isLight = document.documentElement.classList.toggle('light');
+    icon.textContent = isLight ? '🌑' : '☀';
+    label.textContent = isLight ? 'Dark' : 'Light';
+  });
+
+  /* ─── Scenario 1: Policy Option Selection ─────────────────── */
+  let currentPolicyOption = 'none';
+  let currentTemplate = null;
+
+  function selectPolicyOption(option) {
+    // Reset all option cards
+    ['none','template','custom'].forEach(o => {
+      document.getElementById('opt-' + o).classList.remove('selected');
+      document.getElementById('radio-' + o).style.background = '';
+      document.getElementById('radio-' + o).style.borderColor = '';
+    });
+
+    // Mark selected
+    document.getElementById('opt-' + option).classList.add('selected');
+
+    // Show/hide panels
+    document.getElementById('template-panel').classList.remove('visible');
+    document.getElementById('custom-panel').classList.remove('visible');
+
+    if (option === 'template') {
+      document.getElementById('template-panel').classList.add('visible');
+    } else if (option === 'custom') {
+      document.getElementById('custom-panel').classList.add('visible');
+    }
+
+    // Preview banner
+    const preview = document.getElementById('policy-preview');
+    const previewText = document.getElementById('policy-preview-text');
+    if (option === 'none') {
+      preview.style.display = 'none';
+    } else if (option === 'custom') {
+      preview.style.display = 'flex';
+      previewText.innerHTML = 'When this policy runs → <strong>Filter critical patches</strong> → <strong>Request approval from Security Lead</strong> → <strong>Deploy in 2 waves</strong>';
+    } else if (option === 'template' && currentTemplate) {
+      preview.style.display = 'flex';
+    } else {
+      preview.style.display = 'none';
+    }
+
+    currentPolicyOption = option;
+  }
+
+  function selectTemplate(tpl) {
+    ['standard','critical','canary'].forEach(t => {
+      document.getElementById('tpl-' + t).classList.remove('selected');
+    });
+    document.getElementById('tpl-' + tpl).classList.add('selected');
+    currentTemplate = tpl;
+
+    const previewText = document.getElementById('policy-preview-text');
+    const preview = document.getElementById('policy-preview');
+    preview.style.display = 'flex';
+
+    if (tpl === 'standard') {
+      previewText.innerHTML = 'When this policy runs → <strong>Filter patches by severity</strong> → <strong>Request approval from Security Lead</strong> → <strong>Deploy to all targets</strong> → <strong>Run verification checks</strong>';
+    } else if (tpl === 'critical') {
+      previewText.innerHTML = 'When this policy runs → <strong>Filter critical severity patches</strong> → <strong>Deploy immediately (no approval required)</strong> → <strong>Alert security team with results</strong>';
+    } else if (tpl === 'canary') {
+      previewText.innerHTML = 'When this policy runs → <strong>Filter patches by policy rules</strong> → <strong>Deploy to 5% of endpoints (canary)</strong> → <strong>Wait for gate approval</strong> → <strong>Deploy to remaining 95%</strong> → <strong>Run verification</strong>';
+    }
+  }
+
+  // Initialize with "none" selected
+  selectPolicyOption('none');
+
+  /* ─── Scenario 2: Post-Deploy Toggle & Pill Picker ─────────── */
+  const postDeployState = {
+    compliance: false,
+    report: true,
+    remediate: false,
+    notify: true,
+    script: false
+  };
+
+  function togglePostDeploy(checkbox) {
+    const panel = document.getElementById('postdeploy-panel');
+    if (checkbox.checked) {
+      panel.classList.add('visible');
+    } else {
+      panel.classList.remove('visible');
+    }
+    renderPostDeployFlow();
+  }
+
+  function togglePill(id) {
+    postDeployState[id] = !postDeployState[id];
+    const pill = document.getElementById('pill-' + id);
+    if (postDeployState[id]) {
+      pill.classList.add('selected');
+      pill.dataset.selected = 'true';
+    } else {
+      pill.classList.remove('selected');
+      pill.dataset.selected = 'false';
+    }
+    renderPostDeployFlow();
+  }
+
+  function renderPostDeployFlow() {
+    const flow = document.getElementById('postdeploy-flow');
+    const nodeMap = {
+      compliance: { label: '🛡 Compliance Check', type: 'action' },
+      report: { label: '📧 Send Report', type: 'action' },
+      remediate: { label: '🔄 Auto-Remediate', type: 'action' },
+      notify: { label: '🔔 Notify Stakeholders', type: 'action' },
+      script: { label: '⌨ Verify Script', type: 'action' }
+    };
+
+    const selected = Object.keys(postDeployState).filter(k => postDeployState[k]);
+
+    let html = '<div class="chain-node trigger">🚀 Deploy Complete</div>';
+    selected.forEach(key => {
+      html += '<div class="chain-arrow">→</div>';
+      html += `<div class="chain-node ${nodeMap[key].type}">${nodeMap[key].label}</div>`;
+    });
+    html += '<div class="chain-arrow">→</div>';
+    html += '<div class="chain-node end" style="background:var(--node-end-bg); border-color:var(--node-end-border); color:var(--node-end);">Done</div>';
+
+    flow.innerHTML = html;
+  }
+
+  // Initial render for post-deploy flow
+  renderPostDeployFlow();
+
+  /* ─── Scenario 3: Auto-Remediation Toggle ─────────────────── */
+  function toggleAutoRem(checkbox) {
+    const panel = document.getElementById('autorem-panel');
+    const offMsg = document.getElementById('autorem-off-msg');
+    if (checkbox.checked) {
+      panel.classList.add('visible');
+      offMsg.style.display = 'none';
+    } else {
+      panel.classList.remove('visible');
+      offMsg.style.display = 'block';
+    }
+  }
+
+  function setRemediation(control, action) {
+    const actions = ['autofix', 'manual', 'ignore'];
+    actions.forEach(a => {
+      const btn = document.getElementById('rem-' + control + '-' + a);
+      if (btn) {
+        btn.classList.remove('active');
+        btn.style.background = '';
+      }
+    });
+
+    const activeBtn = document.getElementById('rem-' + control + '-' + action);
+    if (activeBtn) {
+      activeBtn.classList.add('active');
+      if (action === 'manual') {
+        activeBtn.style.background = 'var(--bg-card-elevated)';
+      }
+    }
+
+    const flowRow = document.getElementById('flow-' + control);
+    if (flowRow) {
+      if (action === 'autofix') {
+        flowRow.classList.add('visible');
+      } else {
+        flowRow.classList.remove('visible');
+      }
+    }
+  }
+</script>
+
+</body>
+</html>

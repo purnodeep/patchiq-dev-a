@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ Hub — Dashboard</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Dark mode (default) ──────────────────────────────────────── */
+    :root {
+      --bg: #000000;
+      --card: #111111;
+      --border: #222222;
+      --shadow: 0 1px 2px rgba(0,0,0,0.5);
+      --text-emphasis: #ffffff;
+      --text-primary: #cccccc;
+      --text-secondary: #999999;
+      --text-muted: #737373;
+      --text-faint: #444444;
+      --brand: #10b981;
+      --brand-dim: rgba(16,185,129,0.12);
+      --brand-glow: rgba(16,185,129,0.25);
+      --red: #ef4444;
+      --red-dim: rgba(239,68,68,0.12);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.12);
+      --emerald: #10b981;
+
+      /* Fleet map */
+      --fleet-line: #444444;
+      --fleet-node-label-primary: #a1a1a1;
+      --fleet-node-label-muted: #737373;
+      --fleet-legend-text: #737373;
+
+      /* Source distribution bar labels */
+      --source-label-color: #737373;
+
+      /* NVD error banner */
+      --nvd-error-bg: #221111;
+
+      /* Chart axis labels */
+      --chart-axis-label: #737373;
+    }
+
+    /* ── Light mode ───────────────────────────────────────────────── */
+    :root.light {
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --border: #e0e0e0;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+      --text-emphasis: #0a0a0a;
+      --text-primary: #1a1a1a;
+      --text-secondary: #525252;
+      --text-muted: #737373;
+      --text-faint: #a1a1a1;
+      --brand: #7c3aed;
+      --brand-dim: rgba(124,58,237,0.08);
+      --brand-glow: rgba(124,58,237,0.20);
+      --red: #dc2626;
+      --red-dim: rgba(220,38,38,0.08);
+      --amber: #d97706;
+      --amber-dim: rgba(217,119,6,0.08);
+      --emerald: #059669;
+
+      /* Fleet map */
+      --fleet-line: #d4d4d4;
+      --fleet-node-label-primary: #525252;
+      --fleet-node-label-muted: #737373;
+      --fleet-legend-text: #737373;
+
+      /* Source distribution bar labels */
+      --source-label-color: #737373;
+
+      /* NVD error banner */
+      --nvd-error-bg: rgba(220,38,38,0.06);
+
+      /* Chart axis labels */
+      --chart-axis-label: #a1a1a1;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .app { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ─────────────────────────────────────────────────── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-icon {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .logo-wordmark {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-emphasis);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .logo-wordmark span {
+      font-weight: 400;
+      color: var(--brand);
+      margin-left: 2px;
+    }
+
+    .sidebar-nav { flex: 1; padding: 10px 0; }
+
+    .nav-group { margin-bottom: 4px; }
+
+    .nav-group-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 10px 20px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 20px;
+      border-radius: 0;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 13px;
+      transition: color 0.15s, background 0.15s;
+      position: relative;
+      user-select: none;
+    }
+
+    .nav-item:hover { color: var(--text-primary); background: rgba(128,128,128,0.05); }
+
+    .nav-item.active {
+      color: var(--brand);
+      background: var(--brand-dim);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 4px;
+      bottom: 4px;
+      width: 2px;
+      background: var(--brand);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+    .nav-item.active .nav-icon { opacity: 1; }
+
+    .nav-badge {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'GeistMono', monospace;
+      padding: 1px 5px;
+      border-radius: 9px;
+    }
+
+    .nav-badge.amber { color: var(--amber); background: var(--amber-dim); }
+    .nav-badge.red   { color: var(--red);   background: var(--red-dim); }
+
+    .sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand-dim);
+      border: 1px solid var(--brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--brand);
+      flex-shrink: 0;
+    }
+
+    .footer-info { flex: 1; min-width: 0; }
+    .footer-name { font-size: 12px; color: var(--text-primary); font-weight: 500; }
+    .footer-role { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Main ────────────────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* ── Topbar ──────────────────────────────────────────────────── */
+    .topbar {
+      height: 52px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      flex-shrink: 0;
+      background: var(--bg);
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .breadcrumb-sep { color: var(--text-faint); }
+    .breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+
+    .topbar-spacer { flex: 1; }
+
+    .topbar-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: 'Geist', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .topbar-btn:hover { color: var(--text-primary); border-color: var(--text-faint); }
+
+    .topbar-kbd {
+      font-family: 'GeistMono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 4px;
+    }
+
+    .topbar-icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s;
+      position: relative;
+      border: none;
+      background: transparent;
+    }
+
+    .topbar-icon-btn:hover { background: rgba(128,128,128,0.08); color: var(--text-primary); }
+
+    .notif-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 6px;
+      height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      border: 1px solid var(--bg);
+    }
+
+    .topbar-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand-dim);
+      border: 1px solid var(--brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--brand);
+      cursor: pointer;
+    }
+
+    /* ── Content ─────────────────────────────────────────────────── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Stat Cards Row ──────────────────────────────────────────── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* Light mode: stat-label needs enough contrast on white */
+    :root.light .stat-label { color: var(--text-secondary); }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-emphasis);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-value.amber { color: var(--amber); }
+    .stat-sub { font-size: 12px; color: var(--text-muted); }
+    /* Light mode: stat-sub needs higher contrast than #737373 muted */
+    :root.light .stat-sub { color: var(--text-secondary); }
+    .stat-sub .up    { color: var(--emerald); }
+    .stat-sub .red   { color: var(--red); }
+    .stat-sub .amber { color: var(--amber); }
+
+    /* ── Two-col Row ─────────────────────────────────────────────── */
+    .row-55-45 { display: grid; grid-template-columns: 55fr 45fr; gap: 12px; }
+    .row-thirds { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .row-halves { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ── Card ────────────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* Light: card titles need more contrast */
+    :root.light .card-title { color: var(--text-secondary); }
+
+    .card-action {
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    .card-action:hover { color: var(--brand); }
+
+    /* ── Fleet Map ───────────────────────────────────────────────── */
+    .fleet-map-wrap { width: 100%; aspect-ratio: 16/9; position: relative; }
+    .fleet-map-wrap svg { width: 100%; height: 100%; }
+
+    /* ── Feed Pipeline ───────────────────────────────────────────── */
+    .pipeline-feeds {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .feed-chip {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: 'GeistMono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .feed-chip.error { color: var(--red); }
+
+    .pipeline-stages { display: flex; flex-direction: column; gap: 10px; }
+
+    .pipeline-stage {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stage-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    /* Light: stage labels need more contrast */
+    :root.light .stage-label { color: var(--text-secondary); }
+
+    .stage-bar-wrap {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .stage-bar { height: 100%; background: var(--brand); border-radius: 2px; transition: width 0.3s; }
+
+    .stage-count {
+      font-size: 12px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-secondary);
+      width: 52px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .stage-count.brand { color: var(--brand); font-weight: 600; }
+
+    .pipeline-arrow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 0 2px 8px;
+      margin: -4px 0;
+    }
+
+    .arrow-line {
+      width: 1px;
+      height: 10px;
+      background: var(--border);
+      margin-left: 38px;
+    }
+
+    /* ── Activity Feed ───────────────────────────────────────────── */
+    .activity-list { display: flex; flex-direction: column; gap: 0; }
+
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .dot-emerald { background: var(--emerald); }
+    .dot-amber   { background: var(--amber); }
+    .dot-red     { background: var(--red); }
+    .dot-gray    { background: var(--text-faint); }
+
+    /* Light: dot-gray needs to be visible on white */
+    :root.light .dot-gray { background: #a1a1a1; }
+
+    .activity-body { flex: 1; min-width: 0; }
+
+    .activity-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Light: activity-desc must be legible on white */
+    :root.light .activity-desc { color: var(--text-secondary); }
+
+    .activity-desc strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .activity-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'GeistMono', monospace;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ── Catalog Quality ─────────────────────────────────────────── */
+    .quality-metrics { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+
+    .quality-metric {}
+
+    .quality-metric-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .quality-metric-name {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .quality-metric-value {
+      font-size: 12px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-primary);
+    }
+
+    .quality-metric-value.amber { color: var(--amber); }
+
+    .quality-bar-track {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .quality-bar-fill {
+      height: 100%;
+      background: var(--brand);
+      border-radius: 2px;
+    }
+
+    .quality-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* Light: section titles */
+    :root.light .quality-section-title { color: var(--text-secondary); }
+
+    .stacked-bar-wrap { height: 6px; border-radius: 3px; display: flex; overflow: hidden; margin-bottom: 12px; }
+
+    .stacked-seg { height: 100%; }
+
+    .source-labels { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .source-label {
+      font-size: 11px;
+      color: var(--source-label-color);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .source-swatch { width: 8px; height: 8px; border-radius: 1px; flex-shrink: 0; }
+
+    /* ── License Overview ────────────────────────────────────────── */
+    .license-headline { text-align: center; margin-bottom: 14px; }
+    .license-big { font-size: 32px; font-weight: 700; color: var(--text-emphasis); letter-spacing: -0.04em; }
+    .license-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Light: license-sub */
+    :root.light .license-sub { color: var(--text-secondary); }
+
+    .license-bar-wrap {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .license-bar-fill { height: 100%; background: var(--brand); border-radius: 3px; }
+
+    .license-rows { display: flex; flex-direction: column; gap: 0; }
+
+    .license-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .license-row:last-child { border-bottom: none; }
+
+    .license-name { flex: 1; font-size: 12px; color: var(--text-primary); font-weight: 500; }
+    .license-seats { font-size: 12px; color: var(--text-secondary); font-family: 'GeistMono', monospace; }
+    .license-expiry { font-size: 11px; color: var(--text-secondary); font-family: 'GeistMono', monospace; }
+    .license-expiry.amber { color: var(--amber); }
+
+    /* ── Chart ───────────────────────────────────────────────────── */
+    .chart-wrap { width: 100%; }
+    .chart-wrap svg { width: 100%; display: block; }
+
+    /* ── Pending Approvals ───────────────────────────────────────── */
+    .approvals-section { margin-bottom: 16px; }
+    .approvals-section:last-child { margin-bottom: 0; }
+
+    .approvals-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Light: section titles */
+    :root.light .approvals-section-title { color: var(--text-secondary); }
+
+    .approval-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .approval-row:last-child { border-bottom: none; }
+
+    .approval-name {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .approval-name.red   { color: var(--red); }
+    .approval-name.amber { color: var(--amber); }
+
+    .approval-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'GeistMono', monospace;
+      flex-shrink: 0;
+    }
+
+    /* Light: approval time needs a bit more contrast */
+    :root.light .approval-time { color: var(--text-secondary); }
+
+    .approval-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .btn {
+      font-family: 'Geist', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      border: 1px solid transparent;
+    }
+
+    .btn-outline {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: transparent;
+    }
+
+    .btn-outline:hover { background: var(--brand-dim); }
+
+    .btn-ghost {
+      border-color: var(--border);
+      color: var(--text-muted);
+      background: transparent;
+    }
+
+    /* Light: ghost button text needs contrast */
+    :root.light .btn-ghost {
+      border-color: var(--border);
+      color: var(--text-secondary);
+    }
+
+    .btn-ghost:hover { color: var(--text-secondary); border-color: var(--text-faint); }
+
+    /* ── Toggle ──────────────────────────────────────────────────── */
+    .toggle-switch {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .toggle-opt {
+      padding: 5px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      font-family: 'Geist', sans-serif;
+      transition: background 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .toggle-opt.active {
+      background: var(--brand-dim);
+      color: var(--brand);
+    }
+
+    .toggle-opt:hover:not(.active) { color: var(--text-primary); }
+
+    /* ── Scrollbar ───────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── Sidebar ────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <div class="sidebar-logo">
+      <svg class="logo-icon" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="7" fill="var(--brand)" opacity="0.15"/>
+        <path d="M14 5L19.5 8V14L14 17L8.5 14V8L14 5Z" stroke="var(--brand)" stroke-width="1.5" fill="none"/>
+        <path d="M14 9L17 10.5V13.5L14 15L11 13.5V10.5L14 9Z" fill="var(--brand)" opacity="0.5"/>
+        <path d="M14 17V23M8.5 14L4 16.5M19.5 14L24 16.5" stroke="var(--brand)" stroke-width="1.2" opacity="0.4"/>
+      </svg>
+      <div class="logo-wordmark">PatchIQ<span>Hub</span></div>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <div class="nav-group">
+        <div class="nav-group-label">Overview</div>
+        <div class="nav-item active">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <rect x="9" y="1" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <rect x="1" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+            <rect x="9" y="9" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+          </svg>
+          Dashboard
+        </div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>
+            <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M2 8c0-3.3 2.7-6 6-6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+          </svg>
+          Activity
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Fleet</div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="4" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M5 13v2M11 13v2M3 15h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            <circle cx="8" cy="8.5" r="1.5" fill="currentColor" opacity="0.5"/>
+          </svg>
+          Clients
+          <span class="nav-badge amber">2</span>
+        </div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Test Groups
+        </div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M2 5h12M2 8h8M2 11h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Deployments
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Catalog</div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <rect x="2" y="1.5" width="12" height="13" rx="2" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Browse
+        </div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1L10 6H15L11 9.5L12.5 15L8 12L3.5 15L5 9.5L1 6H6L8 1Z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          </svg>
+          Feeds
+          <span class="nav-badge red">1</span>
+        </div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2a6 6 0 100 12A6 6 0 008 2z" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M5.5 8.5l2 2 3.5-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Quality
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Licensing</div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <rect x="1.5" y="3" width="13" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M5 8h2M9 8h2M5 10.5h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+            <path d="M1.5 6h13" stroke="currentColor" stroke-width="1.2"/>
+          </svg>
+          Licenses
+        </div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M2 12V5l6-4 6 4v7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 12V9h4v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Usage
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Config</div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Settings
+        </div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M5 8h6M8 5l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Webhooks
+        </div>
+        <div class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="5" width="14" height="7" rx="2" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M5 8.5h1M8 8.5h1M11 8.5h1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 5V4a4 4 0 018 0v1" stroke="currentColor" stroke-width="1.2"/>
+          </svg>
+          API Keys
+        </div>
+      </div>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar">HS</div>
+      <div class="footer-info">
+        <div class="footer-name">Heramb S.</div>
+        <div class="footer-role">Hub Admin</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span>Hub</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Dashboard</span>
+      </div>
+      <div class="topbar-spacer"></div>
+      <button class="topbar-btn">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M9 9l3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        Search
+        <span class="topbar-kbd">⌘K</span>
+      </button>
+      <div class="toggle-switch">
+        <button class="toggle-opt active" id="dark-btn" onclick="setMode('dark')">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M10 6.5A4.5 4.5 0 015.5 2a4.5 4.5 0 100 9A4.5 4.5 0 0010 6.5z" stroke="currentColor" stroke-width="1.1"/>
+          </svg>
+          Dark
+        </button>
+        <button class="toggle-opt" id="light-btn" onclick="setMode('light')">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="2.5" stroke="currentColor" stroke-width="1.1"/>
+            <path d="M6 1v1.2M6 9.8V11M1 6h1.2M9.8 6H11M2.3 2.3l.85.85M8.85 8.85l.85.85M9.7 2.3l-.85.85M3.15 8.85l-.85.85" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+          </svg>
+          Light
+        </button>
+      </div>
+      <button class="topbar-icon-btn" style="position:relative;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1a5 5 0 015 5v2.5l1.5 2H.5L2 8.5V6a5 5 0 015-5z" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M6 13a2 2 0 004 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span class="notif-dot"></span>
+      </button>
+      <div class="topbar-avatar">HS</div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div class="content">
+
+      <!-- ── Row 1: Stat Cards ──────────────────────────────────── -->
+      <div class="stat-row">
+
+        <div class="stat-card">
+          <div class="stat-label">Connected Clients</div>
+          <div class="stat-value">8 <span style="font-size:18px;color:var(--text-faint)">/</span> 12</div>
+          <div class="stat-sub">active of total</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Catalog Entries</div>
+          <div class="stat-value">2,739</div>
+          <div class="stat-sub"><span class="up">↑ 47</span> this week</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Active Feeds</div>
+          <div class="stat-value">5 <span style="font-size:18px;color:var(--text-faint)">/</span> 6</div>
+          <div class="stat-sub"><span class="red">1 error</span></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Total Seats</div>
+          <div class="stat-value">72 <span style="font-size:18px;color:var(--text-faint)">/</span> 100</div>
+          <div class="stat-sub">licensed endpoints</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-label">Pending Actions</div>
+          <div class="stat-value amber">5</div>
+          <div class="stat-sub">2 clients, 1 feed, 2 approvals</div>
+        </div>
+
+      </div>
+
+      <!-- ── Row 2: Fleet Map + Feed Pipeline ──────────────────── -->
+      <div class="row-55-45">
+
+        <!-- Fleet Map -->
+        <div class="card" style="padding:18px 20px;">
+          <div class="card-header">
+            <span class="card-title">Fleet Map</span>
+            <span class="card-action">View all →</span>
+          </div>
+          <div class="fleet-map-wrap">
+            <svg viewBox="0 0 520 300" fill="none" xmlns="http://www.w3.org/2000/svg" id="fleet-svg">
+
+              <!-- Connection lines (drawn first, behind nodes) -->
+
+              <!-- Hub to healthy clients -->
+              <line x1="260" y1="140" x2="130" y2="52"  stroke="var(--fleet-line)" stroke-width="1"/>
+              <line x1="260" y1="140" x2="260" y2="36"  stroke="var(--fleet-line)" stroke-width="1"/>
+              <line x1="260" y1="140" x2="392" y2="52"  stroke="var(--fleet-line)" stroke-width="1"/>
+              <line x1="260" y1="140" x2="472" y2="112" stroke="var(--fleet-line)" stroke-width="1"/>
+              <line x1="260" y1="140" x2="450" y2="210" stroke="var(--fleet-line)" stroke-width="1"/>
+              <line x1="260" y1="140" x2="72"  y2="204" stroke="var(--fleet-line)" stroke-width="1"/>
+
+              <!-- Hub to amber client (slightly amber line) -->
+              <line x1="260" y1="140" x2="152" y2="238" stroke="var(--amber)" stroke-width="1" opacity="0.35"/>
+
+              <!-- Hub to red client (slightly red line) -->
+              <line x1="260" y1="140" x2="358" y2="252" stroke="var(--red)" stroke-width="1" opacity="0.35"/>
+
+              <!-- Hub to pending clients (dashed) -->
+              <line x1="260" y1="140" x2="56"  y2="108" stroke="var(--fleet-line)" stroke-width="1" stroke-dasharray="4 3"/>
+              <line x1="260" y1="140" x2="480" y2="188" stroke="var(--fleet-line)" stroke-width="1" stroke-dasharray="4 3"/>
+
+              <!-- Hub node (center) — purple glow in light, green in dark -->
+              <circle cx="260" cy="140" r="26" fill="var(--brand-dim)" stroke="var(--brand)" stroke-width="1.5"/>
+              <circle cx="260" cy="140" r="32" fill="none" stroke="var(--brand)" stroke-width="1" opacity="0.2"/>
+              <circle cx="260" cy="140" r="38" fill="none" stroke="var(--brand)" stroke-width="0.5" opacity="0.08"/>
+              <text x="260" y="136" text-anchor="middle" font-family="Geist, sans-serif" font-size="9" font-weight="700" fill="var(--brand)" letter-spacing="0.08em">HUB</text>
+              <text x="260" y="149" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--brand)" opacity="0.7">v2.1.4</text>
+
+              <!-- Healthy client 1: prod-pm-01 (top-left) -->
+              <circle cx="130" cy="52" r="14" fill="var(--card)" stroke="var(--fleet-line)" stroke-width="1"/>
+              <text x="130" y="49" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--fleet-node-label-primary)">prod</text>
+              <text x="130" y="59" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--fleet-node-label-muted)">pm-01</text>
+              <text x="130" y="76" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-node-label-muted)">847 endpoints</text>
+
+              <!-- Healthy client 2: prod-pm-02 (top-center) -->
+              <circle cx="260" cy="36" r="14" fill="var(--card)" stroke="var(--fleet-line)" stroke-width="1"/>
+              <text x="260" y="33" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--fleet-node-label-primary)">prod</text>
+              <text x="260" y="43" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--fleet-node-label-muted)">pm-02</text>
+              <text x="260" y="60" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-node-label-muted)">1,204 endpoints</text>
+
+              <!-- Healthy client 3: eu-pm-01 (top-right) -->
+              <circle cx="392" cy="52" r="14" fill="var(--card)" stroke="var(--fleet-line)" stroke-width="1"/>
+              <text x="392" y="49" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--fleet-node-label-primary)">eu</text>
+              <text x="392" y="59" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--fleet-node-label-muted)">pm-01</text>
+              <text x="392" y="76" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-node-label-muted)">523 endpoints</text>
+
+              <!-- Healthy client 4: apac-pm-01 (right) -->
+              <circle cx="472" cy="112" r="14" fill="var(--card)" stroke="var(--fleet-line)" stroke-width="1"/>
+              <text x="472" y="109" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--fleet-node-label-primary)">apac</text>
+              <text x="472" y="119" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--fleet-node-label-muted)">pm-01</text>
+              <text x="472" y="136" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-node-label-muted)">312 endpoints</text>
+
+              <!-- Healthy client 5: prod-pm-03 (bottom-right) -->
+              <circle cx="450" cy="210" r="14" fill="var(--card)" stroke="var(--fleet-line)" stroke-width="1"/>
+              <text x="450" y="207" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--fleet-node-label-primary)">prod</text>
+              <text x="450" y="217" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--fleet-node-label-muted)">pm-03</text>
+              <text x="450" y="234" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-node-label-muted)">629 endpoints</text>
+
+              <!-- Healthy client 6: dr-pm-01 (bottom-left) -->
+              <circle cx="72" cy="204" r="14" fill="var(--card)" stroke="var(--fleet-line)" stroke-width="1"/>
+              <text x="72" y="201" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--fleet-node-label-primary)">dr</text>
+              <text x="72" y="211" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--fleet-node-label-muted)">pm-01</text>
+              <text x="72" y="228" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-node-label-muted)">208 endpoints</text>
+
+              <!-- Amber client: dev-pm-01 (sync issues) — lower-left, separated from test -->
+              <circle cx="152" cy="238" r="14" fill="var(--card)" stroke="var(--amber)" stroke-width="1.5"/>
+              <text x="152" y="235" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--amber)">dev</text>
+              <text x="152" y="245" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--amber)" opacity="0.8">pm-01</text>
+              <text x="152" y="262" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--amber)" opacity="0.7">sync delay</text>
+
+              <!-- Red client: test-pm-01 (offline) — lower-right, separated from dev -->
+              <circle cx="358" cy="252" r="14" fill="var(--card)" stroke="var(--red)" stroke-width="1.5"/>
+              <text x="358" y="249" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--red)">test</text>
+              <text x="358" y="259" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--red)" opacity="0.8">pm-01</text>
+              <text x="358" y="276" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--red)" opacity="0.7">offline</text>
+
+              <!-- Pending client 1 (dashed ring) -->
+              <circle cx="56" cy="108" r="14" fill="var(--card)" stroke="var(--fleet-line)" stroke-width="1" stroke-dasharray="4 3"/>
+              <text x="56" y="105" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--fleet-node-label-muted)">dev</text>
+              <text x="56" y="115" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--fleet-node-label-muted)">pm-03</text>
+              <text x="56" y="132" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-node-label-muted)">pending</text>
+
+              <!-- Pending client 2 (dashed ring) -->
+              <circle cx="480" cy="188" r="14" fill="var(--card)" stroke="var(--fleet-line)" stroke-width="1" stroke-dasharray="4 3"/>
+              <text x="480" y="185" text-anchor="middle" font-family="GeistMono, monospace" font-size="7.5" fill="var(--fleet-node-label-muted)">stg</text>
+              <text x="480" y="195" text-anchor="middle" font-family="GeistMono, monospace" font-size="7" fill="var(--fleet-node-label-muted)">pm-01</text>
+              <text x="480" y="212" text-anchor="middle" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-node-label-muted)">pending</text>
+
+              <!-- Legend (shifted down to match taller viewBox) -->
+              <g transform="translate(10, 278)">
+                <circle cx="6" cy="6" r="5" fill="none" stroke="var(--fleet-line)" stroke-width="1"/>
+                <text x="15" y="9.5" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-legend-text)">healthy</text>
+                <circle cx="65" cy="6" r="5" fill="none" stroke="var(--amber)" stroke-width="1.2"/>
+                <text x="74" y="9.5" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-legend-text)">warning</text>
+                <circle cx="125" cy="6" r="5" fill="none" stroke="var(--red)" stroke-width="1.2"/>
+                <text x="134" y="9.5" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-legend-text)">offline</text>
+                <circle cx="180" cy="6" r="5" fill="none" stroke="var(--fleet-line)" stroke-width="1" stroke-dasharray="3 2"/>
+                <text x="189" y="9.5" font-family="Geist, sans-serif" font-size="8" fill="var(--fleet-legend-text)">pending</text>
+              </g>
+
+            </svg>
+          </div>
+        </div>
+
+        <!-- Feed Pipeline -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Feed Pipeline</span>
+            <span class="card-action" style="font-family:'GeistMono',monospace;font-size:10px;color:var(--text-muted);">last sync 4m ago</span>
+          </div>
+
+          <!-- Feed sources -->
+          <div class="pipeline-feeds">
+            <span class="feed-chip error">
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                <circle cx="4" cy="4" r="3.5" stroke="currentColor" stroke-width="1"/>
+                <path d="M4 2.5v2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+                <circle cx="4" cy="5.5" r="0.5" fill="currentColor"/>
+              </svg>
+              NVD
+            </span>
+            <span class="feed-chip">CISA</span>
+            <span class="feed-chip">MSRC</span>
+            <span class="feed-chip">RedHat</span>
+            <span class="feed-chip">Ubuntu</span>
+            <span class="feed-chip">Apple</span>
+          </div>
+
+          <!-- Arrow down -->
+          <div class="arrow-line"></div>
+
+          <div class="pipeline-stages">
+
+            <!-- Ingest -->
+            <div class="pipeline-stage">
+              <span class="stage-label">Ingest</span>
+              <div class="stage-bar-wrap">
+                <div class="stage-bar" style="width:100%; opacity:0.9;"></div>
+              </div>
+              <span class="stage-count">12,847</span>
+            </div>
+
+            <div class="arrow-line"></div>
+
+            <!-- Normalize -->
+            <div class="pipeline-stage">
+              <span class="stage-label">Normalize</span>
+              <div class="stage-bar-wrap">
+                <div class="stage-bar" style="width:87%; opacity:0.75;"></div>
+              </div>
+              <span class="stage-count">11,203</span>
+            </div>
+
+            <div class="arrow-line"></div>
+
+            <!-- Deduplicate -->
+            <div class="pipeline-stage">
+              <span class="stage-label">Deduplicate</span>
+              <div class="stage-bar-wrap">
+                <div class="stage-bar" style="width:69%; opacity:0.65;"></div>
+              </div>
+              <span class="stage-count">8,891</span>
+            </div>
+
+            <div class="arrow-line"></div>
+
+            <!-- Enrich -->
+            <div class="pipeline-stage">
+              <span class="stage-label">Enrich</span>
+              <div class="stage-bar-wrap">
+                <div class="stage-bar" style="width:42%; opacity:0.5;"></div>
+              </div>
+              <span class="stage-count">3,412</span>
+            </div>
+
+            <div class="arrow-line"></div>
+
+            <!-- Catalog (final) -->
+            <div class="pipeline-stage">
+              <span class="stage-label" style="color:var(--brand);">Catalog</span>
+              <div class="stage-bar-wrap">
+                <div class="stage-bar" style="width:21%;"></div>
+              </div>
+              <span class="stage-count brand">2,739</span>
+            </div>
+
+          </div>
+
+          <!-- NVD error notice -->
+          <div style="margin-top:14px;padding:8px 10px;border:1px solid var(--red-dim);border-radius:6px;display:flex;align-items:center;gap:8px;background:var(--nvd-error-bg);">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="5.5" stroke="var(--red)" stroke-width="1"/>
+              <path d="M6 3.5v3" stroke="var(--red)" stroke-width="1" stroke-linecap="round"/>
+              <circle cx="6" cy="8.5" r="0.6" fill="var(--red)"/>
+            </svg>
+            <span style="font-size:11px;color:var(--red);flex:1;">NVD feed failing — API timeout since 06:14</span>
+            <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px;">Retry</button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ── Row 3: Activity + Quality + License ────────────────── -->
+      <div class="row-thirds">
+
+        <!-- Client Activity -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Client Activity</span>
+            <span class="card-action">All events →</span>
+          </div>
+          <div class="activity-list">
+
+            <div class="activity-item">
+              <span class="activity-dot dot-emerald"></span>
+              <div class="activity-body">
+                <div class="activity-desc"><strong>prod-pm-02</strong> synced catalog — 47 new entries</div>
+              </div>
+              <span class="activity-time">2m</span>
+            </div>
+
+            <div class="activity-item">
+              <span class="activity-dot dot-gray"></span>
+              <div class="activity-body">
+                <div class="activity-desc"><strong>eu-pm-01</strong> heartbeat received</div>
+              </div>
+              <span class="activity-time">6m</span>
+            </div>
+
+            <div class="activity-item">
+              <span class="activity-dot dot-red"></span>
+              <div class="activity-body">
+                <div class="activity-desc"><strong>test-pm-01</strong> went offline — last seen 6h ago</div>
+              </div>
+              <span class="activity-time">6h</span>
+            </div>
+
+            <div class="activity-item">
+              <span class="activity-dot dot-amber"></span>
+              <div class="activity-body">
+                <div class="activity-desc"><strong>dev-pm-01</strong> sync delay detected — queue depth 847</div>
+              </div>
+              <span class="activity-time">8h</span>
+            </div>
+
+            <div class="activity-item">
+              <span class="activity-dot dot-emerald"></span>
+              <div class="activity-body">
+                <div class="activity-desc"><strong>prod-pm-01</strong> deployment completed — 212 endpoints patched</div>
+              </div>
+              <span class="activity-time">12h</span>
+            </div>
+
+            <div class="activity-item">
+              <span class="activity-dot dot-gray"></span>
+              <div class="activity-body">
+                <div class="activity-desc"><strong>apac-pm-01</strong> license renewed — 90 days added</div>
+              </div>
+              <span class="activity-time">1d</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Catalog Quality -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Catalog Quality</span>
+          </div>
+
+          <div class="quality-metrics">
+
+            <div class="quality-metric">
+              <div class="quality-metric-header">
+                <span class="quality-metric-name">Completeness</span>
+                <span class="quality-metric-value">94%</span>
+              </div>
+              <div class="quality-bar-track">
+                <div class="quality-bar-fill" style="width:94%"></div>
+              </div>
+            </div>
+
+            <div class="quality-metric">
+              <div class="quality-metric-header">
+                <span class="quality-metric-name">CVE Coverage</span>
+                <span class="quality-metric-value">98.2%</span>
+              </div>
+              <div class="quality-bar-track">
+                <div class="quality-bar-fill" style="width:98.2%"></div>
+              </div>
+            </div>
+
+            <div class="quality-metric">
+              <div class="quality-metric-header">
+                <span class="quality-metric-name">Duplicates Removed</span>
+                <span class="quality-metric-value">127</span>
+              </div>
+            </div>
+
+            <div class="quality-metric">
+              <div class="quality-metric-header">
+                <span class="quality-metric-name">Stale Entries</span>
+                <span class="quality-metric-value amber">34</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="quality-section-title">Source Distribution</div>
+
+          <div class="stacked-bar-wrap">
+            <div class="stacked-seg" style="width:45%;background:var(--brand);opacity:1;"></div>
+            <div class="stacked-seg" style="width:12%;background:var(--brand);opacity:0.75;"></div>
+            <div class="stacked-seg" style="width:18%;background:var(--brand);opacity:0.55;"></div>
+            <div class="stacked-seg" style="width:11%;background:var(--brand);opacity:0.38;"></div>
+            <div class="stacked-seg" style="width:9%;background:var(--brand);opacity:0.22;"></div>
+            <div class="stacked-seg" style="width:5%;background:var(--brand);opacity:0.12;"></div>
+          </div>
+
+          <div class="source-labels">
+            <span class="source-label">
+              <span class="source-swatch" style="background:var(--brand);opacity:1;"></span>
+              NVD 45%
+            </span>
+            <span class="source-label">
+              <span class="source-swatch" style="background:var(--brand);opacity:0.75;"></span>
+              CISA 12%
+            </span>
+            <span class="source-label">
+              <span class="source-swatch" style="background:var(--brand);opacity:0.55;"></span>
+              MSRC 18%
+            </span>
+            <span class="source-label">
+              <span class="source-swatch" style="background:var(--brand);opacity:0.38;"></span>
+              RedHat 11%
+            </span>
+            <span class="source-label">
+              <span class="source-swatch" style="background:var(--brand);opacity:0.22;"></span>
+              Ubuntu 9%
+            </span>
+            <span class="source-label">
+              <span class="source-swatch" style="background:var(--brand);opacity:0.12;"></span>
+              Apple 5%
+            </span>
+          </div>
+
+        </div>
+
+        <!-- License Overview -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">License Overview</span>
+            <span class="card-action">Manage →</span>
+          </div>
+
+          <div class="license-headline">
+            <div class="license-big">72 <span style="font-size:20px;color:var(--text-faint);font-weight:400">/ 100</span></div>
+            <div class="license-sub">licensed endpoints in use</div>
+          </div>
+
+          <div class="license-bar-wrap">
+            <div class="license-bar-fill" style="width:72%"></div>
+          </div>
+
+          <div class="license-rows">
+
+            <div class="license-row">
+              <div class="license-name">Acme Corp</div>
+              <div class="license-seats">25 / 30</div>
+              <div class="license-expiry" style="margin-left:auto;">180d</div>
+            </div>
+
+            <div class="license-row">
+              <div class="license-name">Beta Inc</div>
+              <div class="license-seats">20 / 25</div>
+              <div class="license-expiry amber" style="margin-left:auto;">12d</div>
+            </div>
+
+            <div class="license-row">
+              <div class="license-name">Gamma LLC</div>
+              <div class="license-seats">15 / 20</div>
+              <div class="license-expiry" style="margin-left:auto;">45d</div>
+            </div>
+
+            <div class="license-row">
+              <div class="license-name">Delta Co</div>
+              <div class="license-seats">12 / 25</div>
+              <div class="license-expiry" style="margin-left:auto;">92d</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Row 4: Sync Chart + Pending Approvals ─────────────── -->
+      <div class="row-halves">
+
+        <!-- Feed Sync — 7 Days -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Feed Sync — 7 Days</span>
+            <span class="card-action" style="font-family:'GeistMono',monospace;font-size:10px;color:var(--text-muted);">total entries synced</span>
+          </div>
+          <div class="chart-wrap">
+            <svg viewBox="0 0 480 140" fill="none" xmlns="http://www.w3.org/2000/svg" id="chart-svg">
+              <defs>
+                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--brand)" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="var(--brand)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Grid lines -->
+              <line x1="40" y1="20"  x2="470" y2="20"  stroke="var(--border)" stroke-width="0.5"/>
+              <line x1="40" y1="50"  x2="470" y2="50"  stroke="var(--border)" stroke-width="0.5"/>
+              <line x1="40" y1="80"  x2="470" y2="80"  stroke="var(--border)" stroke-width="0.5"/>
+              <line x1="40" y1="110" x2="470" y2="110" stroke="var(--border)" stroke-width="0.5"/>
+
+              <!-- Y-axis labels -->
+              <text x="35" y="23"  text-anchor="end" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">15k</text>
+              <text x="35" y="53"  text-anchor="end" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">10k</text>
+              <text x="35" y="83"  text-anchor="end" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">5k</text>
+              <text x="35" y="113" text-anchor="end" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">0</text>
+
+              <!-- Area fill -->
+              <path d="M40,96 C95,90 115,38 165,42 C215,46 220,72 265,60 C310,48 330,30 380,28 C410,26 450,78 470,84 L470,110 L40,110 Z"
+                    fill="url(#chartGrad)"/>
+
+              <!-- Area stroke -->
+              <path d="M40,96 C95,90 115,38 165,42 C215,46 220,72 265,60 C310,48 330,30 380,28 C410,26 450,78 470,84"
+                    stroke="var(--brand)" stroke-width="1.5" fill="none"/>
+
+              <!-- Data point dots -->
+              <circle cx="40"  cy="96" r="2.5" fill="var(--brand)"/>
+              <circle cx="110" cy="42" r="2.5" fill="var(--brand)"/>
+              <circle cx="180" cy="42" r="2.5" fill="var(--brand)"/>
+              <circle cx="255" cy="60" r="2.5" fill="var(--brand)"/>
+              <circle cx="325" cy="30" r="2.5" fill="var(--brand)"/>
+              <circle cx="395" cy="28" r="2.5" fill="var(--brand)"/>
+              <circle cx="470" cy="84" r="2.5" fill="var(--brand)"/>
+
+              <!-- X-axis labels -->
+              <text x="40"  y="128" text-anchor="middle" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">Mon</text>
+              <text x="110" y="128" text-anchor="middle" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">Tue</text>
+              <text x="180" y="128" text-anchor="middle" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">Wed</text>
+              <text x="255" y="128" text-anchor="middle" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">Thu</text>
+              <text x="325" y="128" text-anchor="middle" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">Fri</text>
+              <text x="395" y="128" text-anchor="middle" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">Sat</text>
+              <text x="470" y="128" text-anchor="middle" font-family="GeistMono, monospace" font-size="9" fill="var(--chart-axis-label)">Sun</text>
+
+            </svg>
+          </div>
+        </div>
+
+        <!-- Pending Approvals -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Pending Approvals</span>
+            <span class="card-action" style="font-family:'GeistMono',monospace;font-size:10px;background:var(--amber-dim);color:var(--amber);padding:2px 8px;border-radius:10px;">5 items</span>
+          </div>
+
+          <!-- Client Registrations -->
+          <div class="approvals-section">
+            <div class="approvals-section-title">
+              Client Registrations
+              <span style="font-size:10px;color:var(--text-faint);font-weight:400;letter-spacing:0;text-transform:none;">(2)</span>
+            </div>
+
+            <div class="approval-row">
+              <div class="approval-name">dev-pm-03</div>
+              <div class="approval-time">2h ago</div>
+              <div class="approval-actions">
+                <button class="btn btn-outline">Approve</button>
+                <button class="btn btn-ghost">Decline</button>
+              </div>
+            </div>
+
+            <div class="approval-row">
+              <div class="approval-name">test-pm-staging</div>
+              <div class="approval-time">5h ago</div>
+              <div class="approval-actions">
+                <button class="btn btn-outline">Approve</button>
+                <button class="btn btn-ghost">Decline</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feed Alerts -->
+          <div class="approvals-section">
+            <div class="approvals-section-title">
+              Feed Alerts
+              <span style="font-size:10px;color:var(--text-faint);font-weight:400;letter-spacing:0;text-transform:none;">(1)</span>
+            </div>
+
+            <div class="approval-row">
+              <div class="approval-name red">NVD failing — 6h without sync</div>
+              <div class="approval-actions">
+                <button class="btn btn-outline">Retry</button>
+                <button class="btn btn-ghost">Disable</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- License Renewals -->
+          <div class="approvals-section">
+            <div class="approvals-section-title">
+              License Renewals
+              <span style="font-size:10px;color:var(--text-faint);font-weight:400;letter-spacing:0;text-transform:none;">(1)</span>
+            </div>
+
+            <div class="approval-row">
+              <div class="approval-name amber">Beta Inc — expires in 12 days</div>
+              <div class="approval-actions">
+                <button class="btn btn-outline">Renew</button>
+                <button class="btn btn-ghost">Notify</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Catalog Approvals -->
+          <div class="approvals-section" style="margin-bottom:0;">
+            <div class="approvals-section-title">
+              Catalog Approvals
+              <span style="font-size:10px;color:var(--text-faint);font-weight:400;letter-spacing:0;text-transform:none;">(1)</span>
+            </div>
+
+            <div class="approval-row" style="border-bottom:none;">
+              <div class="approval-name">Microsoft Patch Tuesday batch</div>
+              <div class="approval-time">1d ago</div>
+              <div class="approval-actions">
+                <button class="btn btn-outline">Approve</button>
+                <button class="btn btn-ghost">Review</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+    <!-- /content -->
+
+  </div>
+  <!-- /main -->
+
+</div>
+
+<script>
+  function setMode(mode) {
+    const root = document.documentElement;
+    const darkBtn  = document.getElementById('dark-btn');
+    const lightBtn = document.getElementById('light-btn');
+
+    if (mode === 'light') {
+      root.classList.add('light');
+      darkBtn.classList.remove('active');
+      lightBtn.classList.add('active');
+    } else {
+      root.classList.remove('light');
+      darkBtn.classList.add('active');
+      lightBtn.classList.remove('active');
+    }
+  }
+
+  // Persist preference across reloads
+  const saved = localStorage.getItem('patchiq-hub-theme');
+  if (saved === 'light' || saved === 'dark') setMode(saved);
+
+  document.getElementById('dark-btn').addEventListener('click', () => {
+    localStorage.setItem('patchiq-hub-theme', 'dark');
+    setMode('dark');
+  });
+  document.getElementById('light-btn').addEventListener('click', () => {
+    localStorage.setItem('patchiq-hub-theme', 'light');
+    setMode('light');
+  });
+</script>
+
+</body>
+</html>

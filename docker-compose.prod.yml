@@ -1,0 +1,255 @@
+# docker-compose.prod.yml — Full-stack production deployment.
+# Builds Go backends + frontend SPAs into Docker images, serves via nginx.
+# Usage: make prod
+
+services:
+  # ── Infrastructure ──────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "${PG_PORT:-5832}:5432"
+    environment:
+      POSTGRES_DB: patchiq
+      POSTGRES_USER: patchiq
+      POSTGRES_PASSWORD: patchiq
+    volumes:
+      - prod-pgdata:/var/lib/postgresql/data
+      - ./deploy/docker/init-dev-dbs.sh:/docker-entrypoint-initdb.d/init-dev-dbs.sh:ro
+      - ./deploy/zitadel/docker-compose.init.sql:/docker-entrypoint-initdb.d/02-zitadel.sql
+    networks:
+      - patchiq-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U patchiq -d patchiq"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:v2.71.6
+    command: start-from-init --masterkeyFromEnv --tlsMode disabled --steps /steps.yaml
+    environment:
+      ZITADEL_MASTERKEY: "patchiq-dev-masterkey-32chars!!x"
+      ZITADEL_DATABASE_POSTGRES_HOST: postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: patchiq
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: patchiq
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      ZITADEL_EXTERNALDOMAIN: ${PROD_HOST:-localhost}
+      ZITADEL_EXTERNALPORT: ${ZITADEL_PORT:-8485}
+      ZITADEL_EXTERNALSECURE: "false"
+    volumes:
+      - ./deploy/zitadel/steps.yaml:/steps.yaml:ro
+      - ./deploy/zitadel/machinekey:/machinekey
+    ports:
+      - "${ZITADEL_PORT:-8485}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - patchiq-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Zitadel distroless image has no curl/wget — skip healthcheck.
+    # Server retries Zitadel connection on startup.
+
+  valkey:
+    image: valkey/valkey:9-alpine
+    ports:
+      - "${VALKEY_PORT:-6779}:6379"
+    volumes:
+      - prod-valkey:/data
+    networks:
+      - patchiq-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-28T09-55-16Z
+    ports:
+      - "${MINIO_API_PORT:-9400}:9000"
+      - "${MINIO_CONSOLE_PORT:-9401}:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - prod-minio:/data
+    networks:
+      - patchiq-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Application backends ────────────────────────────────────
+
+  server:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.server
+    environment:
+      PATCHIQ_CONFIG_PATH: /etc/patchiq/server.yaml
+      PATCHIQ_DATABASE_URL: "postgres://patchiq:patchiq@postgres:5432/${DB_NAME_SERVER:-patchiq_dev_production}?sslmode=disable"
+      PATCHIQ_WATERMILL_POSTGRES_URL: "postgres://patchiq:patchiq@postgres:5432/${DB_NAME_SERVER:-patchiq_dev_production}?sslmode=disable"
+      PATCHIQ_VALKEY_URL: "redis://valkey:6379"
+      PATCHIQ_SERVER_HTTP_PORT: "8080"
+      PATCHIQ_SERVER_GRPC_PORT: "50051"
+      PATCHIQ_SERVER_CORS_ORIGINS: "http://${PROD_HOST:-localhost}:${WEB_PORT:-3401},http://${PROD_HOST:-localhost}:${WEB_HUB_PORT:-3402},http://${PROD_HOST:-localhost}:${WEB_AGENT_PORT:-3403}"
+      PATCHIQ_OTEL_ENDPOINT: ""
+      PATCHIQ_IAM_ZITADEL_DOMAIN: "zitadel:8080"
+      PATCHIQ_IAM_ZITADEL_REDIRECT_URI: "http://${PROD_HOST:-localhost}:${PATCHIQ_SERVER_HTTP_PORT:-8480}/api/v1/auth/callback"
+      PATCHIQ_IAM_SESSION_POST_LOGIN_URL: "http://${PROD_HOST:-localhost}:${WEB_PORT:-3401}/"
+      PATCHIQ_IAM_SESSION_COOKIE_DOMAIN: "${PROD_HOST:-localhost}"
+      PATCHIQ_REPO_CACHE_DIR: "/tmp/patchiq-repo-cache"
+      PATCHIQ_SERVER_AGENT_BINARIES_DIR: "/data/agent-binaries"
+      PATCHIQ_SERVER_MINIO_ENDPOINT: "minio:9000"
+      PATCHIQ_HUB_URL: "http://hub:8082"
+      PATCHIQ_HUB_API_KEY: "${PATCHIQ_HUB_API_KEY:-patchiq-hub-sync-dev-key}"
+    volumes:
+      - ./configs/server.yaml:/etc/patchiq/server.yaml:ro
+      - prod-repo-cache:/tmp/patchiq-repo-cache
+      - ./dist/agents:/data/agent-binaries:ro
+    ports:
+      - "${PATCHIQ_SERVER_HTTP_PORT:-8480}:8080"
+      - "${PATCHIQ_SERVER_GRPC_PORT:-50451}:50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      zitadel:
+        condition: service_started
+    networks:
+      - patchiq-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  hub:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.hub
+    environment:
+      PATCHIQ_HUB_CONFIG_PATH: /etc/patchiq/hub.yaml
+      PATCHIQ_HUB_DATABASE_URL: "postgres://patchiq:patchiq@postgres:5432/${DB_NAME_HUB:-patchiq_hub_dev_production}?sslmode=disable"
+      PATCHIQ_HUB_WATERMILL_POSTGRES_URL: "postgres://patchiq:patchiq@postgres:5432/${DB_NAME_HUB:-patchiq_hub_dev_production}?sslmode=disable"
+      PATCHIQ_HUB_HUB_HTTP_PORT: "8082"
+      PATCHIQ_HUB_HUB_CORS_ORIGINS: "http://${PROD_HOST:-localhost}:${WEB_HUB_PORT:-3402}"
+      PATCHIQ_HUB_HUB_MINIO_ENDPOINT: "minio:9000"
+      PATCHIQ_HUB_IAM_ZITADEL_DOMAIN: "zitadel:8080"
+      PATCHIQ_HUB_IAM_ZITADEL_REDIRECT_URI: "http://${PROD_HOST:-localhost}:${PATCHIQ_HUB_HTTP_PORT:-8482}/api/v1/auth/callback"
+      PATCHIQ_HUB_IAM_SESSION_POST_LOGIN_URL: "http://${PROD_HOST:-localhost}:${WEB_HUB_PORT:-3402}/"
+      PATCHIQ_HUB_SYNC_API_KEY: "${PATCHIQ_HUB_SYNC_API_KEY:-patchiq-hub-sync-dev-key}"
+    volumes:
+      - ./configs/hub.yaml:/etc/patchiq/hub.yaml:ro
+    ports:
+      - "${PATCHIQ_HUB_HTTP_PORT:-8482}:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - patchiq-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  # ── Frontend (nginx serves pre-built SPAs) ──────────────────
+
+  nginx:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.nginx
+    ports:
+      - "${WEB_PORT:-3401}:${WEB_PORT:-3401}"
+      - "${WEB_HUB_PORT:-3402}:${WEB_HUB_PORT:-3402}"
+      - "${WEB_AGENT_PORT:-3403}:${WEB_AGENT_PORT:-3403}"
+    environment:
+      WEB_PORT: "${WEB_PORT:-3401}"
+      WEB_HUB_PORT: "${WEB_HUB_PORT:-3402}"
+      WEB_AGENT_PORT: "${WEB_AGENT_PORT:-3403}"
+    depends_on:
+      - server
+      - hub
+    networks:
+      - patchiq-prod
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  patchiq-prod:
+    driver: bridge
+
+volumes:
+  prod-pgdata:
+  prod-valkey:
+  prod-minio:
+  prod-repo-cache:

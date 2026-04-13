@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Acme Corp — Client Detail — PatchIQ Hub</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { darkMode: 'class', theme: { extend: { colors: { indigo: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' } } } } }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  :root { --sidebar-w: 260px; }
+  .sidebar-collapsed { --sidebar-w: 64px; }
+  #sidebar { width: var(--sidebar-w); transition: width 0.3s ease; overflow: hidden; }
+  #main-content { margin-left: var(--sidebar-w); transition: margin-left 0.3s ease; }
+  .nav-label, .group-label, .badge, .logo-text { transition: opacity 0.2s; white-space: nowrap; }
+  .sidebar-collapsed .nav-label, .sidebar-collapsed .group-label, .sidebar-collapsed .badge, .sidebar-collapsed .logo-text { opacity: 0; width: 0; overflow: hidden; }
+  .sidebar-collapsed .group-label { display: none; }
+  .sidebar-collapsed .badge { display: none; }
+  .tab-btn { border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab-btn.active { border-bottom-color: #6366f1; color: #6366f1; }
+  .dark .tab-btn.active { border-bottom-color: #818cf8; color: #818cf8; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .expandable-sync { display: none; }
+  .expandable-sync.open { display: table-row; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  .status-dot-connected { animation: pulse-status 2s ease-in-out infinite; }
+  @keyframes pulse-status { 0%,100%{opacity:1} 50%{opacity:0.6} }
+</style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-30">
+  <div class="h-14 flex items-center px-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
+    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+      <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+    </div>
+    <span class="logo-text ml-3 font-bold text-indigo-600 text-lg">PatchIQ Hub</span>
+    <button onclick="toggleSidebar()" class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+  </div>
+  <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-1">
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Overview</p>
+      <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+    </div>
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Fleet</p>
+      <a href="clients.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Clients</span>
+        <span class="badge ml-auto text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full">8</span>
+      </a>
+      <a href="deployments.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <span class="nav-label">Deployments</span>
+        <span class="badge ml-auto text-xs bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">2</span>
+      </a>
+    </div>
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Catalog</p>
+      <a href="catalog.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg><span class="nav-label">Catalog</span></a>
+      <a href="feeds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg><span class="nav-label">Feeds</span></a>
+    </div>
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Licensing</p>
+      <a href="licenses.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg><span class="nav-label">Licenses</span></a>
+    </div>
+    <div class="mb-1">
+      <p class="group-label px-2 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">Configuration</p>
+      <a href="configuration.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="nav-label">Settings</span></a>
+    </div>
+  </nav>
+</aside>
+
+<!-- Topbar -->
+<header id="topbar" class="fixed top-0 right-0 h-14 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center px-4 gap-4 z-20" style="left: var(--sidebar-w); transition: left 0.3s ease;">
+  <div class="flex items-center gap-2 text-sm text-slate-500">
+    <a href="index.html" class="hover:text-indigo-500">Home</a>
+    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <a href="clients.html" class="hover:text-indigo-500">Clients</a>
+    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <span class="text-slate-700 dark:text-slate-200 font-medium">Acme Corp</span>
+  </div>
+  <div class="mx-auto relative" id="clientSwitcherWrap">
+    <button onclick="toggleClientSwitcher()" class="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm font-medium hover:border-indigo-400 transition-colors">
+      <div class="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">A</div>
+      <span>Acme Corp</span>
+      <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    </button>
+    <div id="clientSwitcherMenu" class="hidden absolute top-full mt-2 left-1/2 -translate-x-1/2 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-xl z-50 py-2">
+      <p class="px-3 py-1 text-xs font-semibold text-slate-400 uppercase">Switch Client</p>
+      <div id="clientMenuItems"></div>
+    </div>
+  </div>
+  <div class="flex items-center gap-3 ml-auto">
+    <button class="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+    </button>
+    <button onclick="toggleTheme()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500">
+      <svg class="w-5 h-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      <svg class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    </button>
+    <div class="flex items-center gap-2 cursor-pointer">
+      <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold">H</div>
+      <span class="text-sm font-medium hidden sm:block">hubadmin@msp.com</span>
+    </div>
+  </div>
+</header>
+
+<main id="main-content" class="pt-14 min-h-screen">
+  <div class="p-6 space-y-6">
+
+    <!-- Identity Header -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold">A</div>
+          <div>
+            <div class="flex items-center gap-3 flex-wrap">
+              <h1 class="text-2xl font-bold">Acme Corp</h1>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-green-500 status-dot-connected inline-block"></span>
+                <span class="text-sm text-green-500 font-medium">Connected</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400">Enterprise</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500 dark:text-slate-400">
+              <span>PM <span class="font-mono">v1.4.2</span></span>
+              <span>First connected: <span class="text-slate-700 dark:text-slate-300">Jun 1, 2025</span></span>
+              <span>Last sync: <span class="text-slate-700 dark:text-slate-300">5 minutes ago</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Sync Now
+          </button>
+          <button class="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700">Edit</button>
+          <button class="px-4 py-2 border border-red-200 dark:border-red-800 text-red-500 rounded-lg text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20">Revoke Access</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Context Ring — 6 Stat Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+      <!-- Endpoints -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Endpoints</p>
+        <p class="text-2xl font-bold">247</p>
+        <p class="text-xs text-green-500 flex items-center gap-1 mt-1">
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+          +3 this week
+        </p>
+      </div>
+      <!-- Patch Coverage -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Patch Coverage</p>
+        <p class="text-2xl font-bold">89%</p>
+        <div class="mt-2"><div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5"><div class="bg-green-500 h-1.5 rounded-full" style="width:89%"></div></div></div>
+      </div>
+      <!-- Compliance -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Compliance</p>
+        <div class="flex items-center gap-2">
+          <p class="text-2xl font-bold">78%</p>
+          <canvas id="complianceRing" width="36" height="36"></canvas>
+        </div>
+      </div>
+      <!-- Catalog Synced -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Catalog Synced</p>
+        <p class="text-2xl font-bold">1,128<span class="text-slate-400 text-sm font-normal">/1,247</span></p>
+        <div class="mt-2"><div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5"><div class="bg-indigo-500 h-1.5 rounded-full" style="width:90.5%"></div></div></div>
+      </div>
+      <!-- Sync Health -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Sync Health</p>
+        <p class="text-2xl font-bold text-green-500">98%</p>
+        <canvas id="syncHealthSparkline" width="100" height="28" class="mt-1"></canvas>
+      </div>
+      <!-- License Usage -->
+      <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">License Usage</p>
+        <p class="text-2xl font-bold">247<span class="text-slate-400 text-sm font-normal">/500</span></p>
+        <div class="mt-2"><div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5"><div class="bg-indigo-500 h-1.5 rounded-full" style="width:49.4%"></div></div></div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+      <!-- Tab bar -->
+      <div class="flex items-center gap-0 border-b border-slate-100 dark:border-slate-700 px-4 overflow-x-auto">
+        <button onclick="switchTab('overview')" class="tab-btn active px-4 py-4 text-sm font-medium whitespace-nowrap" id="tab-overview">Overview</button>
+        <button onclick="switchTab('endpoints')" class="tab-btn px-4 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap" id="tab-endpoints">Endpoints</button>
+        <button onclick="switchTab('sync')" class="tab-btn px-4 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap" id="tab-sync">Sync History</button>
+        <button onclick="switchTab('license')" class="tab-btn px-4 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap" id="tab-license">License</button>
+        <button onclick="switchTab('config')" class="tab-btn px-4 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap" id="tab-config">Configuration</button>
+      </div>
+
+      <!-- Tab: Overview -->
+      <div class="tab-panel active p-6" id="panel-overview">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h3 class="font-semibold mb-3">Connection Health — Sync Latency (7 Days)</h3>
+            <canvas id="latencyChart" height="160"></canvas>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-3">Endpoint Count by Month</h3>
+            <canvas id="epTrendChart" height="160"></canvas>
+          </div>
+          <div class="flex items-center gap-6 p-4 bg-slate-50 dark:bg-slate-700/40 rounded-xl">
+            <div class="text-center">
+              <p class="text-xs text-slate-500 mb-1">Sync Frequency</p>
+              <p class="text-xl font-bold">15 min</p>
+            </div>
+            <div class="flex-1">
+              <p class="text-xs text-slate-500 mb-2">Recent success rate (last 20 syncs)</p>
+              <div class="flex gap-1 flex-wrap">
+                <span class="w-4 h-4 rounded bg-green-500 text-xs"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-green-500"></span><span class="w-4 h-4 rounded bg-amber-500"></span><span class="w-4 h-4 rounded bg-green-500"></span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">19/20 successful</p>
+            </div>
+          </div>
+          <div class="p-4 bg-slate-50 dark:bg-slate-700/40 rounded-xl">
+            <p class="text-xs text-slate-500 mb-1">Catalog Coverage</p>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xl font-bold">90.5%</span>
+              <span class="text-sm text-slate-500">1,128 of 1,247 entries synced</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-3">
+              <div class="bg-indigo-500 h-3 rounded-full" style="width:90.5%"></div>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">119 entries pending sync (next: 10 min)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Endpoints -->
+      <div class="tab-panel p-6" id="panel-endpoints">
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-5 p-3 bg-slate-50 dark:bg-slate-700/40 rounded-lg border border-slate-200 dark:border-slate-700">
+          Hub Manager sees aggregate statistics only. Individual endpoint data is managed by the on-premises Patch Manager instance.
+        </p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div>
+            <h3 class="font-semibold mb-3">Endpoints by OS</h3>
+            <canvas id="osChartDetail" height="220"></canvas>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-3">Endpoints by Status</h3>
+            <canvas id="statusChartDetail" height="220"></canvas>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-3">Compliance by Framework</h3>
+            <canvas id="complianceChart" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Sync History -->
+      <div class="tab-panel p-6" id="panel-sync">
+        <div class="mb-4">
+          <h3 class="font-semibold mb-2">Sync Health (Last 20 syncs)</h3>
+          <canvas id="syncHistorySparkline" height="50"></canvas>
+        </div>
+        <div class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50">
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Timestamp</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Duration</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Total</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">New</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Updated</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Errors</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                <th class="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody id="syncHistoryBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: License -->
+      <div class="tab-panel p-6" id="panel-license">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="p-5 rounded-xl border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <p class="text-xs text-slate-500 mb-1">License Tier</p>
+                <span class="px-3 py-1 rounded-lg text-sm font-bold bg-indigo-600 text-white">Enterprise</span>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-slate-500 mb-1">License Key</p>
+                <p class="font-mono text-sm">****-****-****-1A2B</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div><p class="text-xs text-slate-500">Issued</p><p class="font-medium">Jun 1, 2025</p></div>
+              <div><p class="text-xs text-slate-500">Expires</p><p class="font-medium">Jun 1, 2026 <span class="text-green-500 text-xs">(83 days)</span></p></div>
+              <div><p class="text-xs text-slate-500">Endpoint Quota</p><p class="font-medium">500 endpoints</p></div>
+              <div><p class="text-xs text-slate-500">Current Usage</p><p class="font-medium text-indigo-600 dark:text-indigo-400">247 (49.4%)</p></div>
+            </div>
+            <div class="mt-4">
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="text-slate-500">Endpoint usage</span>
+                <span class="text-indigo-600 dark:text-indigo-400">247/500</span>
+              </div>
+              <div class="w-full bg-white dark:bg-slate-700 rounded-full h-2.5">
+                <div class="bg-indigo-500 h-2.5 rounded-full" style="width:49.4%"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-3">Endpoint Usage Over Time</h3>
+            <canvas id="licenseUsageChart" height="180"></canvas>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-3">Features</h3>
+            <div class="space-y-2">
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span class="text-sm">Unlimited sync frequency</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span class="text-sm">Full catalog access (1,247 entries)</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span class="text-sm">Priority support SLA (4h response)</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span class="text-sm">Compliance reporting (CIS, NIST, SOC 2)</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span class="text-sm">Fleet deployment management</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span class="text-sm text-slate-400">Custom feed configuration (add-on)</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-3">Audit Trail</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></span>
+                <div><p>License assigned by <b>hubadmin@msp.com</b></p><p class="text-xs text-slate-500">Jun 1, 2025 at 09:00 UTC</p></div>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></span>
+                <div><p>License activated — Acme Corp PM registered</p><p class="text-xs text-slate-500">Jun 1, 2025 at 09:05 UTC</p></div>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></span>
+                <div><p>Tier upgraded from Professional to Enterprise</p><p class="text-xs text-slate-500">Aug 15, 2025 at 14:30 UTC</p></div>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500 mt-1.5 flex-shrink-0"></span>
+                <div><p>License renewed for 1 year</p><p class="text-xs text-slate-500">Dec 1, 2025 at 11:00 UTC</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Configuration -->
+      <div class="tab-panel p-6" id="panel-config">
+        <div class="max-w-2xl space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-sm font-medium mb-2">Sync Interval</label>
+              <select class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option>5 minutes</option>
+                <option selected>15 minutes</option>
+                <option>30 minutes</option>
+                <option>1 hour</option>
+                <option>6 hours</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Status</label>
+              <div class="flex items-center gap-3 py-2">
+                <button id="statusToggle" onclick="toggleActive()" class="relative inline-flex w-11 h-6 rounded-full bg-indigo-600 transition-colors">
+                  <span class="translate-x-5 inline-block w-5 h-5 bg-white rounded-full mt-0.5 ml-0.5 transition-transform"></span>
+                </button>
+                <span id="statusLabel" class="text-sm font-medium text-green-500">Active</span>
+              </div>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium mb-2">Catalog Scope</label>
+              <div class="flex gap-3">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="catalogScope" value="all" checked class="accent-indigo-600" />
+                  <span class="text-sm">All entries (1,247)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="catalogScope" value="filtered" class="accent-indigo-600" />
+                  <span class="text-sm">Filtered</span>
+                </label>
+              </div>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium mb-2">Notes</label>
+              <textarea class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="3" placeholder="Internal notes for this client...">Enterprise customer — main contact: john.doe@acmecorp.com — Priority support contract active.</textarea>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium">Save Changes</button>
+            <button class="px-5 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// Theme
+function toggleTheme() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); }
+(function(){ const t=localStorage.getItem('theme'); if(t==='light') document.documentElement.classList.remove('dark'); else document.documentElement.classList.add('dark'); })();
+// Sidebar
+function toggleSidebar() { document.documentElement.classList.toggle('sidebar-collapsed'); const w = document.documentElement.classList.contains('sidebar-collapsed') ? '64px' : '260px'; document.documentElement.style.setProperty('--sidebar-w', w); }
+// Client Switcher
+function toggleClientSwitcher() { document.getElementById('clientSwitcherMenu').classList.toggle('hidden'); }
+document.addEventListener('click',e=>{ if(!document.getElementById('clientSwitcherWrap').contains(e.target)) document.getElementById('clientSwitcherMenu').classList.add('hidden'); });
+const cms=[{n:'Acme Corp',c:'#6366f1',i:'A'},{n:'TechStart Inc',c:'#10b981',i:'T'},{n:'DataFlow Ltd',c:'#f59e0b',i:'D'},{n:'SecureBank',c:'#3b82f6',i:'S'},{n:'MedHealth',c:'#8b5cf6',i:'M'},{n:'GovTech',c:'#ef4444',i:'G'},{n:'EduNet',c:'#14b8a6',i:'E'},{n:'RetailPlus',c:'#f97316',i:'R'}];
+(function(){ const el=document.getElementById('clientMenuItems'); cms.forEach(c=>{ el.innerHTML+=`<a href="client-detail.html" class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700"><div class="w-5 h-5 rounded flex items-center justify-center text-white text-xs font-bold" style="background:${c.c}">${c.i}</div><span>${c.n}</span></a>`; }); })();
+
+// Tabs
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  window.location.hash = name;
+  // Lazy-init charts for endpoints tab
+  if (name === 'endpoints' && !window.endpointChartsInit) {
+    window.endpointChartsInit = true;
+    initEndpointCharts();
+  }
+}
+// Hash navigation
+const hash = window.location.hash.replace('#','');
+if (['overview','endpoints','sync','license','config'].includes(hash)) switchTab(hash);
+
+// Config toggle
+function toggleActive() {
+  const btn = document.getElementById('statusToggle');
+  const lbl = document.getElementById('statusLabel');
+  const span = btn.querySelector('span');
+  if (lbl.textContent === 'Active') {
+    btn.classList.remove('bg-indigo-600'); btn.classList.add('bg-slate-300','dark:bg-slate-600');
+    span.classList.remove('translate-x-5'); span.classList.add('translate-x-0');
+    lbl.textContent = 'Inactive'; lbl.className = 'text-sm font-medium text-slate-500';
+  } else {
+    btn.classList.add('bg-indigo-600'); btn.classList.remove('bg-slate-300','dark:bg-slate-600');
+    span.classList.add('translate-x-5'); span.classList.remove('translate-x-0');
+    lbl.textContent = 'Active'; lbl.className = 'text-sm font-medium text-green-500';
+  }
+}
+
+const isDark = () => document.documentElement.classList.contains('dark');
+const gc = () => isDark() ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+const tc = () => isDark() ? '#64748b' : '#94a3b8';
+
+// ─── Context ring charts ───────────────────────────────────────────────────
+new Chart(document.getElementById('complianceRing'), {
+  type:'doughnut',data:{datasets:[{data:[78,22],backgroundColor:['#6366f1','#e2e8f0'],borderWidth:0}]},
+  options:{cutout:'70%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
+});
+new Chart(document.getElementById('syncHealthSparkline'), {
+  type:'line',data:{labels:Array.from({length:20},(_,i)=>i),datasets:[{data:[1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1].map(v=>v?100:50),borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.1)',fill:true,tension:0.4,borderWidth:1.5,pointRadius:0}]},
+  options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}
+});
+
+// ─── Overview charts ───────────────────────────────────────────────────────
+(function() {
+  const days7 = Array.from({length:7},(_,i)=>{const d=new Date('2026-03-10');d.setDate(d.getDate()-(6-i));return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});});
+  const latencyData = [320,285,295,310,280,290,275];
+  new Chart(document.getElementById('latencyChart'), {
+    type:'line',
+    data:{ labels:days7, datasets:[{label:'Latency (ms)',data:latencyData,borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,0.15)',fill:true,tension:0.4,borderWidth:2,pointRadius:3,pointBackgroundColor:'#6366f1'}] },
+    options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y}ms`}} }, scales:{ x:{ticks:{color:tc()},grid:{color:gc()}}, y:{ticks:{color:tc(),callback:v=>v+'ms'},grid:{color:gc()}} } }
+  });
+  const months = ['Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const epCounts = [198,209,218,227,235,241,247];
+  new Chart(document.getElementById('epTrendChart'), {
+    type:'bar',
+    data:{ labels:months, datasets:[{label:'Endpoints',data:epCounts,backgroundColor:'rgba(99,102,241,0.7)',borderColor:'#6366f1',borderWidth:1,borderRadius:4}] },
+    options:{ responsive:true, plugins:{ legend:{display:false} }, scales:{ x:{ticks:{color:tc()},grid:{color:gc()}}, y:{ticks:{color:tc()},grid:{color:gc()}} } }
+  });
+})();
+
+// ─── Endpoint charts (lazy) ────────────────────────────────────────────────
+function initEndpointCharts() {
+  new Chart(document.getElementById('osChartDetail'), {
+    type:'pie',
+    data:{ labels:['Windows','Ubuntu','RHEL'], datasets:[{data:[45,30,25],backgroundColor:['#6366f1','#f97316','#ef4444'],borderWidth:0}] },
+    options:{ plugins:{ legend:{ position:'bottom', labels:{boxWidth:12,color:tc()} } } }
+  });
+  new Chart(document.getElementById('statusChartDetail'), {
+    type:'bar',
+    data:{ labels:['Online','Offline','Pending'], datasets:[{data:[230,12,5],backgroundColor:['#22c55e','#ef4444','#f59e0b'],borderWidth:0,borderRadius:6}] },
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:tc()},grid:{color:gc()}}, y:{ticks:{color:tc()},grid:{display:false}} } }
+  });
+  new Chart(document.getElementById('complianceChart'), {
+    type:'bar',
+    data:{ labels:['CIS Level 1','NIST CSF','SOC 2 Type II','ISO 27001'], datasets:[{label:'Score',data:[82,78,74,68],backgroundColor:'rgba(99,102,241,0.7)',borderColor:'#6366f1',borderWidth:1,borderRadius:4}] },
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{max:100,ticks:{color:tc(),callback:v=>v+'%'},grid:{color:gc()}}, y:{ticks:{color:tc()},grid:{display:false}} } }
+  });
+}
+
+// ─── Sync History ─────────────────────────────────────────────────────────
+(function() {
+  const syncs = [];
+  const base = new Date('2026-03-10T14:35:00');
+  for (let i=0; i<20; i++) {
+    const ts = new Date(base.getTime() - i*15*60*1000);
+    const ok = i !== 12;
+    syncs.push({
+      ts: ts.toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+      dur: ok ? (2.8+Math.random()*2.5).toFixed(1)+'s' : 'timeout',
+      total: ok ? Math.floor(Math.random()*15) : 0,
+      added: ok ? Math.floor(Math.random()*8) : 0,
+      updated: ok ? Math.floor(Math.random()*7) : 0,
+      errors: ok ? 0 : 1,
+      ok
+    });
+  }
+
+  // Sparkline
+  new Chart(document.getElementById('syncHistorySparkline'), {
+    type:'bar',
+    data:{ labels:syncs.map(s=>s.ts), datasets:[{data:syncs.map(s=>s.ok?100:0),backgroundColor:syncs.map(s=>s.ok?'#22c55e':'#ef4444'),borderWidth:0,borderRadius:2}] },
+    options:{ plugins:{legend:{display:false}}, scales:{x:{display:false},y:{display:false}}, barThickness:8 }
+  });
+
+  const tbody = document.getElementById('syncHistoryBody');
+  syncs.forEach((s,i) => {
+    tbody.innerHTML += `
+      <tr class="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 cursor-pointer" onclick="toggleSyncExpand('se-${i}',this)">
+        <td class="px-4 py-3 text-sm font-mono">${s.ts}</td>
+        <td class="px-4 py-3 text-sm">${s.dur}</td>
+        <td class="px-4 py-3 text-sm">${s.total}</td>
+        <td class="px-4 py-3 text-sm text-green-500">${s.added}</td>
+        <td class="px-4 py-3 text-sm text-indigo-500">${s.updated}</td>
+        <td class="px-4 py-3 text-sm ${s.errors>0?'text-red-500':''}">${s.errors}</td>
+        <td class="px-4 py-3 text-sm">
+          ${s.ok?'<span class="text-green-500 flex items-center gap-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>OK</span>':'<span class="text-red-500 flex items-center gap-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>Error</span>'}
+        </td>
+        <td class="px-4 py-3"><svg class="w-4 h-4 text-slate-400 sync-icon transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></td>
+      </tr>
+      <tr class="expandable-sync" id="se-${i}">
+        <td colspan="8" class="px-4 py-3 bg-slate-50 dark:bg-slate-700/30">
+          ${s.ok
+            ? `<div class="text-xs text-slate-500 grid grid-cols-3 gap-4">
+                <div><b class="text-slate-700 dark:text-slate-300">Entries added:</b> ${s.added} new CVEs synced</div>
+                <div><b class="text-slate-700 dark:text-slate-300">Entries updated:</b> ${s.updated} severity scores revised</div>
+                <div><b class="text-slate-700 dark:text-slate-300">Sync source:</b> NVD (${Math.floor(s.added*0.6)}), KEV (${Math.floor(s.added*0.4)})</div>
+               </div>`
+            : `<div class="text-xs text-red-500">Error: Sync timeout exceeded 30s — catalog pull from PM failed. PM version check: v1.4.2. Network: OK. Retry scheduled.</div>`
+          }
+        </td>
+      </tr>
+    `;
+  });
+})();
+
+function toggleSyncExpand(id, row) {
+  const r = document.getElementById(id);
+  const icon = row.querySelector('.sync-icon');
+  const isOpen = r.classList.contains('open');
+  document.querySelectorAll('.expandable-sync').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('.sync-icon').forEach(i=>i.style.transform='');
+  if (!isOpen) { r.classList.add('open'); if(icon) icon.style.transform='rotate(180deg)'; }
+}
+
+// ─── License usage chart ──────────────────────────────────────────────────
+(function() {
+  const months = ['Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const usage = [198,209,218,227,235,241,247];
+  new Chart(document.getElementById('licenseUsageChart'), {
+    type:'line',
+    data:{ labels:months, datasets:[
+      {label:'Used',data:usage,borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,0.15)',fill:true,tension:0.4,borderWidth:2,pointRadius:3,pointBackgroundColor:'#6366f1'},
+      {label:'Quota',data:Array(7).fill(500),borderColor:'#f59e0b',borderDash:[6,3],fill:false,borderWidth:1.5,pointRadius:0}
+    ]},
+    options:{ responsive:true, plugins:{ legend:{labels:{boxWidth:12,color:tc()}} }, scales:{ x:{ticks:{color:tc()},grid:{color:gc()}}, y:{ticks:{color:tc()},grid:{color:gc()}} } }
+  });
+})();
+</script>
+</body>
+</html>

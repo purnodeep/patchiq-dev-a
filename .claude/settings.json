@@ -1,0 +1,86 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Bash(make *)",
+      "Bash(go test *)",
+      "Bash(go vet *)",
+      "Bash(go build *)",
+      "Bash(golangci-lint *)",
+      "Bash(buf *)",
+      "Bash(air *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm install *)",
+      "Bash(npx vitest *)",
+      "Bash(npx playwright *)",
+      "Bash(sqlc *)",
+      "Bash(goose *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git fetch *)",
+      "Bash(git pull *)",
+      "Bash(git merge *)",
+      "Bash(git rebase *)",
+      "Bash(git stash *)",
+      "Bash(git worktree *)",
+      "Bash(git remote *)",
+      "Bash(gh pr *)",
+      "Bash(gh issue *)",
+      "Bash(gh run *)",
+      "Bash(gh repo *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(docker compose *)",
+      "Bash(docker-compose *)",
+      "Bash(docker build *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -f *)",
+      "Bash(git push origin main *)",
+      "Bash(git push origin master *)",
+      "Bash(drop database *)",
+      "Bash(DROP DATABASE *)"
+    ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "hookify@claude-plugins-official": false,
+    "claude-md-management@claude-plugins-official": false,
+    "context7@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true,
+    "omniprod@omniprod": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    },
+    "omniprod": {
+      "source": {
+        "source": "directory",
+        "path": "./.omniprod-plugin"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "SPHardwareDataType" : [
+    {
+      "_name" : "hardware_overview",
+      "chip_type" : "Apple M2 Pro",
+      "machine_model" : "Mac14,10",
+      "machine_name" : "MacBook Pro",
+      "model_number" : "MPHJ3LL/A",
+      "number_processors" : "proc 12:8:4",
+      "os_loader_version" : "10151.101.3",
+      "physical_memory" : "16 GB",
+      "platform_UUID" : "12345678-ABCD-EFGH-IJKL-1234567890AB",
+      "provisioning_UDID" : "12345678-1234567890AB",
+      "serial_number_system" : "C02XG1ZYMD6T",
+      "boot_rom_version" : "10151.101.3",
+      "current_processor_speed" : "Apple M2 Pro"
+    }
+  ]
+}

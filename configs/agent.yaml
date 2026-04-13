@@ -1,0 +1,25 @@
+# PatchIQ Agent default configuration
+# Override with environment variables: PATCHIQ_AGENT_*
+
+agent:
+  data_dir: "~/.patchiq"
+  db_file: "agent.db"
+
+server:
+  address: "localhost:50051"
+  http_url: "http://localhost:8080"
+
+heartbeat:
+  interval: 30s
+
+reconnect:
+  initial_delay: 1s
+  max_delay: 5m
+  multiplier: 2.0
+  jitter_factor: 0.2
+
+# api.key: set via PATCHIQ_AGENT_API_KEY env var (not in YAML to avoid secrets in config files)
+
+logging:
+  level: "info"
+  format: "json"

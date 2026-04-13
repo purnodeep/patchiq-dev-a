@@ -1,0 +1,50 @@
+{
+  "RT_MANIFEST": {
+    "#1": {
+      "0409": {
+        "identity": {
+          "name": "PatchIQ.Agent",
+          "version": "0.0.0.0"
+        },
+        "description": "PatchIQ endpoint management agent",
+        "minimum-os": "win10",
+        "execution-level": "requireAdministrator",
+        "ui-access": false,
+        "auto-elevate": false,
+        "dpi-awareness": "system",
+        "disable-theming": false,
+        "disable-window-filtering": false,
+        "high-resolution-scrolling-aware": false,
+        "ultra-high-resolution-scrolling-aware": false,
+        "long-path-aware": true,
+        "printer-driver-isolation": false,
+        "gdi-scaling": false,
+        "segment-heap": true,
+        "use-common-controls-v6": false
+      }
+    }
+  },
+  "RT_GROUP_ICON": {},
+  "RT_VERSION": {
+    "#1": {
+      "0409": {
+        "fixed": {
+          "file_version": "0.1.0.0",
+          "product_version": "0.1.0.0"
+        },
+        "info": {
+          "0409": {
+            "CompanyName": "PatchIQ",
+            "FileDescription": "PatchIQ Agent",
+            "FileVersion": "0.1.0",
+            "InternalName": "patchiq-agent",
+            "LegalCopyright": "Copyright (c) PatchIQ",
+            "OriginalFilename": "patchiq-agent.exe",
+            "ProductName": "PatchIQ Agent",
+            "ProductVersion": "0.1.0"
+          }
+        }
+      }
+    }
+  }
+}

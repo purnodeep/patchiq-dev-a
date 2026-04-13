@@ -1,0 +1,2395 @@
+{
+  "generated_at": "2026-04-04T13:00:00Z",
+  "product": "PatchIQ",
+  "apps": ["web", "web-hub", "web-agent"],
+  "pages": [
+    {
+      "route": "/",
+      "name": "Dashboard",
+      "app": "web",
+      "component_file": "web/src/pages/dashboard/DashboardPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["endpoint", "deployment", "patch", "cve", "compliance_framework", "alert"],
+      "entities_mutated": [],
+      "api_hooks_used": [
+        "useDashboardSummary",
+        "useDashboardActivity",
+        "useBlastRadius",
+        "usePatchesTimeline",
+        "useTopEndpointsByRisk"
+      ],
+      "shared_components": ["sidebar", "topbar", "command-palette"],
+      "sub_routes": [],
+      "outbound_links": [
+        "/agent-downloads",
+        "/endpoints",
+        "/deployments",
+        "/patches",
+        "/cves",
+        "/compliance"
+      ]
+    },
+    {
+      "route": "/endpoints",
+      "name": "Endpoints List",
+      "app": "web",
+      "component_file": "web/src/pages/endpoints/EndpointsPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["endpoint", "tag"],
+      "entities_mutated": [
+        "endpoint:decommission",
+        "endpoint:scan",
+        "tag:assign/unassign",
+        "registration:create"
+      ],
+      "api_hooks_used": [
+        "useEndpoints",
+        "useTriggerScan",
+        "useCreateRegistration",
+        "useDecommissionEndpoint",
+        "useAgentBinaries"
+      ],
+      "shared_components": [
+        "sidebar",
+        "topbar",
+        "DataTable",
+        "FilterBar",
+        "DeploymentWizard",
+        "AssignTagsDialog"
+      ],
+      "sub_routes": ["/endpoints/:id"],
+      "outbound_links": ["/endpoints/:id", "/agent-downloads"]
+    },
+    {
+      "route": "/endpoints/:id",
+      "name": "Endpoint Detail",
+      "app": "web",
+      "component_file": "web/src/pages/endpoints/EndpointDetailPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": [
+        "endpoint",
+        "patch",
+        "cve",
+        "deployment",
+        "compliance_score",
+        "audit_event"
+      ],
+      "entities_mutated": ["endpoint:scan", "endpoint:decommission", "endpoint:deploy-critical"],
+      "api_hooks_used": [
+        "useEndpoint",
+        "useEndpointPatches",
+        "useTriggerScan",
+        "useDecommissionEndpoint",
+        "useEndpointCompliance"
+      ],
+      "shared_components": ["sidebar", "topbar", "DeploymentWizard"],
+      "sub_routes": [],
+      "outbound_links": ["/endpoints", "/patches/:id", "/cves/:id", "/deployments/:id"],
+      "tabs": [
+        "Overview",
+        "Hardware",
+        "Software",
+        "Patches",
+        "CVE Exposure",
+        "Compliance",
+        "Deployments",
+        "Audit"
+      ]
+    },
+    {
+      "route": "/patches",
+      "name": "Patches List",
+      "app": "web",
+      "component_file": "web/src/pages/patches/PatchesPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["patch", "cve"],
+      "entities_mutated": ["deployment:create"],
+      "api_hooks_used": ["usePatches", "usePatch", "usePatchSeverityCounts"],
+      "shared_components": ["sidebar", "topbar", "DataTable", "FilterBar", "DeploymentWizard"],
+      "sub_routes": ["/patches/:id"],
+      "outbound_links": ["/patches/:id", "/cves/:id"]
+    },
+    {
+      "route": "/patches/:id",
+      "name": "Patch Detail",
+      "app": "web",
+      "component_file": "web/src/pages/patches/PatchDetailPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["patch", "cve", "endpoint", "deployment"],
+      "entities_mutated": ["deployment:create"],
+      "api_hooks_used": ["usePatch"],
+      "shared_components": ["sidebar", "topbar", "DeploymentWizard"],
+      "sub_routes": [],
+      "outbound_links": ["/patches", "/endpoints/:id", "/cves/:id", "/deployments/:id"],
+      "tabs": ["Overview", "Affected Endpoints", "Deployment History"]
+    },
+    {
+      "route": "/cves",
+      "name": "CVEs List",
+      "app": "web",
+      "component_file": "web/src/pages/cves/CVEsPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["cve", "patch"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useCVEs", "useCVESummary"],
+      "shared_components": ["sidebar", "topbar", "DataTable", "FilterBar"],
+      "sub_routes": ["/cves/:id"],
+      "outbound_links": ["/cves/:id", "/patches/:id"]
+    },
+    {
+      "route": "/cves/:id",
+      "name": "CVE Detail",
+      "app": "web",
+      "component_file": "web/src/pages/cves/CVEDetailPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["cve", "patch", "endpoint"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useCVE"],
+      "shared_components": ["sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": ["/cves", "/patches/:id", "/endpoints/:id"]
+    },
+    {
+      "route": "/policies",
+      "name": "Policies List",
+      "app": "web",
+      "component_file": "web/src/pages/policies/PoliciesPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["policy"],
+      "entities_mutated": ["policy:toggle", "policy:bulk-action", "policy:evaluate"],
+      "api_hooks_used": [
+        "usePolicies",
+        "useTogglePolicy",
+        "useBulkPolicyAction",
+        "useEvaluatePolicy"
+      ],
+      "shared_components": ["sidebar", "topbar", "DataTable", "FilterBar"],
+      "sub_routes": ["/policies/new", "/policies/:id", "/policies/:id/edit"],
+      "outbound_links": ["/policies/new", "/policies/:id"]
+    },
+    {
+      "route": "/policies/new",
+      "name": "Create Policy",
+      "app": "web",
+      "component_file": "web/src/pages/policies/CreatePolicyPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["tag"],
+      "entities_mutated": ["policy:create"],
+      "api_hooks_used": ["useCreatePolicy", "useTags"],
+      "shared_components": ["sidebar", "topbar", "PolicyForm", "TagInput"],
+      "sub_routes": [],
+      "outbound_links": ["/policies"]
+    },
+    {
+      "route": "/policies/:id",
+      "name": "Policy Detail",
+      "app": "web",
+      "component_file": "web/src/pages/policies/PolicyDetailPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["policy", "endpoint", "group", "patch", "deployment"],
+      "entities_mutated": [
+        "policy:toggle",
+        "policy:delete",
+        "policy:evaluate",
+        "deployment:create"
+      ],
+      "api_hooks_used": ["usePolicy", "useEvaluatePolicy", "useDeletePolicy", "useTogglePolicy"],
+      "shared_components": ["sidebar", "topbar", "DeploymentWizard"],
+      "sub_routes": [],
+      "outbound_links": ["/policies", "/policies/:id/edit", "/deployments/:id", "/endpoints/:id"],
+      "tabs": [
+        "Overview",
+        "Patch Scope",
+        "Groups & Endpoints",
+        "Evaluation History",
+        "Deployment History",
+        "Schedule"
+      ]
+    },
+    {
+      "route": "/policies/:id/edit",
+      "name": "Edit Policy",
+      "app": "web",
+      "component_file": "web/src/pages/policies/EditPolicyPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["policy", "tag"],
+      "entities_mutated": ["policy:update"],
+      "api_hooks_used": ["usePolicy", "useUpdatePolicy", "useTags"],
+      "shared_components": ["sidebar", "topbar", "PolicyForm", "TagInput"],
+      "sub_routes": [],
+      "outbound_links": ["/policies/:id"]
+    },
+    {
+      "route": "/deployments",
+      "name": "Deployments List",
+      "app": "web",
+      "component_file": "web/src/pages/deployments/DeploymentsPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["deployment", "policy"],
+      "entities_mutated": [
+        "deployment:create",
+        "deployment:cancel",
+        "deployment:retry",
+        "deployment:rollback"
+      ],
+      "api_hooks_used": [
+        "useDeployments",
+        "useCancelDeployment",
+        "useRetryDeployment",
+        "useRollbackDeployment",
+        "usePolicies"
+      ],
+      "shared_components": ["sidebar", "topbar", "DataTable", "FilterBar", "DeploymentWizard"],
+      "sub_routes": ["/deployments/:id"],
+      "outbound_links": ["/deployments/:id"]
+    },
+    {
+      "route": "/deployments/:id",
+      "name": "Deployment Detail",
+      "app": "web",
+      "component_file": "web/src/pages/deployments/DeploymentDetailPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["deployment", "wave", "endpoint", "patch", "policy"],
+      "entities_mutated": ["deployment:cancel", "deployment:retry", "deployment:rollback"],
+      "api_hooks_used": [
+        "useDeployment",
+        "useCancelDeployment",
+        "useRetryDeployment",
+        "useRollbackDeployment",
+        "useDeploymentWaves",
+        "useDeploymentPatches",
+        "usePolicy"
+      ],
+      "shared_components": [
+        "sidebar",
+        "topbar",
+        "WavePipelineLanes",
+        "EndpointDotMap",
+        "DeploymentTimeline"
+      ],
+      "sub_routes": [],
+      "outbound_links": ["/deployments", "/endpoints/:id", "/policies/:id"],
+      "tabs": ["Overview", "Waves", "Targets", "Patches", "Timeline"]
+    },
+    {
+      "route": "/workflows",
+      "name": "Workflows List",
+      "app": "web",
+      "component_file": "web/src/pages/workflows/index.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["workflow", "workflow_execution"],
+      "entities_mutated": [
+        "workflow:execute",
+        "workflow:clone",
+        "workflow:archive",
+        "workflow:delete"
+      ],
+      "api_hooks_used": ["useWorkflows", "useExecuteWorkflow", "useDeleteWorkflow"],
+      "shared_components": ["sidebar", "topbar", "DataTable", "WorkflowInlineEditor"],
+      "sub_routes": ["/workflows/new", "/workflows/:id/edit"],
+      "outbound_links": ["/workflows/new", "/workflows/:id/edit"]
+    },
+    {
+      "route": "/workflows/new",
+      "name": "Create Workflow",
+      "app": "web",
+      "component_file": "web/src/pages/workflows/editor.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["workflow_template"],
+      "entities_mutated": ["workflow:create", "workflow:publish"],
+      "api_hooks_used": ["useCreateWorkflow", "usePublishWorkflow", "useWorkflowTemplates"],
+      "shared_components": [
+        "sidebar",
+        "topbar",
+        "ReactFlow",
+        "Palette",
+        "WorkflowCanvas",
+        "ConfigPanel"
+      ],
+      "sub_routes": [],
+      "outbound_links": ["/workflows"]
+    },
+    {
+      "route": "/workflows/:id/edit",
+      "name": "Edit Workflow",
+      "app": "web",
+      "component_file": "web/src/pages/workflows/editor.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["workflow", "workflow_template"],
+      "entities_mutated": ["workflow:update", "workflow:publish"],
+      "api_hooks_used": [
+        "useWorkflow",
+        "useUpdateWorkflow",
+        "usePublishWorkflow",
+        "useWorkflowTemplates"
+      ],
+      "shared_components": [
+        "sidebar",
+        "topbar",
+        "ReactFlow",
+        "Palette",
+        "WorkflowCanvas",
+        "ConfigPanel"
+      ],
+      "sub_routes": [],
+      "outbound_links": ["/workflows"]
+    },
+    {
+      "route": "/compliance",
+      "name": "Compliance Dashboard",
+      "app": "web",
+      "component_file": "web/src/pages/compliance/index.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["compliance_framework", "compliance_control", "compliance_score"],
+      "entities_mutated": ["compliance:evaluate", "framework:enable/disable/update"],
+      "api_hooks_used": [
+        "useComplianceSummary",
+        "useOverallComplianceScore",
+        "useOverdueControls",
+        "useTriggerEvaluation",
+        "useTriggerFrameworkEvaluation"
+      ],
+      "shared_components": [
+        "sidebar",
+        "topbar",
+        "OverallScoreCard",
+        "FrameworkCard",
+        "ComplianceTrend",
+        "OverdueControlsTable",
+        "FrameworkManager"
+      ],
+      "sub_routes": ["/compliance/frameworks/:id"],
+      "outbound_links": ["/compliance/frameworks/:id"]
+    },
+    {
+      "route": "/compliance/frameworks/:id",
+      "name": "Framework Detail",
+      "app": "web",
+      "component_file": "web/src/pages/compliance/framework.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["compliance_framework", "compliance_control", "endpoint", "sla"],
+      "entities_mutated": ["compliance:evaluate"],
+      "api_hooks_used": ["useComplianceFramework", "useTriggerEvaluation"],
+      "shared_components": ["sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": ["/compliance", "/endpoints/:id"],
+      "tabs": ["Overview", "Controls", "Endpoints", "SLA Tracking"]
+    },
+    {
+      "route": "/audit",
+      "name": "Audit Log",
+      "app": "web",
+      "component_file": "web/src/pages/audit/AuditPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["audit_event"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useAuditLog"],
+      "shared_components": ["sidebar", "topbar", "AuditFilters", "ActivityStream", "TimelineView"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/alerts",
+      "name": "Alerts",
+      "app": "web",
+      "component_file": "web/src/pages/alerts/AlertsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["alert", "alert_rule"],
+      "entities_mutated": [
+        "alert:status-update",
+        "alert:bulk-update",
+        "alert_rule:create/update/delete"
+      ],
+      "api_hooks_used": [
+        "useAlerts",
+        "useAlertCount",
+        "useBulkUpdateAlertStatus",
+        "useUpdateAlertStatus",
+        "useAlertRules",
+        "useCreateAlertRule",
+        "useUpdateAlertRule",
+        "useDeleteAlertRule"
+      ],
+      "shared_components": ["sidebar", "topbar", "AlertRulesDialog"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/general",
+      "name": "General Settings",
+      "app": "web",
+      "component_file": "web/src/pages/settings/GeneralSettingsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["settings"],
+      "entities_mutated": ["settings:update"],
+      "api_hooks_used": ["useSettings", "useUpdateSettings"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/identity",
+      "name": "Identity & Access Settings",
+      "app": "web",
+      "component_file": "web/src/pages/settings/IdentitySettingsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["iam_settings", "role_mapping"],
+      "entities_mutated": ["iam_settings:update", "iam:test-connection"],
+      "api_hooks_used": ["useIAMSettings", "useTestIAMConnection"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/patch-sources",
+      "name": "Patch Sources Settings",
+      "app": "web",
+      "component_file": "web/src/pages/settings/PatchSourcesSettingsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["hub_sync"],
+      "entities_mutated": ["hub_sync:trigger"],
+      "api_hooks_used": ["useHubSyncStatus", "useTriggerHubSync"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/agent-fleet",
+      "name": "Agent Fleet Settings",
+      "app": "web",
+      "component_file": "web/src/pages/settings/AgentFleetSettingsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["agent_binary", "registration_token"],
+      "entities_mutated": ["registration:create"],
+      "api_hooks_used": ["useAgentBinaries", "useCreateRegistration"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/notifications",
+      "name": "Notification Settings",
+      "app": "web",
+      "component_file": "web/src/pages/notifications/NotificationsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": [
+        "notification_channel",
+        "notification_preference",
+        "notification_history",
+        "digest_config"
+      ],
+      "entities_mutated": [
+        "channel:create/update/delete/test",
+        "preferences:update",
+        "notification:retry",
+        "digest:update/test"
+      ],
+      "api_hooks_used": [
+        "useNotificationChannels",
+        "useCreateChannel",
+        "useUpdateChannel",
+        "useDeleteChannel",
+        "useTestChannel",
+        "useNotificationPreferences",
+        "useUpdatePreferences",
+        "useNotificationHistory",
+        "useRetryNotification",
+        "useDigestConfig",
+        "useUpdateDigestConfig",
+        "useTestDigest"
+      ],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": [],
+      "tabs": ["Preferences", "History"]
+    },
+    {
+      "route": "/settings/account",
+      "name": "Account Settings",
+      "app": "web",
+      "component_file": "web/src/pages/settings/AccountSettingsPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["user"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useCurrentUser"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/license",
+      "name": "License Settings",
+      "app": "web",
+      "component_file": "web/src/pages/settings/LicenseSettingsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["license"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useLicenseStatus"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/appearance",
+      "name": "Appearance Settings",
+      "app": "web",
+      "component_file": "web/src/pages/settings/AppearanceSettingsPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": [],
+      "entities_mutated": [],
+      "api_hooks_used": [],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/about",
+      "name": "About / Server Health",
+      "app": "web",
+      "component_file": "web/src/pages/settings/AboutSettingsPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["server_health"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useServerHealth"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/tags",
+      "name": "Tags Management",
+      "app": "web",
+      "component_file": "web/src/pages/tags/TagsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["tag", "endpoint"],
+      "entities_mutated": ["tag:create/delete"],
+      "api_hooks_used": ["useTags", "useTag", "useCreateTag", "useDeleteTag"],
+      "shared_components": ["settings-sidebar", "topbar", "DataTable", "EditTagDialog"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/roles",
+      "name": "Roles Management",
+      "app": "web",
+      "component_file": "web/src/pages/roles/RolesPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["role"],
+      "entities_mutated": ["role:delete"],
+      "api_hooks_used": ["useRoles", "useDeleteRole"],
+      "shared_components": ["settings-sidebar", "topbar", "DataTable"],
+      "sub_routes": ["/settings/roles/new", "/settings/roles/:id/edit"],
+      "outbound_links": ["/settings/roles/new", "/settings/roles/:id/edit"]
+    },
+    {
+      "route": "/settings/roles/new",
+      "name": "Create Role",
+      "app": "web",
+      "component_file": "web/src/pages/roles/RoleEditPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["permission"],
+      "entities_mutated": ["role:create"],
+      "api_hooks_used": ["useCreateRole", "useUpdateRolePermissions"],
+      "shared_components": ["settings-sidebar", "topbar", "PermissionDualPanel"],
+      "sub_routes": [],
+      "outbound_links": ["/settings/roles"]
+    },
+    {
+      "route": "/settings/roles/:id/edit",
+      "name": "Edit Role",
+      "app": "web",
+      "component_file": "web/src/pages/roles/RoleEditPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["role", "permission"],
+      "entities_mutated": ["role:update"],
+      "api_hooks_used": [
+        "useRole",
+        "useRolePermissions",
+        "useUpdateRole",
+        "useUpdateRolePermissions"
+      ],
+      "shared_components": ["settings-sidebar", "topbar", "PermissionDualPanel"],
+      "sub_routes": [],
+      "outbound_links": ["/settings/roles"]
+    },
+    {
+      "route": "/settings/user-roles",
+      "name": "User Role Assignment",
+      "app": "web",
+      "component_file": "web/src/pages/roles/UserRolesPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["user", "role"],
+      "entities_mutated": ["user_role:assign/revoke"],
+      "api_hooks_used": ["useRoles", "useUserRoles", "useAssignUserRole", "useRevokeUserRole"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/agent-downloads",
+      "name": "Agent Downloads",
+      "app": "web",
+      "component_file": "web/src/pages/agent-downloads/AgentDownloadsPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["agent_binary"],
+      "entities_mutated": ["registration:create"],
+      "api_hooks_used": ["useAgentBinaries", "useCreateRegistration"],
+      "shared_components": ["sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/login",
+      "name": "Login",
+      "app": "web",
+      "component_file": "web/src/pages/auth/LoginPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": [],
+      "entities_mutated": ["auth:login"],
+      "api_hooks_used": ["useLogin"],
+      "shared_components": ["AuthLayout"],
+      "sub_routes": [],
+      "outbound_links": ["/", "/forgot-password"]
+    },
+    {
+      "route": "/forgot-password",
+      "name": "Forgot Password",
+      "app": "web",
+      "component_file": "web/src/pages/auth/ForgotPasswordPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": [],
+      "entities_mutated": ["auth:forgot-password"],
+      "api_hooks_used": ["useForgotPassword"],
+      "shared_components": ["AuthLayout"],
+      "sub_routes": [],
+      "outbound_links": ["/login"]
+    },
+    {
+      "route": "/register",
+      "name": "Register (Invite)",
+      "app": "web",
+      "component_file": "web/src/pages/auth/RegisterPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["invite"],
+      "entities_mutated": ["auth:register"],
+      "api_hooks_used": ["useValidateInvite", "useRegister"],
+      "shared_components": ["AuthLayout"],
+      "sub_routes": [],
+      "outbound_links": ["/login"]
+    },
+    {
+      "route": "/",
+      "name": "Hub Dashboard",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/dashboard/DashboardPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["client", "feed", "license", "catalog_entry", "activity"],
+      "entities_mutated": [],
+      "api_hooks_used": [
+        "useDashboardStats",
+        "useFeeds",
+        "useLicenseBreakdown",
+        "useClientSummary",
+        "useRecentActivity",
+        "useCatalogGrowth"
+      ],
+      "shared_components": ["sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": ["/catalog", "/feeds", "/licenses", "/clients"]
+    },
+    {
+      "route": "/catalog",
+      "name": "Hub Catalog",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/catalog/CatalogPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["catalog_entry", "feed"],
+      "entities_mutated": ["catalog_entry:create"],
+      "api_hooks_used": [
+        "useCatalogEntries",
+        "useCatalogStats",
+        "useFeeds",
+        "useCreateCatalogEntry"
+      ],
+      "shared_components": [
+        "sidebar",
+        "topbar",
+        "DataTable",
+        "SeverityPills",
+        "SeverityBadge",
+        "SourceBadge",
+        "SyncDots"
+      ],
+      "sub_routes": ["/catalog/:id"],
+      "outbound_links": ["/catalog/:id"]
+    },
+    {
+      "route": "/catalog/:id",
+      "name": "Catalog Entry Detail",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/catalog/CatalogDetailPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["catalog_entry", "cve", "catalog_sync"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useCatalogEntry"],
+      "shared_components": ["sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": ["/catalog"],
+      "tabs": ["Overview", "Distribution", "Source"]
+    },
+    {
+      "route": "/feeds",
+      "name": "Hub Feeds",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/feeds/FeedsPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["feed"],
+      "entities_mutated": ["feed:sync", "feed:enable/disable"],
+      "api_hooks_used": ["useFeeds", "useUpdateFeed", "useTriggerFeedSync"],
+      "shared_components": ["sidebar", "topbar", "DataTable", "FilterBar", "Sparkline"],
+      "sub_routes": ["/feeds/:id"],
+      "outbound_links": ["/feeds/:id"]
+    },
+    {
+      "route": "/feeds/:id",
+      "name": "Feed Detail",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/feeds/FeedDetailPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["feed", "feed_history", "catalog_entry"],
+      "entities_mutated": ["feed:update", "feed:sync"],
+      "api_hooks_used": [
+        "useFeed",
+        "useFeedHistory",
+        "useUpdateFeed",
+        "useTriggerFeedSync",
+        "useCatalogEntries"
+      ],
+      "shared_components": ["sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": ["/feeds"]
+    },
+    {
+      "route": "/licenses",
+      "name": "Hub Licenses",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/licenses/LicensesPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["license", "client"],
+      "entities_mutated": ["license:create", "license:revoke", "license:assign"],
+      "api_hooks_used": ["useLicenses", "useRevokeLicense", "useAssignLicense", "useClients"],
+      "shared_components": ["sidebar", "topbar", "DataTable", "FilterBar"],
+      "sub_routes": ["/licenses/:id"],
+      "outbound_links": ["/licenses/:id", "/clients/:id"]
+    },
+    {
+      "route": "/licenses/:id",
+      "name": "License Detail",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/licenses/LicenseDetailPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["license", "client", "usage_history", "audit_trail"],
+      "entities_mutated": ["license:renew", "license:reassign", "license:revoke"],
+      "api_hooks_used": [
+        "useLicense",
+        "useClient",
+        "useClients",
+        "useRevokeLicense",
+        "useAssignLicense",
+        "useRenewLicense",
+        "useLicenseUsageHistory",
+        "useLicenseAuditTrail"
+      ],
+      "shared_components": ["sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": ["/licenses", "/clients/:id"],
+      "tabs": ["Overview", "Usage History", "Audit"]
+    },
+    {
+      "route": "/clients",
+      "name": "Hub Clients",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/clients/ClientsPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["client", "license"],
+      "entities_mutated": ["client:approve", "client:decline", "client:suspend", "client:delete"],
+      "api_hooks_used": [
+        "useClients",
+        "useApproveClient",
+        "useDeclineClient",
+        "useSuspendClient",
+        "useDeleteClient",
+        "useClientSyncHistory",
+        "useClientEndpointTrend",
+        "useLicenses"
+      ],
+      "shared_components": ["sidebar", "topbar", "DataTable", "FilterBar"],
+      "sub_routes": ["/clients/:id"],
+      "outbound_links": ["/clients/:id"]
+    },
+    {
+      "route": "/clients/:id",
+      "name": "Client Detail",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/clients/ClientDetailPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["client", "license", "sync_history", "endpoint_trend"],
+      "entities_mutated": ["client:approve", "client:suspend", "client:update"],
+      "api_hooks_used": [
+        "useClient",
+        "useUpdateClient",
+        "useApproveClient",
+        "useSuspendClient",
+        "useClientSyncHistory",
+        "useClientEndpointTrend",
+        "useLicenses"
+      ],
+      "shared_components": ["sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": ["/clients"],
+      "tabs": ["Overview", "Sync History", "Endpoints"]
+    },
+    {
+      "route": "/deployments",
+      "name": "Hub Deployments (Placeholder)",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/deployments/DeploymentsPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": [],
+      "entities_mutated": [],
+      "api_hooks_used": [],
+      "shared_components": ["sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/general",
+      "name": "Hub General Settings",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/settings/GeneralSettingsPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["settings"],
+      "entities_mutated": ["settings:update"],
+      "api_hooks_used": ["useSettings", "useUpsertSetting"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/iam",
+      "name": "Hub IAM Settings",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/settings/IAMSettingsPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["iam_settings"],
+      "entities_mutated": ["iam_settings:update"],
+      "api_hooks_used": ["useSettings", "useUpsertSetting"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/feeds",
+      "name": "Hub Feed Config Settings",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/settings/FeedConfigSettingsPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["feed"],
+      "entities_mutated": [],
+      "api_hooks_used": [],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings/api",
+      "name": "Hub API & Webhook Settings",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/settings/APIWebhookSettingsPage.tsx",
+      "priority": "peripheral",
+      "tier": "smoke-only",
+      "entities_shown": ["settings"],
+      "entities_mutated": ["settings:update"],
+      "api_hooks_used": ["useSettings", "useUpsertSetting"],
+      "shared_components": ["settings-sidebar", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/login",
+      "name": "Hub Login",
+      "app": "web-hub",
+      "component_file": "web-hub/src/pages/auth/LoginPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": [],
+      "entities_mutated": ["auth:login"],
+      "api_hooks_used": ["useLogin"],
+      "shared_components": ["AuthLayout"],
+      "sub_routes": [],
+      "outbound_links": ["/"]
+    },
+    {
+      "route": "/",
+      "name": "Agent Status",
+      "app": "web-agent",
+      "component_file": "web-agent/src/pages/status/StatusPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["agent_status", "metrics"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useAgentStatus", "useMetrics"],
+      "shared_components": ["icon-rail", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/pending",
+      "name": "Pending Patches",
+      "app": "web-agent",
+      "component_file": "web-agent/src/pages/pending/PendingPatchesPage.tsx",
+      "priority": "critical",
+      "tier": "deep-review",
+      "entities_shown": ["pending_patch", "cve"],
+      "entities_mutated": [],
+      "api_hooks_used": ["usePendingPatches"],
+      "shared_components": ["icon-rail", "topbar", "DataTable", "FilterBar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/hardware",
+      "name": "Hardware Inventory",
+      "app": "web-agent",
+      "component_file": "web-agent/src/pages/hardware/HardwarePage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["hardware_info", "metrics"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useAgentHardware", "useAgentStatus", "useMetrics"],
+      "shared_components": ["icon-rail", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/software",
+      "name": "Installed Software",
+      "app": "web-agent",
+      "component_file": "web-agent/src/pages/software/SoftwarePage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["package"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useAgentSoftware"],
+      "shared_components": ["icon-rail", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/services",
+      "name": "System Services",
+      "app": "web-agent",
+      "component_file": "web-agent/src/pages/services/ServicesPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["service"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useAgentServices"],
+      "shared_components": ["icon-rail", "topbar", "DataTable", "FilterBar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/history",
+      "name": "Deployment History",
+      "app": "web-agent",
+      "component_file": "web-agent/src/pages/history/HistoryPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["history_event"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useHistory"],
+      "shared_components": ["icon-rail", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/logs",
+      "name": "Agent Logs",
+      "app": "web-agent",
+      "component_file": "web-agent/src/pages/logs/LogsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["log_entry"],
+      "entities_mutated": [],
+      "api_hooks_used": ["useLogs"],
+      "shared_components": ["icon-rail", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    },
+    {
+      "route": "/settings",
+      "name": "Agent Settings",
+      "app": "web-agent",
+      "component_file": "web-agent/src/pages/settings/SettingsPage.tsx",
+      "priority": "important",
+      "tier": "flow-review",
+      "entities_shown": ["agent_settings", "agent_status"],
+      "entities_mutated": ["settings:update", "scan:trigger"],
+      "api_hooks_used": ["useSettings", "useUpdateSettings", "useTriggerScan", "useAgentStatus"],
+      "shared_components": ["icon-rail", "topbar"],
+      "sub_routes": [],
+      "outbound_links": []
+    }
+  ],
+  "entity_graph": {
+    "endpoint": {
+      "created_on": null,
+      "detail_page": "/endpoints/:id",
+      "shown_on": [
+        "/",
+        "/endpoints",
+        "/endpoints/:id",
+        "/deployments/:id",
+        "/compliance/frameworks/:id",
+        "/policies/:id",
+        "/patches/:id",
+        "/cves/:id"
+      ],
+      "api_endpoints": [
+        "GET /api/v1/endpoints",
+        "GET /api/v1/endpoints/{id}",
+        "DELETE /api/v1/endpoints/{id}"
+      ],
+      "consistency_checks": [
+        "Endpoint count on / (dashboard) must match /endpoints total count",
+        "Endpoint status on /endpoints list must match /endpoints/:id detail header",
+        "Endpoint CVE count on /endpoints list must match /endpoints/:id CVE Exposure tab count",
+        "Endpoint patch count on /endpoints list must match /endpoints/:id Patches tab count",
+        "Endpoint compliance score on /endpoints/:id must match /compliance/frameworks/:id endpoints tab"
+      ]
+    },
+    "patch": {
+      "created_on": null,
+      "detail_page": "/patches/:id",
+      "shown_on": [
+        "/",
+        "/patches",
+        "/patches/:id",
+        "/endpoints/:id",
+        "/deployments/:id",
+        "/cves/:id"
+      ],
+      "api_endpoints": [
+        "GET /api/v1/patches",
+        "GET /api/v1/patches/{id}",
+        "GET /api/v1/patches/severity-counts"
+      ],
+      "consistency_checks": [
+        "Patch severity count on /patches filter chips must match /patches severity-counts API",
+        "Patch CVE list on /patches/:id must match CVEs referencing this patch on /cves",
+        "Patch affected endpoint count on /patches/:id must reflect endpoints with matching CVEs"
+      ]
+    },
+    "cve": {
+      "created_on": null,
+      "detail_page": "/cves/:id",
+      "shown_on": ["/", "/cves", "/cves/:id", "/endpoints/:id", "/patches/:id"],
+      "api_endpoints": ["GET /api/v1/cves", "GET /api/v1/cves/{id}", "GET /api/v1/cves/summary"],
+      "consistency_checks": [
+        "CVE summary counts on /cves must match /cves/summary API",
+        "CVE linked patches on /cves/:id must appear on corresponding /patches/:id",
+        "CVE affected endpoints on /cves/:id must match /endpoints/:id CVE Exposure tab"
+      ]
+    },
+    "policy": {
+      "created_on": "/policies/new",
+      "detail_page": "/policies/:id",
+      "shown_on": ["/policies", "/policies/:id", "/deployments", "/deployments/:id"],
+      "api_endpoints": [
+        "GET /api/v1/policies",
+        "GET /api/v1/policies/{id}",
+        "POST /api/v1/policies",
+        "PUT /api/v1/policies/{id}",
+        "DELETE /api/v1/policies/{id}"
+      ],
+      "consistency_checks": [
+        "Policy enabled state on /policies list must match /policies/:id detail",
+        "Policy mode on /policies list must match /policies/:id overview",
+        "Policy referenced on /deployments/:id must match /policies/:id data"
+      ]
+    },
+    "deployment": {
+      "created_on": "DeploymentWizard (multi-page)",
+      "detail_page": "/deployments/:id",
+      "shown_on": ["/", "/deployments", "/deployments/:id", "/endpoints/:id", "/policies/:id"],
+      "api_endpoints": [
+        "GET /api/v1/deployments",
+        "GET /api/v1/deployments/{id}",
+        "POST /api/v1/deployments",
+        "POST /api/v1/deployments/{id}/cancel",
+        "POST /api/v1/deployments/{id}/retry",
+        "POST /api/v1/deployments/{id}/rollback"
+      ],
+      "consistency_checks": [
+        "Deployment status on /deployments list must match /deployments/:id header",
+        "Deployment target count on /deployments list must match /deployments/:id targets",
+        "Active deployment count on / (dashboard) must match /deployments filtered by active statuses",
+        "Deployment on /endpoints/:id Deployments tab must match /deployments/:id"
+      ]
+    },
+    "workflow": {
+      "created_on": "/workflows/new",
+      "detail_page": null,
+      "shown_on": ["/workflows", "/workflows/:id/edit"],
+      "api_endpoints": [
+        "GET /api/v1/workflows",
+        "GET /api/v1/workflows/{id}",
+        "POST /api/v1/workflows",
+        "PUT /api/v1/workflows/{id}",
+        "DELETE /api/v1/workflows/{id}",
+        "PUT /api/v1/workflows/{id}/publish"
+      ],
+      "consistency_checks": [
+        "Workflow status on /workflows list must match the editor state",
+        "Workflow node count on /workflows expanded row must match editor canvas"
+      ]
+    },
+    "compliance_framework": {
+      "created_on": "/compliance (FrameworkManager)",
+      "detail_page": "/compliance/frameworks/:id",
+      "shown_on": ["/", "/compliance", "/compliance/frameworks/:id"],
+      "api_endpoints": [
+        "GET /api/v1/compliance/frameworks",
+        "GET /api/v1/compliance/frameworks/{id}",
+        "POST /api/v1/compliance/frameworks",
+        "DELETE /api/v1/compliance/frameworks/{id}"
+      ],
+      "consistency_checks": [
+        "Framework score on /compliance card must match /compliance/frameworks/:id header",
+        "Framework control count on /compliance card must match Controls tab row count",
+        "Overall compliance score on / (dashboard) must match /compliance overall score card",
+        "Overdue control count on /compliance must only include enabled frameworks"
+      ]
+    },
+    "alert": {
+      "created_on": null,
+      "detail_page": null,
+      "shown_on": ["/alerts"],
+      "api_endpoints": [
+        "GET /api/v1/alerts",
+        "GET /api/v1/alerts/count",
+        "PATCH /api/v1/alerts/{id}/status",
+        "PATCH /api/v1/alerts/bulk-status"
+      ],
+      "consistency_checks": [
+        "Alert unread count in sidebar badge must match /alerts/count API",
+        "Alert severity breakdown in badge (critical vs warning) must match /alerts filtered counts"
+      ]
+    },
+    "tag": {
+      "created_on": "/settings/tags",
+      "detail_page": null,
+      "shown_on": [
+        "/settings/tags",
+        "/endpoints",
+        "/endpoints/:id",
+        "/policies/new",
+        "/policies/:id/edit"
+      ],
+      "api_endpoints": [
+        "GET /api/v1/tags",
+        "GET /api/v1/tags/{id}",
+        "POST /api/v1/tags",
+        "PUT /api/v1/tags/{id}",
+        "DELETE /api/v1/tags/{id}"
+      ],
+      "consistency_checks": [
+        "Tag count on /settings/tags must match tag options in policy form",
+        "Tags assigned to endpoint on /endpoints/:id must match /settings/tags member list"
+      ]
+    },
+    "role": {
+      "created_on": "/settings/roles/new",
+      "detail_page": null,
+      "shown_on": ["/settings/roles", "/settings/roles/:id/edit", "/settings/user-roles"],
+      "api_endpoints": [
+        "GET /api/v1/roles",
+        "GET /api/v1/roles/{id}",
+        "POST /api/v1/roles",
+        "PUT /api/v1/roles/{id}",
+        "DELETE /api/v1/roles/{id}"
+      ],
+      "consistency_checks": [
+        "Role list on /settings/roles must match role options on /settings/user-roles"
+      ]
+    },
+    "catalog_entry": {
+      "created_on": "/catalog (Hub)",
+      "detail_page": "/catalog/:id (Hub)",
+      "shown_on": ["/catalog", "/catalog/:id", "/feeds/:id"],
+      "api_endpoints": ["GET /api/v1/catalog", "GET /api/v1/catalog/{id}", "POST /api/v1/catalog"],
+      "consistency_checks": [
+        "Catalog entry count on hub / must match /catalog total",
+        "Catalog entry CVE count on /catalog list must match /catalog/:id CVE table count"
+      ]
+    },
+    "feed": {
+      "created_on": null,
+      "detail_page": "/feeds/:id (Hub)",
+      "shown_on": ["/", "/feeds", "/feeds/:id", "/catalog", "/settings/feeds"],
+      "api_endpoints": [
+        "GET /api/v1/feeds",
+        "GET /api/v1/feeds/{id}",
+        "PUT /api/v1/feeds/{id}",
+        "POST /api/v1/feeds/{id}/sync"
+      ],
+      "consistency_checks": [
+        "Feed active count on hub / must match /feeds filtered by active",
+        "Feed entry count on /feeds list must match /feeds/:id total entries",
+        "Feed status on /feeds list must match /feeds/:id header"
+      ]
+    },
+    "license": {
+      "created_on": "/licenses (Hub)",
+      "detail_page": "/licenses/:id (Hub)",
+      "shown_on": ["/licenses", "/licenses/:id", "/clients/:id"],
+      "api_endpoints": [
+        "GET /api/v1/licenses",
+        "GET /api/v1/licenses/{id}",
+        "POST /api/v1/licenses",
+        "POST /api/v1/licenses/{id}/revoke",
+        "POST /api/v1/licenses/{id}/assign"
+      ],
+      "consistency_checks": [
+        "License status on /licenses list must match /licenses/:id header",
+        "License endpoint usage on /licenses list must match /licenses/:id gauge",
+        "License assigned client on /licenses/:id must match /clients/:id license info"
+      ]
+    },
+    "client": {
+      "created_on": null,
+      "detail_page": "/clients/:id (Hub)",
+      "shown_on": ["/", "/clients", "/clients/:id", "/licenses/:id"],
+      "api_endpoints": [
+        "GET /api/v1/clients",
+        "GET /api/v1/clients/{id}",
+        "POST /api/v1/clients/{id}/approve",
+        "POST /api/v1/clients/{id}/decline",
+        "POST /api/v1/clients/{id}/suspend"
+      ],
+      "consistency_checks": [
+        "Client count on hub / must match /clients total",
+        "Client health score on /clients list must match /clients/:id header",
+        "Client pending count on sidebar badge must match /clients filtered by pending",
+        "Client license tier on /clients list must match /clients/:id overview"
+      ]
+    }
+  },
+  "flows": [
+    {
+      "id": "flow-endpoint-triage",
+      "name": "Triage and Deploy to Vulnerable Endpoint",
+      "role": "IT Admin",
+      "priority": "critical",
+      "pages": ["/endpoints", "/endpoints/:id", "/patches/:id", "/deployments/:id"],
+      "steps": [
+        { "page": "/endpoints", "action": "View endpoints list, sort by risk score descending" },
+        {
+          "page": "/endpoints/:id",
+          "action": "Click highest-risk endpoint, review CVE Exposure tab"
+        },
+        { "page": "/endpoints/:id", "action": "Switch to Patches tab, identify available patches" },
+        { "page": "/endpoints/:id", "action": "Click Deploy Critical or open DeploymentWizard" },
+        {
+          "page": "/deployments/:id",
+          "action": "Monitor deployment progress, verify status transitions"
+        },
+        {
+          "page": "/endpoints/:id",
+          "action": "Return to endpoint, verify CVE count decreased and patch applied"
+        }
+      ],
+      "cross_page_assertions": [
+        "Risk score on /endpoints list must decrease after successful deployment",
+        "CVE count on /endpoints/:id must decrease after patch applied",
+        "Deployment status on /deployments/:id must reach 'completed'",
+        "Patch status on /endpoints/:id Patches tab must show 'deployed'"
+      ]
+    },
+    {
+      "id": "flow-policy-deploy",
+      "name": "Create Policy and Deploy Patches",
+      "role": "IT Admin",
+      "priority": "critical",
+      "pages": ["/policies/new", "/policies/:id", "/deployments/:id", "/endpoints/:id"],
+      "steps": [
+        {
+          "page": "/policies/new",
+          "action": "Create policy with severity filter, assign tags, set mode"
+        },
+        {
+          "page": "/policies/:id",
+          "action": "Review policy detail, verify matched groups and patches"
+        },
+        {
+          "page": "/policies/:id",
+          "action": "Click Evaluate to preview matched endpoints/patches"
+        },
+        { "page": "/policies/:id", "action": "Open DeploymentWizard from policy, configure waves" },
+        { "page": "/deployments/:id", "action": "Monitor deployment waves, check target statuses" },
+        { "page": "/endpoints/:id", "action": "Verify endpoint received correct patches" }
+      ],
+      "cross_page_assertions": [
+        "Policy appears in /policies list after creation",
+        "New deployment on /deployments references the correct policy",
+        "Deployment target count matches policy evaluation preview",
+        "Endpoint patches tab shows patches from this deployment"
+      ]
+    },
+    {
+      "id": "flow-compliance-assess",
+      "name": "Assess Compliance Posture",
+      "role": "Compliance Officer",
+      "priority": "critical",
+      "pages": ["/compliance", "/compliance/frameworks/:id", "/endpoints/:id"],
+      "steps": [
+        { "page": "/compliance", "action": "View overall score and framework cards" },
+        { "page": "/compliance", "action": "Click Evaluate All, verify feedback toast" },
+        { "page": "/compliance/frameworks/:id", "action": "Click View Details on a framework" },
+        {
+          "page": "/compliance/frameworks/:id",
+          "action": "Review Controls tab — check pass/fail/partial statuses"
+        },
+        {
+          "page": "/compliance/frameworks/:id",
+          "action": "Review Endpoints tab — identify non-compliant endpoints"
+        },
+        {
+          "page": "/endpoints/:id",
+          "action": "Click non-compliant endpoint, check Compliance tab"
+        },
+        { "page": "/compliance", "action": "Navigate back, verify scores updated after evaluation" }
+      ],
+      "cross_page_assertions": [
+        "Framework score on /compliance card matches /compliance/frameworks/:id header",
+        "Control count on /compliance card matches Controls tab row count",
+        "Evaluate All updates scores on both /compliance and /compliance/frameworks/:id",
+        "Non-compliant endpoint list on framework detail matches endpoint compliance score"
+      ]
+    },
+    {
+      "id": "flow-deployment-lifecycle",
+      "name": "Deployment Lifecycle (Create, Monitor, Cancel/Retry/Rollback)",
+      "role": "IT Admin",
+      "priority": "critical",
+      "pages": ["/deployments", "/deployments/:id"],
+      "steps": [
+        { "page": "/deployments", "action": "Open DeploymentWizard, create ad-hoc deployment" },
+        {
+          "page": "/deployments",
+          "action": "Verify new deployment appears in list with 'created' status"
+        },
+        { "page": "/deployments/:id", "action": "Click into deployment, observe wave progression" },
+        {
+          "page": "/deployments/:id",
+          "action": "Cancel deployment — verify only pending/sent targets cancelled"
+        },
+        {
+          "page": "/deployments/:id",
+          "action": "On a failed deployment, click Retry — verify only failed targets re-queued"
+        },
+        {
+          "page": "/deployments/:id",
+          "action": "On a running deployment, click Rollback — verify state transition"
+        }
+      ],
+      "cross_page_assertions": [
+        "Deployment status on /deployments list matches /deployments/:id header at all times",
+        "Target counts on /deployments list match /deployments/:id target breakdown",
+        "Active deployment count on / (dashboard) updates when deployment completes",
+        "Cancel only affects pending/sent targets, not executing/completed"
+      ]
+    },
+    {
+      "id": "flow-workflow-build-execute",
+      "name": "Build and Execute a Workflow",
+      "role": "IT Admin",
+      "priority": "critical",
+      "pages": ["/workflows", "/workflows/new", "/workflows/:id/edit"],
+      "steps": [
+        { "page": "/workflows", "action": "Click New Workflow" },
+        {
+          "page": "/workflows/new",
+          "action": "Drag trigger, filter, deployment_wave, notification nodes onto canvas"
+        },
+        { "page": "/workflows/new", "action": "Connect nodes, configure each node's properties" },
+        { "page": "/workflows/new", "action": "Save workflow (validates DAG), then Publish" },
+        {
+          "page": "/workflows",
+          "action": "Return to list, verify workflow appears as 'published'"
+        },
+        { "page": "/workflows", "action": "Execute workflow from list actions, monitor execution" }
+      ],
+      "cross_page_assertions": [
+        "Workflow appears in /workflows list after save",
+        "Workflow status changes from 'draft' to 'published' after publish",
+        "Node count in /workflows expanded row matches editor canvas",
+        "Unsaved changes guard prevents accidental navigation"
+      ]
+    },
+    {
+      "id": "flow-cve-investigate",
+      "name": "Investigate CVE and Remediate",
+      "role": "Security Analyst",
+      "priority": "critical",
+      "pages": ["/cves", "/cves/:id", "/patches/:id", "/endpoints/:id"],
+      "steps": [
+        { "page": "/cves", "action": "Filter by cisa_kev=true or exploit_available=true" },
+        { "page": "/cves/:id", "action": "Click critical CVE, review CVSS vector breakdown" },
+        { "page": "/cves/:id", "action": "Check linked patches and affected endpoints" },
+        {
+          "page": "/patches/:id",
+          "action": "Navigate to linked patch, review remediation details"
+        },
+        { "page": "/patches/:id", "action": "Deploy patch via DeploymentWizard" },
+        { "page": "/endpoints/:id", "action": "Verify affected endpoint shows CVE as patched" }
+      ],
+      "cross_page_assertions": [
+        "CVE linked patches on /cves/:id appear on /patches/:id",
+        "CVE affected endpoints on /cves/:id match /endpoints/:id CVE Exposure tab",
+        "After deployment, CVE status changes from 'affected' to 'patched' on endpoint"
+      ]
+    },
+    {
+      "id": "flow-hub-catalog-sync",
+      "name": "Sync Feed Catalog to Patch Managers",
+      "role": "Hub Administrator",
+      "priority": "critical",
+      "pages": ["/feeds", "/feeds/:id", "/catalog", "/catalog/:id"],
+      "steps": [
+        { "page": "/feeds", "action": "Review feed health, identify any failing feeds" },
+        { "page": "/feeds/:id", "action": "Click into feed, trigger manual sync" },
+        { "page": "/catalog", "action": "Navigate to catalog, verify new entries appeared" },
+        {
+          "page": "/catalog/:id",
+          "action": "Check catalog entry detail, Distribution tab for PM sync status"
+        },
+        { "page": "/catalog/:id", "action": "Verify CVE linkage and severity on Overview tab" }
+      ],
+      "cross_page_assertions": [
+        "Feed entry count on /feeds list increases after sync",
+        "New catalog entries appear in /catalog after feed sync",
+        "Catalog entry source badge matches the feed that synced it",
+        "CVE count on /catalog list matches /catalog/:id CVE table"
+      ]
+    },
+    {
+      "id": "flow-hub-license-lifecycle",
+      "name": "Issue, Assign, and Manage Licenses",
+      "role": "Hub Administrator",
+      "priority": "important",
+      "pages": ["/licenses", "/licenses/:id", "/clients", "/clients/:id"],
+      "steps": [
+        { "page": "/licenses", "action": "Generate new license via form dialog" },
+        { "page": "/licenses/:id", "action": "Click into license, assign to approved client" },
+        { "page": "/clients/:id", "action": "Navigate to client, verify license tier shown" },
+        { "page": "/licenses/:id", "action": "Return to license, check usage history tab" },
+        { "page": "/licenses/:id", "action": "Renew license with new expiry date" },
+        { "page": "/licenses", "action": "Verify updated expiry and status in list" }
+      ],
+      "cross_page_assertions": [
+        "New license appears in /licenses list after creation",
+        "License assignment shows on both /licenses/:id and /clients/:id",
+        "License status computation (active/expiring/expired) is consistent across list and detail",
+        "License endpoint usage on list matches detail gauge"
+      ]
+    },
+    {
+      "id": "flow-hub-client-onboard",
+      "name": "Onboard New Patch Manager Client",
+      "role": "Hub Administrator",
+      "priority": "important",
+      "pages": ["/clients", "/clients/:id", "/licenses"],
+      "steps": [
+        {
+          "page": "/clients",
+          "action": "See new pending client in list (pending badge in sidebar)"
+        },
+        { "page": "/clients", "action": "Approve client — copy API key from confirmation dialog" },
+        {
+          "page": "/clients/:id",
+          "action": "Navigate to client detail, verify status is 'approved'"
+        },
+        {
+          "page": "/licenses",
+          "action": "Navigate to licenses, assign a license to the new client"
+        },
+        {
+          "page": "/clients/:id",
+          "action": "Return to client, verify license info and health score"
+        }
+      ],
+      "cross_page_assertions": [
+        "Pending badge decrements after approval",
+        "Client status changes from 'pending' to 'approved' immediately",
+        "API key is shown only once during approval (security)",
+        "Health score starts at 65 for newly approved client with no sync history"
+      ]
+    },
+    {
+      "id": "flow-agent-patch-monitor",
+      "name": "Monitor Agent Patch Status",
+      "role": "IT Admin",
+      "priority": "important",
+      "pages": ["/", "/pending", "/history", "/settings"],
+      "steps": [
+        {
+          "page": "/",
+          "action": "Check agent status — enrollment, pending patch count, resource usage"
+        },
+        { "page": "/pending", "action": "Navigate to pending patches, review severity breakdown" },
+        { "page": "/settings", "action": "Trigger manual scan, verify scan fires" },
+        { "page": "/pending", "action": "Return to pending, verify list updated after scan" },
+        { "page": "/history", "action": "Check deployment history timeline for recent activity" }
+      ],
+      "cross_page_assertions": [
+        "Pending patch count on / status page matches /pending total count",
+        "Enrollment status on / matches TopBar connection indicator",
+        "History events on /history reflect completed deployments"
+      ]
+    }
+  ],
+  "business_rules": [
+    {
+      "id": "BR-001",
+      "rule": "Default page size is 50, maximum is 200, minimum is 1",
+      "source": "internal/server/api/v1/pagination.go",
+      "test_method": "data_check",
+      "test": "Open any list page — default rows must be 50; ?limit=999 clamps to 200"
+    },
+    {
+      "id": "BR-002",
+      "rule": "Cursor-based pagination uses (created_at, id) keyset, not offset",
+      "source": "internal/server/api/v1/pagination.go",
+      "test_method": "data_check",
+      "test": "Navigate pages; inserting records between fetches must not cause duplicates or missing rows"
+    },
+    {
+      "id": "BR-003",
+      "rule": "Every query is scoped to the authenticated tenant; cross-tenant data is never returned",
+      "source": "internal/server/store/queries/*.sql",
+      "test_method": "security_check",
+      "test": "Log in as Tenant B; confirm Tenant A resources invisible"
+    },
+    {
+      "id": "BR-004",
+      "rule": "Decommissioned endpoints are excluded from all lists by default",
+      "source": "internal/server/store/queries/endpoints.sql",
+      "test_method": "data_check",
+      "test": "Decommission an endpoint; it must disappear from /endpoints list"
+    },
+    {
+      "id": "BR-005",
+      "rule": "Endpoints list sorted newest-first (created_at DESC)",
+      "source": "internal/server/store/queries/endpoints.sql",
+      "test_method": "data_check",
+      "test": "Enroll new endpoint; must appear first in /endpoints"
+    },
+    {
+      "id": "BR-006",
+      "rule": "Endpoint list supports filtering by status, os_family, search (hostname ILIKE), and tag_id simultaneously",
+      "source": "internal/server/api/v1/endpoints.go",
+      "test_method": "data_check",
+      "test": "Apply each filter individually and in combination"
+    },
+    {
+      "id": "BR-007",
+      "rule": "Endpoint CVE counts include only 'affected' status CVEs",
+      "source": "internal/server/store/queries/endpoints.sql",
+      "test_method": "data_check",
+      "test": "Mark CVE as patched; endpoint CVE count must decrease"
+    },
+    {
+      "id": "BR-008",
+      "rule": "Endpoint pending patch count counts only active-state deployment targets (pending, sent, executing, running)",
+      "source": "internal/server/store/queries/endpoints.sql",
+      "test_method": "data_check",
+      "test": "Complete a deployment; pending patch count drops"
+    },
+    {
+      "id": "BR-009",
+      "rule": "Available patches match by package name and exclude already-deployed patches",
+      "source": "internal/server/store/queries/endpoints.sql",
+      "test_method": "data_check",
+      "test": "Deploy a patch; it disappears from available patches list"
+    },
+    {
+      "id": "BR-010",
+      "rule": "Patches list sorted newest-first (created_at DESC)",
+      "source": "internal/server/store/queries/patches.sql",
+      "test_method": "data_check",
+      "test": "Sync new patch; appears at top of /patches"
+    },
+    {
+      "id": "BR-011",
+      "rule": "Patches list supports filtering by severity, os_family, os_distribution, status, and search",
+      "source": "internal/server/api/v1/patches.go",
+      "test_method": "data_check",
+      "test": "Apply each filter on /patches"
+    },
+    {
+      "id": "BR-012",
+      "rule": "Patch remediation % = (endpoints with all linked CVEs patched) / (total affected endpoints) x 100",
+      "source": "internal/server/store/queries/patches.sql",
+      "test_method": "data_check",
+      "test": "Patch endpoint CVEs; remediation % increases"
+    },
+    {
+      "id": "BR-013",
+      "rule": "Deployment history per patch limited to 20 most recent",
+      "source": "internal/server/store/queries/patches.sql",
+      "test_method": "data_check",
+      "test": "Create 21+ deployments for a patch; detail shows max 20"
+    },
+    {
+      "id": "BR-014",
+      "rule": "Affected endpoints per patch limited to 50",
+      "source": "internal/server/store/queries/patches.sql",
+      "test_method": "data_check",
+      "test": "51+ affected endpoints; patch detail shows 50"
+    },
+    {
+      "id": "BR-015",
+      "rule": "Patch status for endpoint derived from CVE statuses, not deployment status",
+      "source": "internal/server/store/queries/patches.sql",
+      "test_method": "data_check",
+      "test": "Deploy patch; status='deployed' only when all CVEs are 'patched'"
+    },
+    {
+      "id": "BR-016",
+      "rule": "Group name is required for create and update",
+      "source": "internal/server/api/v1/groups.go",
+      "test_method": "validation_check",
+      "test": "Submit empty group name; error 'name is required'"
+    },
+    {
+      "id": "BR-017",
+      "rule": "Groups list sorted oldest-first (created_at ASC)",
+      "source": "internal/server/store/queries/groups.sql",
+      "test_method": "data_check",
+      "test": "Oldest group appears first"
+    },
+    {
+      "id": "BR-018",
+      "rule": "Soft-deleted groups excluded from all lists and policy assignments",
+      "source": "internal/server/store/queries/groups.sql",
+      "test_method": "data_check",
+      "test": "Delete group; disappears from lists and policy selector"
+    },
+    {
+      "id": "BR-019",
+      "rule": "Setting group members is a full replacement (atomic remove-all then add-new)",
+      "source": "internal/server/api/v1/groups.go",
+      "test_method": "data_check",
+      "test": "SetMembers with [B,C] on group with [A,B]; only B,C remain"
+    },
+    {
+      "id": "BR-020",
+      "rule": "Policy name is required",
+      "source": "internal/server/api/v1/policies.go",
+      "test_method": "validation_check",
+      "test": "Create policy with empty name; error shown"
+    },
+    {
+      "id": "BR-021",
+      "rule": "selection_mode must be one of: all_available, by_severity, by_cve_list, by_regex",
+      "source": "internal/server/api/v1/policies.go",
+      "test_method": "validation_check",
+      "test": "Submit invalid selection_mode"
+    },
+    {
+      "id": "BR-022",
+      "rule": "When selection_mode=by_severity, min_severity required and must be critical/high/medium/low",
+      "source": "internal/server/api/v1/policies.go",
+      "test_method": "validation_check",
+      "test": "Select By Severity without choosing severity; error shown"
+    },
+    {
+      "id": "BR-023",
+      "rule": "When selection_mode=by_cve_list, cve_ids must be non-empty",
+      "source": "internal/server/api/v1/policies.go",
+      "test_method": "validation_check",
+      "test": "Select By CVE list with no CVEs; error shown"
+    },
+    {
+      "id": "BR-024",
+      "rule": "When selection_mode=by_regex, package_regex must be present and valid",
+      "source": "internal/server/api/v1/policies.go",
+      "test_method": "validation_check",
+      "test": "Submit invalid regex; error about invalid regex"
+    },
+    {
+      "id": "BR-025",
+      "rule": "Policy mode defaults to 'manual'; must be manual/automatic/advisory",
+      "source": "internal/server/api/v1/policies.go",
+      "test_method": "validation_check",
+      "test": "Create policy without mode; defaults to 'manual'"
+    },
+    {
+      "id": "BR-026",
+      "rule": "deployment_strategy defaults to all_at_once; must be all_at_once or rolling",
+      "source": "internal/server/api/v1/policies.go",
+      "test_method": "validation_check",
+      "test": "Create policy; strategy defaults to 'all_at_once'"
+    },
+    {
+      "id": "BR-027",
+      "rule": "Maintenance window (mw_start/mw_end) must be HH:MM format, both provided or both omitted",
+      "source": "internal/server/api/v1/policies.go",
+      "test_method": "validation_check",
+      "test": "Set mw_start without mw_end; error. Set mw_start='25:00'; error"
+    },
+    {
+      "id": "BR-028",
+      "rule": "Policy severity filter cascades: min_severity includes that level and all higher",
+      "source": "internal/server/api/v1/policies.go",
+      "test_method": "data_check",
+      "test": "Policy with min_severity=high matches both high and critical patches"
+    },
+    {
+      "id": "BR-029",
+      "rule": "Policies list sorted oldest-first (created_at ASC)",
+      "source": "internal/server/store/queries/policies.sql",
+      "test_method": "data_check",
+      "test": "Oldest policy appears first in /policies"
+    },
+    {
+      "id": "BR-030",
+      "rule": "Soft-deleted policies never returned; deletion irreversible",
+      "source": "internal/server/store/queries/policies.sql",
+      "test_method": "data_check",
+      "test": "Delete policy; disappears permanently"
+    },
+    {
+      "id": "BR-031",
+      "rule": "policy_id required for source_type=policy; endpoint_ids and patch_ids required for adhoc",
+      "source": "internal/server/api/v1/deployments.go",
+      "test_method": "validation_check",
+      "test": "Create policy deployment without policy_id; error MISSING_POLICY_ID"
+    },
+    {
+      "id": "BR-032",
+      "rule": "Wave percentage values must sum exactly to 100",
+      "source": "internal/server/api/v1/deployments.go",
+      "test_method": "validation_check",
+      "test": "Configure waves at 30%+60%; error 'must sum to 100'"
+    },
+    {
+      "id": "BR-033",
+      "rule": "Default wave config is single wave at 100%, success_threshold=0.80, error_rate_max=0.20",
+      "source": "internal/server/deployment/waves.go",
+      "test_method": "data_check",
+      "test": "Create deployment without wave config; detail shows 1 wave at 100%"
+    },
+    {
+      "id": "BR-034",
+      "rule": "Deployment targets randomly shuffled before wave assignment",
+      "source": "internal/server/api/v1/deployments.go",
+      "test_method": "data_check",
+      "test": "Two identical deployments may have different target ordering"
+    },
+    {
+      "id": "BR-035",
+      "rule": "Deployment with scheduled_at starts as 'scheduled'; without starts as 'created'",
+      "source": "internal/server/api/v1/deployments.go",
+      "test_method": "data_check",
+      "test": "Create scheduled deployment; status='scheduled' not 'created'"
+    },
+    {
+      "id": "BR-036",
+      "rule": "Deployment status transitions enforced: created->running, running->completed/failed, failed->running(retry), created|running->cancelled, running|failed->rolling_back",
+      "source": "internal/server/deployment/statemachine.go",
+      "test_method": "state_check",
+      "test": "On completed deployment, Cancel unavailable. On failed, Retry available"
+    },
+    {
+      "id": "BR-037",
+      "rule": "Deploying disabled policy returns 422 POLICY_DISABLED",
+      "source": "internal/server/api/v1/deployments.go",
+      "test_method": "validation_check",
+      "test": "Disable policy; deploy from it; error shown"
+    },
+    {
+      "id": "BR-038",
+      "rule": "Deploying policy with no matching endpoints returns 422 NO_ENDPOINTS",
+      "source": "internal/server/api/v1/deployments.go",
+      "test_method": "validation_check",
+      "test": "Policy with empty group; deploy; error shown"
+    },
+    {
+      "id": "BR-039",
+      "rule": "Deploying policy with no matching patches returns 422 NO_PATCHES",
+      "source": "internal/server/api/v1/deployments.go",
+      "test_method": "validation_check",
+      "test": "Policy with severity=critical, no critical patches; deploy; error"
+    },
+    {
+      "id": "BR-040",
+      "rule": "Deployment auto-fails when failure rate exceeds threshold (default 20%)",
+      "source": "internal/server/deployment/status.go",
+      "test_method": "state_check",
+      "test": "5 targets, 2 fail (40%>20%); deployment auto-transitions to 'failed'"
+    },
+    {
+      "id": "BR-041",
+      "rule": "Cancel only affects pending and sent targets; executing/succeeded/failed targets unchanged",
+      "source": "internal/server/store/queries/deployments.sql",
+      "test_method": "state_check",
+      "test": "Cancel running deployment; executing targets keep their status"
+    },
+    {
+      "id": "BR-042",
+      "rule": "Retry only available for failed deployments; only failed targets re-queued",
+      "source": "internal/server/deployment/statemachine.go",
+      "test_method": "state_check",
+      "test": "Retry failed deployment; succeeded targets remain succeeded"
+    },
+    {
+      "id": "BR-043",
+      "rule": "Deployment list sorted oldest-first (created_at ASC)",
+      "source": "internal/server/store/queries/deployments.sql",
+      "test_method": "data_check",
+      "test": "Oldest deployment appears first"
+    },
+    {
+      "id": "BR-044",
+      "rule": "Deployment list filterable by status, policy_id, created_after/before (RFC3339)",
+      "source": "internal/server/api/v1/deployments.go",
+      "test_method": "data_check",
+      "test": "Filter by status=running; only running shown"
+    },
+    {
+      "id": "BR-045",
+      "rule": "Deployment schedule requires policy_id and valid 5-field cron expression",
+      "source": "internal/server/api/v1/deployment_schedules.go",
+      "test_method": "validation_check",
+      "test": "Schedule with invalid cron; error INVALID_CRON_EXPRESSION"
+    },
+    {
+      "id": "BR-046",
+      "rule": "CVEs filterable by severity, cisa_kev, exploit_available, attack_vector, has_patch, published_after, search",
+      "source": "internal/server/api/v1/cves.go",
+      "test_method": "data_check",
+      "test": "Filter cisa_kev=true; only KEV-listed CVEs shown"
+    },
+    {
+      "id": "BR-047",
+      "rule": "CVEs list sorted newest-first (created_at DESC)",
+      "source": "internal/server/store/queries/patches.sql",
+      "test_method": "data_check",
+      "test": "Newest CVE appears first"
+    },
+    {
+      "id": "BR-048",
+      "rule": "CVE published_after filter requires RFC3339 format",
+      "source": "internal/server/api/v1/cves.go",
+      "test_method": "validation_check",
+      "test": "Pass published_after=2024-01-01 (no time); error shown"
+    },
+    {
+      "id": "BR-049",
+      "rule": "Related CVEs for a CVE detail limited to 10, ordered by CVSS descending",
+      "source": "internal/server/store/queries/patches.sql",
+      "test_method": "data_check",
+      "test": "CVE detail related section shows max 10, highest CVSS first"
+    },
+    {
+      "id": "BR-050",
+      "rule": "Alerts list sorted newest-first (created_at DESC)",
+      "source": "internal/server/store/queries/alerts.sql",
+      "test_method": "data_check",
+      "test": "Newest alert first in /alerts"
+    },
+    {
+      "id": "BR-051",
+      "rule": "Alerts filterable by severity, category, status, date range, and search (title/description ILIKE)",
+      "source": "internal/server/store/queries/alerts.sql",
+      "test_method": "data_check",
+      "test": "Apply each filter on /alerts"
+    },
+    {
+      "id": "BR-052",
+      "rule": "Alert bulk-update only affects alerts created within the last 90 days",
+      "source": "internal/server/store/queries/alerts.sql",
+      "test_method": "data_check",
+      "test": "Bulk mark-as-read; alerts >90 days remain unread"
+    },
+    {
+      "id": "BR-053",
+      "rule": "Alert unread counts broken out by severity: critical, warning, info, total",
+      "source": "internal/server/store/queries/alerts.sql",
+      "test_method": "data_check",
+      "test": "Badge/count shows separate numbers per severity"
+    },
+    {
+      "id": "BR-054",
+      "rule": "Overall compliance score = average of all enabled framework tenant-level scores",
+      "source": "internal/server/store/queries/compliance.sql",
+      "test_method": "data_check",
+      "test": "Enable 2 frameworks at 80% and 60%; overall ~70%"
+    },
+    {
+      "id": "BR-055",
+      "rule": "Endpoint compliant threshold is 95% (strictest scoring)",
+      "source": "internal/server/compliance/scorer.go",
+      "test_method": "data_check",
+      "test": "94% score endpoint NOT counted as compliant"
+    },
+    {
+      "id": "BR-056",
+      "rule": "Compliance CVE states: COMPLIANT, AT_RISK, NON_COMPLIANT, LATE_REMEDIATION based on SLA timeline",
+      "source": "internal/server/compliance/evaluator.go",
+      "test_method": "state_check",
+      "test": "CVE within SLA=COMPLIANT; past deadline unpatched=NON_COMPLIANT; patched after deadline=LATE_REMEDIATION"
+    },
+    {
+      "id": "BR-057",
+      "rule": "Compliance score = (compliant_cves / total_cves) x 100; empty=100",
+      "source": "internal/server/compliance/scorer.go",
+      "test_method": "data_check",
+      "test": "Endpoint with no CVEs shows 100%; 1 compliant + 1 non-compliant shows 50%"
+    },
+    {
+      "id": "BR-058",
+      "rule": "Overdue controls = status fail/partial + sla_deadline < now + enabled frameworks only",
+      "source": "internal/server/store/queries/compliance.sql",
+      "test_method": "data_check",
+      "test": "Overdue controls section only shows controls from enabled frameworks"
+    },
+    {
+      "id": "BR-059",
+      "rule": "Non-compliant endpoints per framework limited to 100, sorted by score ascending (worst first)",
+      "source": "internal/server/store/queries/compliance.sql",
+      "test_method": "data_check",
+      "test": "Framework detail shows max 100 non-compliant, lowest score first"
+    },
+    {
+      "id": "BR-060",
+      "rule": "Built-in compliance frameworks: NIST-800-53, PCI-DSS, CIS, HIPAA, ISO-27001, SOC-2",
+      "source": "internal/server/compliance/frameworks.go",
+      "test_method": "data_check",
+      "test": "All 6 frameworks appear in available frameworks list"
+    },
+    {
+      "id": "BR-061",
+      "rule": "Dashboard deployments_running includes status created AND running (not scheduled)",
+      "source": "internal/server/store/queries/dashboard.sql",
+      "test_method": "data_check",
+      "test": "Scheduled deployment does NOT increment running counter"
+    },
+    {
+      "id": "BR-062",
+      "rule": "Dashboard deployments_completed_today counts completions with completed_at on current calendar day",
+      "source": "internal/server/store/queries/dashboard.sql",
+      "test_method": "data_check",
+      "test": "Complete deployment; counter increments. Yesterday's don't count"
+    },
+    {
+      "id": "BR-063",
+      "rule": "Dashboard overdue_sla_count = deployments in created/running status older than 24 hours",
+      "source": "internal/server/store/queries/dashboard.sql",
+      "test_method": "data_check",
+      "test": "Deployment not overdue initially; after 24h appears in overdue"
+    },
+    {
+      "id": "BR-064",
+      "rule": "Dashboard endpoint risk score = min(10, (critical*3 + high*2 + medium) / 10), limited to 30 endpoints",
+      "source": "internal/server/store/queries/dashboard.sql",
+      "test_method": "data_check",
+      "test": "Add critical CVEs; risk score increases toward max 10"
+    },
+    {
+      "id": "BR-065",
+      "rule": "Dashboard active deployments widget shows at most 5",
+      "source": "internal/server/store/queries/dashboard.sql",
+      "test_method": "data_check",
+      "test": "Start 6 concurrent deployments; widget shows only 5"
+    },
+    {
+      "id": "BR-066",
+      "rule": "Policy evaluation blocked outside maintenance window",
+      "source": "internal/server/policy/evaluator.go",
+      "test_method": "state_check",
+      "test": "Set MW 09:00-17:00; evaluate at 20:00; blocked"
+    },
+    {
+      "id": "BR-067",
+      "rule": "Policy evaluation patches only match by OS family; no cross-OS assignment",
+      "source": "internal/server/deployment/evaluator.go",
+      "test_method": "data_check",
+      "test": "Policy covering Linux+Windows; Linux patches only to Linux endpoints"
+    },
+    {
+      "id": "BR-068",
+      "rule": "Hub client registration requires hostname; unauthenticated, returns bootstrap token",
+      "source": "internal/hub/api/v1/clients.go",
+      "test_method": "validation_check",
+      "test": "Register without hostname; error. With hostname; token returned"
+    },
+    {
+      "id": "BR-069",
+      "rule": "All resource IDs in URL paths must be valid UUIDs",
+      "source": "multiple handlers",
+      "test_method": "validation_check",
+      "test": "GET /api/v1/endpoints/not-a-uuid returns 400"
+    },
+    {
+      "id": "BR-070",
+      "rule": "Malformed pagination cursor returns 400 INVALID_CURSOR",
+      "source": "internal/server/api/v1/pagination.go",
+      "test_method": "validation_check",
+      "test": "Pass ?cursor=garbage; 400 error"
+    },
+    {
+      "id": "BR-071",
+      "rule": "Frontend: Endpoint risk score >= 7 = critical (red), >= 4 = warning, < 4 = healthy",
+      "source": "web/src/lib/risk.ts",
+      "test_method": "visual_check",
+      "test": "Endpoint with many critical CVEs shows red risk indicator"
+    },
+    {
+      "id": "BR-072",
+      "rule": "Frontend: CVSS >= 9.0 = critical, >= 7.0 = warning, >= 4.0 = secondary, < 4.0 = muted",
+      "source": "web/src/pages/cves/CVEsPage.tsx",
+      "test_method": "visual_check",
+      "test": "CVE badges colored correctly by CVSS score"
+    },
+    {
+      "id": "BR-073",
+      "rule": "Frontend: Compliance >= 95% = Compliant, >= 80% = Needs Improvement, < 80% = Non-Compliant",
+      "source": "web/src/pages/compliance/framework.tsx",
+      "test_method": "visual_check",
+      "test": "Framework at 94% shows 'Needs Improvement' not 'Compliant'"
+    },
+    {
+      "id": "BR-074",
+      "rule": "Frontend: Deployment polling stops on terminal statuses (completed, failed, cancelled, rolled_back, rollback_failed)",
+      "source": "web/src/pages/deployments/DeploymentDetailPage.tsx",
+      "test_method": "behavior_check",
+      "test": "Completed deployment stops auto-refreshing"
+    },
+    {
+      "id": "BR-075",
+      "rule": "Frontend: Alert badge red when critical_unread > 0, yellow when only warning_unread > 0; polls every 30s",
+      "source": "web/src/app/layout/AppSidebar.tsx",
+      "test_method": "visual_check",
+      "test": "Critical unread alert = red badge; warning only = yellow badge"
+    },
+    {
+      "id": "BR-076",
+      "rule": "Hub: Feed is 'failing' if status=idle AND last 5 completed history runs all failed",
+      "source": "web-hub/src/pages/feeds/FeedsPage.tsx",
+      "test_method": "state_check",
+      "test": "Idle feed with 5 consecutive failures shows 'failing' status"
+    },
+    {
+      "id": "BR-077",
+      "rule": "Hub: License status computed as: revoked_at -> revoked; expired; <=30 days -> expiring; else active",
+      "source": "web-hub/src/lib/licenseUtils.ts",
+      "test_method": "data_check",
+      "test": "License expiring in 25 days shows 'expiring' badge"
+    },
+    {
+      "id": "BR-078",
+      "rule": "Hub: Client health score based on last_sync recency: <30m=100, <1h=90, <6h=75, <24h=60, <7d=30, else=10",
+      "source": "web-hub/src/pages/clients/ClientsPage.tsx",
+      "test_method": "data_check",
+      "test": "Client synced 2h ago shows health score 75"
+    },
+    {
+      "id": "BR-079",
+      "rule": "Hub: Only approved clients appear in license assignment dropdown",
+      "source": "web-hub/src/pages/licenses/LicenseDetailPage.tsx",
+      "test_method": "data_check",
+      "test": "Pending client not available for license assignment"
+    },
+    {
+      "id": "BR-080",
+      "rule": "Hub: Pending client count badge polls every 30s in sidebar",
+      "source": "web-hub/src/app/layout/AppSidebar.tsx",
+      "test_method": "visual_check",
+      "test": "Approve pending client; badge decrements within 30s"
+    },
+    {
+      "id": "BR-081",
+      "rule": "Agent: enrollment_status=enrolled means healthy/connected; drives TopBar dot color",
+      "source": "web-agent/src/app/layout/TopBar.tsx",
+      "test_method": "visual_check",
+      "test": "Enrolled agent shows green dot; non-enrolled shows red"
+    },
+    {
+      "id": "BR-082",
+      "rule": "Agent: Heartbeat within 180s = Connected; never = Awaiting; stale = Heartbeat stale",
+      "source": "web-agent/src/pages/status/StatusPage.tsx",
+      "test_method": "visual_check",
+      "test": "Check server connection card text matches heartbeat recency"
+    },
+    {
+      "id": "BR-083",
+      "rule": "Agent: ProgressBar/GaugeBar thresholds: >85% = critical, >70% = warning, else accent",
+      "source": "web-agent/src/pages/status/StatusPage.tsx",
+      "test_method": "visual_check",
+      "test": "CPU at 90% shows critical (red) color bar"
+    },
+    {
+      "id": "BR-084",
+      "rule": "Agent: Services default filter is 'running' not 'all'",
+      "source": "web-agent/src/pages/services/ServicesPage.tsx",
+      "test_method": "behavior_check",
+      "test": "Navigate to /services; only running services shown by default"
+    },
+    {
+      "id": "BR-085",
+      "rule": "Agent: Settings bandwidth validation: 0=unlimited, else 64-102400 Kbps",
+      "source": "web-agent/src/pages/settings/SettingsPage.tsx",
+      "test_method": "validation_check",
+      "test": "Set bandwidth to 50 Kbps; error shown. Set to 0; accepted"
+    },
+    {
+      "id": "BR-086",
+      "rule": "Agent: Settings PUT sends only dirty fields (diff before send)",
+      "source": "web-agent/src/pages/settings/SettingsPage.tsx",
+      "test_method": "behavior_check",
+      "test": "Change one field; only that field in PUT body"
+    },
+    {
+      "id": "BR-087",
+      "rule": "Agent: Trigger Scan has 5-second UI cooldown",
+      "source": "web-agent/src/pages/settings/SettingsPage.tsx",
+      "test_method": "behavior_check",
+      "test": "Click Trigger Scan; button disabled for 5s with 'Scan Triggered' text"
+    },
+    {
+      "id": "BR-088",
+      "rule": "Agent: Install/Skip buttons on pending patches are UI-only (no mutation wired)",
+      "source": "web-agent/src/pages/pending/PendingPatchesPage.tsx",
+      "test_method": "behavior_check",
+      "test": "Click Install/Skip; no API call made"
+    }
+  ],
+  "shared_components": [
+    {
+      "name": "sidebar",
+      "component": "AppSidebar",
+      "file": "web/src/app/layout/AppSidebar.tsx",
+      "appears_on": "all authenticated pages (web)",
+      "review_once": true,
+      "states": [
+        "expanded",
+        "collapsed",
+        "settings-mode",
+        "active-item-highlighted",
+        "alert-badge-critical",
+        "alert-badge-warning",
+        "no-badge"
+      ]
+    },
+    {
+      "name": "settings-sidebar",
+      "component": "SettingsSidebar",
+      "file": "web/src/pages/settings/SettingsSidebar.tsx",
+      "appears_on": "all /settings/* pages (web)",
+      "review_once": true,
+      "states": ["active-section-highlighted"]
+    },
+    {
+      "name": "topbar",
+      "component": "TopBar",
+      "file": "web/src/app/layout/TopBar.tsx",
+      "appears_on": "all authenticated pages (web)",
+      "review_once": true,
+      "states": [
+        "breadcrumb-single",
+        "breadcrumb-nested",
+        "settings-breadcrumb",
+        "dark-mode",
+        "light-mode"
+      ]
+    },
+    {
+      "name": "command-palette",
+      "component": "CommandPalette",
+      "file": "web/src/pages/dashboard/CommandPalette.tsx",
+      "appears_on": "all authenticated pages (web)",
+      "review_once": true,
+      "states": ["open", "closed", "search-results", "empty-results"]
+    },
+    {
+      "name": "deployment-wizard",
+      "component": "DeploymentWizard",
+      "file": "web/src/components/DeploymentWizard/index.tsx",
+      "appears_on": "/endpoints, /endpoints/:id, /patches, /patches/:id, /deployments, /policies/:id",
+      "review_once": false,
+      "states": [
+        "step-1-source",
+        "step-2-targets",
+        "step-3-strategy",
+        "step-4-review",
+        "submitting",
+        "pre-filled-from-policy",
+        "pre-filled-from-patch"
+      ]
+    },
+    {
+      "name": "data-table",
+      "component": "DataTable",
+      "file": "web/src/components/data-table/DataTable.tsx",
+      "appears_on": "all list pages",
+      "review_once": true,
+      "states": [
+        "loading",
+        "empty",
+        "with-data",
+        "expanded-row",
+        "selected-rows",
+        "sorted",
+        "filtered"
+      ]
+    },
+    {
+      "name": "filter-bar",
+      "component": "FilterBar",
+      "file": "web/src/components/FilterBar.tsx",
+      "appears_on": "all list pages",
+      "review_once": true,
+      "states": ["no-active-filters", "active-filters", "with-search"]
+    },
+    {
+      "name": "hub-sidebar",
+      "component": "AppSidebar (Hub)",
+      "file": "web-hub/src/app/layout/AppSidebar.tsx",
+      "appears_on": "all authenticated pages (web-hub)",
+      "review_once": true,
+      "states": ["expanded", "collapsed", "settings-mode", "pending-client-badge"]
+    },
+    {
+      "name": "hub-topbar",
+      "component": "TopBar (Hub)",
+      "file": "web-hub/src/app/layout/TopBar.tsx",
+      "appears_on": "all authenticated pages (web-hub)",
+      "review_once": true,
+      "states": ["breadcrumb-single", "breadcrumb-nested", "dark-mode", "light-mode"]
+    },
+    {
+      "name": "icon-rail",
+      "component": "IconRail",
+      "file": "web-agent/src/app/layout/IconRail.tsx",
+      "appears_on": "all pages (web-agent)",
+      "review_once": true,
+      "states": ["active-item-highlighted", "hover-tooltip"]
+    },
+    {
+      "name": "agent-topbar",
+      "component": "TopBar (Agent)",
+      "file": "web-agent/src/app/layout/TopBar.tsx",
+      "appears_on": "all pages (web-agent)",
+      "review_once": true,
+      "states": ["connected", "disconnected", "dark-mode", "light-mode"]
+    }
+  ],
+  "review_plan": {
+    "deep_review_pages": [
+      "/",
+      "/endpoints",
+      "/endpoints/:id",
+      "/patches",
+      "/patches/:id",
+      "/cves",
+      "/policies",
+      "/policies/new",
+      "/policies/:id",
+      "/deployments",
+      "/deployments/:id",
+      "/workflows",
+      "/workflows/new",
+      "/workflows/:id/edit",
+      "/compliance",
+      "/compliance/frameworks/:id",
+      "/login",
+      "hub:/",
+      "hub:/catalog",
+      "hub:/feeds",
+      "hub:/licenses",
+      "hub:/clients",
+      "agent:/",
+      "agent:/pending"
+    ],
+    "flow_reviews": [
+      "flow-endpoint-triage",
+      "flow-policy-deploy",
+      "flow-compliance-assess",
+      "flow-deployment-lifecycle",
+      "flow-workflow-build-execute",
+      "flow-cve-investigate",
+      "flow-hub-catalog-sync",
+      "flow-hub-license-lifecycle",
+      "flow-hub-client-onboard",
+      "flow-agent-patch-monitor"
+    ],
+    "smoke_all": true,
+    "estimated_total_time": "~5 hours",
+    "estimated_captures": 600
+  }
+}

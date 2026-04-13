@@ -1,0 +1,14 @@
+# Default: core devs review everything
+* @herambskanda
+
+# Foundations — only Heramb
+internal/shared/tenant/ @herambskanda
+internal/shared/domain/ @herambskanda
+internal/shared/crypto/ @herambskanda
+internal/server/store/migrations/ @herambskanda
+internal/hub/store/migrations/ @herambskanda
+
+# CI/CD — only Heramb
+.github/workflows/ @herambskanda
+Makefile @herambskanda
+.goreleaser.yaml @herambskanda

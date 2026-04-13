@@ -1,0 +1,6190 @@
+openapi: 3.1.0
+
+info:
+  title: PatchIQ Patch Manager API
+  version: 0.1.0
+  license:
+    name: Proprietary
+    url: https://patchiq.io/license
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: System
+    description: Health and readiness checks
+  - name: Endpoints
+    description: Managed endpoint operations
+  - name: Patches
+    description: Patch catalog operations
+  - name: Policies
+    description: Patch policy operations
+  - name: Deployments
+    description: Deployment operations
+  - name: CVEs
+    description: CVE vulnerability operations
+  - name: Dashboard
+    description: Dashboard summary
+  - name: Audit
+    description: Audit event log
+  - name: Auth
+    description: Authentication (SSO, login, logout)
+  - name: IAM
+    description: Identity & Access Management settings
+  - name: Workflows
+    description: Workflow management and execution
+  - name: Compliance
+    description: Compliance framework management
+  - name: Notifications
+    description: Notification channels, preferences, and history
+  - name: Roles
+    description: Role-based access control
+  - name: UserRoles
+    description: User role assignments
+  - name: License
+    description: License status
+  - name: HubSync
+    description: Hub synchronization
+  - name: DeploymentSchedules
+    description: Deployment schedule management
+  - name: Alerts
+    description: Alert management and alert rule configuration
+  - name: Organizations
+    description: Organizations and MSP-tenant provisioning
+
+components:
+  parameters:
+    TenantId:
+      name: X-Tenant-ID
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: The tenant identifier — optional when using cookie-based authentication (server extracts tenant from session)
+
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Opaque pagination cursor from a previous response
+
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+      description: Maximum number of items to return
+
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Unique resource identifier (UUID)
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: TENANT_NOT_FOUND
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+          default: []
+
+    Endpoint:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - hostname
+        - os_family
+        - os_version
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+        os_family:
+          type: string
+        os_version:
+          type: string
+        agent_version:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+          enum:
+            - pending
+            - active
+            - inactive
+            - decommissioned
+        last_seen:
+          type:
+            - string
+            - "null"
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Patch:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - name
+        - version
+        - severity
+        - os_family
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: string
+        severity:
+          type: string
+          enum:
+            - critical
+            - high
+            - medium
+            - low
+            - none
+        os_family:
+          type: string
+        cve_ids:
+          type: array
+          items:
+            type: string
+          default: []
+        status:
+          type: string
+          enum:
+            - available
+            - superseded
+            - recalled
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TargetSelector:
+      type: object
+      description: |
+        Tag-based target selector AST. Recursive JSONB expression composed of
+        boolean operators (and/or/not) and tag predicates (eq/in/exists).
+        A missing or empty selector means "no endpoints" (fail-safe default).
+      additionalProperties: true
+
+    Policy:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - name
+        - enabled
+        - selection_mode
+        - created_at
+        - updated_at
+        - mode
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        enabled:
+          type: boolean
+        selection_mode:
+          type: string
+          enum:
+            - all_available
+            - by_severity
+            - by_cve_list
+            - by_regex
+        target_selector:
+          oneOf:
+            - $ref: "#/components/schemas/TargetSelector"
+            - type: "null"
+        min_severity:
+          type:
+            - string
+            - "null"
+          enum:
+            - critical
+            - high
+            - medium
+            - low
+            - null
+        cve_ids:
+          type: array
+          items:
+            type: string
+          default: []
+        package_regex:
+          type:
+            - string
+            - "null"
+        exclude_packages:
+          type: array
+          items:
+            type: string
+          default: []
+        schedule_type:
+          type: string
+          enum:
+            - manual
+            - recurring
+          default: manual
+        schedule_cron:
+          type:
+            - string
+            - "null"
+        mw_start:
+          type:
+            - string
+            - "null"
+          description: "Maintenance window start time (HH:MM)"
+        mw_end:
+          type:
+            - string
+            - "null"
+          description: "Maintenance window end time (HH:MM)"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        mode:
+          type: string
+          enum:
+            - automatic
+            - manual
+            - advisory
+        target_endpoints_count:
+          type: integer
+        last_evaluated_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        last_eval_pass:
+          type:
+            - boolean
+            - "null"
+        last_eval_endpoint_count:
+          type:
+            - integer
+            - "null"
+        last_eval_compliant_count:
+          type:
+            - integer
+            - "null"
+        policy_type:
+          type: string
+          enum:
+            - patch
+            - deploy
+            - compliance
+          default: patch
+        timezone:
+          type: string
+          default: UTC
+        mw_enabled:
+          type: boolean
+          default: false
+
+    CreatePolicyRequest:
+      type: object
+      required:
+        - name
+        - selection_mode
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        selection_mode:
+          type: string
+          enum:
+            - all_available
+            - by_severity
+            - by_cve_list
+            - by_regex
+        target_selector:
+          $ref: "#/components/schemas/TargetSelector"
+        min_severity:
+          type: string
+          enum:
+            - critical
+            - high
+            - medium
+            - low
+        cve_ids:
+          type: array
+          items:
+            type: string
+        package_regex:
+          type: string
+        exclude_packages:
+          type: array
+          items:
+            type: string
+        schedule_type:
+          type: string
+          enum:
+            - manual
+            - recurring
+          default: manual
+        schedule_cron:
+          type: string
+        mw_start:
+          type: string
+        mode:
+          type: string
+          enum:
+            - automatic
+            - manual
+            - advisory
+        mw_end:
+          type: string
+        policy_type:
+          type: string
+          enum:
+            - patch
+            - deploy
+            - compliance
+          default: patch
+        timezone:
+          type: string
+          default: UTC
+        mw_enabled:
+          type: boolean
+          default: false
+
+    UpdatePolicyRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        enabled:
+          type: boolean
+        selection_mode:
+          type: string
+          enum:
+            - all_available
+            - by_severity
+            - by_cve_list
+            - by_regex
+        target_selector:
+          $ref: "#/components/schemas/TargetSelector"
+        min_severity:
+          type: string
+          enum:
+            - critical
+            - high
+            - medium
+            - low
+        cve_ids:
+          type: array
+          items:
+            type: string
+        package_regex:
+          type: string
+        exclude_packages:
+          type: array
+          items:
+            type: string
+        schedule_type:
+          type: string
+          enum:
+            - manual
+            - recurring
+        schedule_cron:
+          type: string
+        mw_start:
+          type: string
+        mode:
+          type: string
+          enum:
+            - automatic
+            - manual
+            - advisory
+        mw_end:
+          type: string
+        policy_type:
+          type: string
+          enum:
+            - patch
+            - deploy
+            - compliance
+          default: patch
+        timezone:
+          type: string
+          default: UTC
+        mw_enabled:
+          type: boolean
+          default: false
+
+    PolicyEvaluation:
+      type: object
+      required:
+        - id
+        - evaluated_at
+        - matched_patches
+        - in_scope_endpoints
+        - compliant_count
+        - non_compliant_count
+        - duration_ms
+        - pass
+      properties:
+        id:
+          type: string
+          format: uuid
+        evaluated_at:
+          type: string
+          format: date-time
+        matched_patches:
+          type: integer
+        in_scope_endpoints:
+          type: integer
+        compliant_count:
+          type: integer
+        non_compliant_count:
+          type: integer
+        duration_ms:
+          type: integer
+        pass:
+          type: boolean
+
+    PolicyDetail:
+      allOf:
+        - $ref: "#/components/schemas/Policy"
+        - type: object
+          properties:
+            matched_endpoints:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  hostname:
+                    type: string
+                  os_family:
+                    type: string
+                  status:
+                    type: string
+            recent_evaluations:
+              type: array
+              items:
+                $ref: "#/components/schemas/PolicyEvaluation"
+            recent_deployments:
+              type: array
+              items:
+                $ref: "#/components/schemas/Deployment"
+            deployment_count:
+              type: integer
+
+    BulkPolicyRequest:
+      type: object
+      required:
+        - ids
+        - action
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+        action:
+          type: string
+          enum:
+            - enable
+            - disable
+            - delete
+
+    EvaluationResult:
+      type: object
+      required:
+        - total_endpoints
+        - total_patches
+        - results
+      properties:
+        total_endpoints:
+          type: integer
+        total_patches:
+          type: integer
+        results:
+          type: array
+          items:
+            type: object
+            required:
+              - endpoint_id
+              - hostname
+              - patch_count
+            properties:
+              endpoint_id:
+                type: string
+                format: uuid
+              hostname:
+                type: string
+              os_family:
+                type: string
+              patch_count:
+                type: integer
+
+    Deployment:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - policy_id
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        policy_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - created
+            - scheduled
+            - running
+            - completed
+            - failed
+            - cancelled
+            - rolling_back
+            - rolled_back
+            - rollback_failed
+        created_by:
+          type:
+            - string
+            - "null"
+          format: uuid
+        started_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        completed_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        target_count:
+          type: integer
+          default: 0
+        completed_count:
+          type: integer
+          default: 0
+        success_count:
+          type: integer
+          default: 0
+        failed_count:
+          type: integer
+          default: 0
+        name:
+          type: string
+          description: Human-readable name for the deployment (set for ad-hoc deployments)
+        policy_name:
+          type: string
+          description: Name of the associated policy, denormalized for display
+        wave_config:
+          type: array
+          items:
+            $ref: "#/components/schemas/WaveConfig"
+          description: Wave configuration for staged rollout
+        max_concurrent:
+          type:
+            - integer
+            - "null"
+          description: Maximum number of concurrent target installations
+        scheduled_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: Scheduled execution time (null means immediate)
+
+    DeploymentTarget:
+      type: object
+      required:
+        - id
+        - deployment_id
+        - endpoint_id
+        - hostname
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        deployment_id:
+          type: string
+          format: uuid
+        endpoint_id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - sent
+            - executing
+            - succeeded
+            - failed
+        exit_code:
+          type:
+            - integer
+            - "null"
+        output:
+          type:
+            - string
+            - "null"
+          description: stdout/stderr from the agent
+        error:
+          type:
+            - string
+            - "null"
+        wave_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        started_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+
+    DeploymentPatchSummary:
+      type: object
+      required:
+        - patch_id
+        - patch_title
+        - total_targets
+        - success_count
+        - failed_count
+      properties:
+        patch_id:
+          type: string
+          format: uuid
+        patch_title:
+          type: string
+        patch_version:
+          type: string
+        patch_severity:
+          type: string
+        total_targets:
+          type: integer
+        success_count:
+          type: integer
+        failed_count:
+          type: integer
+
+    CreateDeploymentRequest:
+      type: object
+      properties:
+        policy_id:
+          type: string
+          format: uuid
+        source_type:
+          type: string
+          enum:
+            - policy
+            - catalog
+            - adhoc
+          description: Deployment source type
+        endpoint_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Explicit target endpoint IDs (required for catalog/adhoc)
+        patch_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Explicit patch IDs to deploy (for catalog/adhoc)
+        name:
+          type: string
+          description: Human-readable deployment name
+        description:
+          type: string
+          description: Deployment description
+        target_expression:
+          description: Tag-based target expression for endpoint matching
+        wave_config:
+          type: array
+          items:
+            $ref: "#/components/schemas/WaveConfig"
+          description: Wave configuration for staged rollout
+        max_concurrent:
+          type: integer
+          description: Maximum number of concurrent target installations
+        scheduled_at:
+          type: string
+          format: date-time
+          description: Scheduled execution time (omit for immediate)
+        rollback_config:
+          type: object
+          additionalProperties: true
+          description: Rollback configuration
+        reboot_config:
+          type: object
+          additionalProperties: true
+          description: Reboot configuration
+        workflow_template_id:
+          type: string
+          format: uuid
+          description: Workflow template to execute as part of deployment
+
+    AuditEvent:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - type
+        - actor_id
+        - actor_type
+        - resource
+        - resource_id
+        - action
+        - timestamp
+      properties:
+        id:
+          type: string
+          description: ULID identifier
+        tenant_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        actor_id:
+          type: string
+        actor_type:
+          type: string
+          enum:
+            - user
+            - system
+            - ai_assistant
+        resource:
+          type: string
+        resource_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        payload:
+          type: object
+          default: {}
+        metadata:
+          type: object
+          default: {}
+        timestamp:
+          type: string
+          format: date-time
+
+    Alert:
+      type: object
+      required: [id, tenant_id, event_id, severity, category, title, description, resource, resource_id, status, payload, created_at]
+      properties:
+        id:
+          type: string
+        tenant_id:
+          type: string
+          format: uuid
+        rule_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        category:
+          type: string
+          enum: [deployments, agents, cves, compliance, system]
+        title:
+          type: string
+        description:
+          type: string
+        resource:
+          type: string
+        resource_id:
+          type: string
+        status:
+          type: string
+          enum: [unread, read, acknowledged, dismissed]
+        payload:
+          type: object
+          default: {}
+        created_at:
+          type: string
+          format: date-time
+        read_at:
+          type: [string, "null"]
+          format: date-time
+        acknowledged_at:
+          type: [string, "null"]
+          format: date-time
+        dismissed_at:
+          type: [string, "null"]
+          format: date-time
+
+    AlertRule:
+      type: object
+      required: [id, tenant_id, event_type, severity, category, title_template, description_template, enabled, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        category:
+          type: string
+          enum: [deployments, agents, cves, compliance, system]
+        title_template:
+          type: string
+        description_template:
+          type: string
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AlertCountResponse:
+      type: object
+      required: [critical_unread, warning_unread, info_unread, total_unread]
+      properties:
+        critical_unread:
+          type: integer
+        warning_unread:
+          type: integer
+        info_unread:
+          type: integer
+        total_unread:
+          type: integer
+
+    CreateAlertRuleRequest:
+      type: object
+      required: [event_type, severity, category, title_template, description_template, enabled]
+      properties:
+        event_type:
+          type: string
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        category:
+          type: string
+          enum: [deployments, agents, cves, compliance, system]
+        title_template:
+          type: string
+        description_template:
+          type: string
+        enabled:
+          type: boolean
+
+    UpdateAlertStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [unread, read, acknowledged, dismissed]
+
+    BulkUpdateAlertStatusRequest:
+      type: object
+      required: [ids, status]
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [unread, read, acknowledged, dismissed]
+
+    CVE:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        cve_id:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low, none]
+        description:
+          type: string
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        cvss_v3_score:
+          type: number
+          nullable: true
+        cvss_v3_vector:
+          type: string
+          nullable: true
+        cisa_kev_due_date:
+          type: string
+          format: date
+          nullable: true
+        exploit_available:
+          type: boolean
+        nvd_last_modified:
+          type: string
+          format: date-time
+        affected_endpoint_count:
+          type: integer
+        patch_available:
+          type: boolean
+        attack_vector:
+          type: string
+          nullable: true
+          enum: [Network, Adjacent, Local, Physical]
+
+    CVEDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        cve_id:
+          type: string
+        severity:
+          type: string
+        description:
+          type: string
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        cvss_v3_score:
+          type: number
+          nullable: true
+        cvss_v3_vector:
+          type: string
+          nullable: true
+        cisa_kev_due_date:
+          type: string
+          format: date
+          nullable: true
+        exploit_available:
+          type: boolean
+        nvd_last_modified:
+          type: string
+          format: date-time
+        attack_vector:
+          type: string
+          nullable: true
+        cwe_id:
+          type: string
+          nullable: true
+        source:
+          type: string
+        external_references:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalReference'
+        affected_endpoints:
+          type: object
+          properties:
+            count:
+              type: integer
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/AffectedEndpoint'
+            has_more:
+              type: boolean
+        patches:
+          type: array
+          items:
+            $ref: '#/components/schemas/CVEPatchDetail'
+        related_cves:
+          type: array
+          items:
+            $ref: '#/components/schemas/RelatedCVE'
+
+    RelatedCVE:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        cve_id:
+          type: string
+        severity:
+          type: string
+        cvss_v3_score:
+          type: number
+          nullable: true
+
+    ExternalReference:
+      type: object
+      properties:
+        url:
+          type: string
+        source:
+          type: string
+
+    AffectedEndpoint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+        os_family:
+          type: string
+        os_version:
+          type: string
+        ip_address:
+          type: string
+          nullable: true
+        status:
+          type: string
+        agent_version:
+          type: string
+          nullable: true
+        last_seen:
+          type: string
+          format: date-time
+          nullable: true
+        group_names:
+          type: string
+          nullable: true
+
+    CVEPatchDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: string
+        severity:
+          type: string
+        os_family:
+          type: string
+        released_at:
+          type: string
+          format: date-time
+        endpoints_covered:
+          type: integer
+        endpoints_patched:
+          type: integer
+
+    CVESummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        by_severity:
+          type: object
+          additionalProperties:
+            type: integer
+        kev_count:
+          type: integer
+
+    CurrentUser:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+        tenant_id:
+          type: string
+
+    IAMSettings:
+      type: object
+      required:
+        - user_sync_enabled
+        - user_sync_interval_minutes
+      properties:
+        zitadel_org_id:
+          type: string
+        user_sync_enabled:
+          type: boolean
+        user_sync_interval_minutes:
+          type: integer
+
+    RoleMappingEntry:
+      type: object
+      required:
+        - external_role
+        - patchiq_role_id
+      properties:
+        external_role:
+          type: string
+        patchiq_role_id:
+          type: string
+          format: uuid
+        role_name:
+          type: string
+
+    UpdateRoleMappingsRequest:
+      type: object
+      required:
+        - mappings
+      properties:
+        mappings:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleMappingEntry"
+
+    DashboardSummary:
+      type: object
+      required:
+        - total_endpoints
+        - active_endpoints
+        - total_patches
+        - critical_patches
+        - total_cves
+        - pending_deployments
+        - compliance_rate
+      properties:
+        total_endpoints:
+          type: integer
+        active_endpoints:
+          type: integer
+        total_patches:
+          type: integer
+        critical_patches:
+          type: integer
+        total_cves:
+          type: integer
+        pending_deployments:
+          type: integer
+        compliance_rate:
+          type: number
+          format: double
+          description: Percentage (0-100) of endpoints fully patched
+
+    SLADeadlineItem:
+      type: object
+      required:
+        - framework_id
+        - framework_name
+        - state
+        - sla_deadline_at
+        - evaluated_at
+      properties:
+        framework_id:
+          type: string
+        framework_name:
+          type: string
+        state:
+          type: string
+          description: Current compliance evaluation state
+        sla_deadline_at:
+          type: string
+          description: RFC3339 timestamp of the SLA deadline (empty string if unset)
+        evaluated_at:
+          type: string
+          description: RFC3339 timestamp when the framework was last evaluated (empty string if unset)
+
+    # --- Workflow schemas ---
+
+    WorkflowNodeRequest:
+      type: object
+      required:
+        - id
+        - node_type
+        - label
+        - position_x
+        - position_y
+        - config
+      properties:
+        id:
+          type: string
+        node_type:
+          type: string
+        label:
+          type: string
+        position_x:
+          type: number
+        position_y:
+          type: number
+        config:
+          type: object
+
+    WorkflowEdgeRequest:
+      type: object
+      required:
+        - source_node_id
+        - target_node_id
+      properties:
+        source_node_id:
+          type: string
+        target_node_id:
+          type: string
+        label:
+          type: string
+
+    CreateWorkflowRequest:
+      type: object
+      required:
+        - name
+        - nodes
+        - edges
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowNodeRequest"
+          minItems: 1
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowEdgeRequest"
+
+    WorkflowResponse:
+      type: object
+      required:
+        - id
+        - version_id
+        - version
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        version_id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        status:
+          type: string
+
+    Workflow:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - name
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+
+    WorkflowListItem:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - name
+        - created_at
+        - updated_at
+        - current_version
+        - current_status
+        - node_count
+        - total_runs
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        current_version:
+          type: integer
+        current_status:
+          type: string
+          enum: [draft, published, archived]
+        node_count:
+          type: integer
+        total_runs:
+          type: integer
+        last_run_status:
+          type: string
+          description: Empty string when no executions exist
+        last_run_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+
+    WorkflowVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflow_id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    WorkflowNode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        version_id:
+          type: string
+          format: uuid
+        node_type:
+          type: string
+        label:
+          type: string
+        position_x:
+          type: number
+        position_y:
+          type: number
+        config:
+          type: object
+
+    WorkflowEdge:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        version_id:
+          type: string
+          format: uuid
+        source_node_id:
+          type: string
+          format: uuid
+        target_node_id:
+          type: string
+          format: uuid
+        label:
+          type:
+            - string
+            - "null"
+
+    WorkflowDetailResponse:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - name
+        - nodes
+        - edges
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        version:
+          $ref: "#/components/schemas/WorkflowVersion"
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowEdge"
+
+    WorkflowTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowNodeRequest"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowEdgeRequest"
+
+    WorkflowExecution:
+      type: object
+      required:
+        - id
+        - workflow_id
+        - version_id
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflow_id:
+          type: string
+          format: uuid
+        version_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        triggered_by:
+          type: string
+        triggered_by_user_id:
+          type:
+            - string
+            - "null"
+        context:
+          type: object
+        current_node_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        error_message:
+          type:
+            - string
+            - "null"
+        started_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        completed_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    WorkflowNodeExecution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        execution_id:
+          type: string
+          format: uuid
+        node_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        input:
+          type: object
+        output:
+          type: object
+        error_message:
+          type:
+            - string
+            - "null"
+        started_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        completed_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+
+    ExecutionDetailResponse:
+      allOf:
+        - $ref: "#/components/schemas/WorkflowExecution"
+        - type: object
+          properties:
+            node_executions:
+              type: array
+              items:
+                $ref: "#/components/schemas/WorkflowNodeExecution"
+
+    ApprovalRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+
+    # --- Compliance schemas ---
+
+    ComplianceSummary:
+      type: object
+      required:
+        - frameworks
+      properties:
+        frameworks:
+          type: array
+          items:
+            $ref: "#/components/schemas/FrameworkScoreSummary"
+        last_evaluated_at:
+          type:
+            - string
+            - "null"
+
+    FrameworkScoreSummary:
+      type: object
+      required:
+        - framework_id
+        - name
+        - total_cves
+        - compliant
+        - at_risk
+        - non_compliant
+      properties:
+        framework_id:
+          type: string
+        name:
+          type: string
+        score:
+          type:
+            - string
+            - "null"
+        total_cves:
+          type: integer
+        compliant:
+          type: integer
+        at_risk:
+          type: integer
+        non_compliant:
+          type: integer
+        evaluated_at:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+          enum:
+            - compliant
+            - needs_improvement
+            - non_compliant
+        total_controls:
+          type: integer
+        passing_controls:
+          type: integer
+        failing_controls:
+          type: integer
+        na_controls:
+          type: integer
+        endpoints_compliant:
+          type: integer
+        total_endpoints:
+          type: integer
+        overdue_count:
+          type: integer
+
+    FrameworkListItem:
+      type: object
+      required:
+        - id
+        - name
+        - version
+        - description
+        - applicable_industries
+        - enabled
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        applicable_industries:
+          type: array
+          items:
+            type: string
+        enabled:
+          type: boolean
+        scoring_method:
+          type:
+            - string
+            - "null"
+        config_id:
+          type:
+            - string
+            - "null"
+
+    EnableFrameworkRequest:
+      type: object
+      required:
+        - framework_id
+        - scoring_method
+      properties:
+        framework_id:
+          type: string
+        scoring_method:
+          type: string
+        sla_overrides:
+          type: object
+        at_risk_threshold:
+          type: number
+
+    UpdateFrameworkRequest:
+      type: object
+      required:
+        - scoring_method
+      properties:
+        enabled:
+          type: boolean
+        scoring_method:
+          type: string
+        sla_overrides:
+          type: object
+        at_risk_threshold:
+          type: number
+
+    TenantFrameworkConfig:
+      type: object
+      required:
+        - id
+        - framework_id
+        - enabled
+        - scoring_method
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        framework_id:
+          type: string
+        enabled:
+          type: boolean
+        sla_overrides:
+          type: object
+        scoring_method:
+          type: string
+        at_risk_threshold:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ComplianceScore:
+      type: object
+      required:
+        - score
+        - total_cves
+        - compliant_cves
+        - at_risk_cves
+        - non_compliant_cves
+        - late_remediation_cves
+        - evaluated_at
+      properties:
+        score:
+          type: string
+        total_cves:
+          type: integer
+        compliant_cves:
+          type: integer
+        at_risk_cves:
+          type: integer
+        non_compliant_cves:
+          type: integer
+        late_remediation_cves:
+          type: integer
+        evaluated_at:
+          type: string
+
+    EndpointComplianceScore:
+      type: object
+      required:
+        - endpoint_id
+        - score
+        - total_cves
+        - compliant_cves
+        - at_risk_cves
+        - non_compliant_cves
+        - late_remediation_cves
+        - evaluated_at
+      properties:
+        endpoint_id:
+          type: string
+          format: uuid
+        score:
+          type: string
+        total_cves:
+          type: integer
+        compliant_cves:
+          type: integer
+        at_risk_cves:
+          type: integer
+        non_compliant_cves:
+          type: integer
+        late_remediation_cves:
+          type: integer
+        evaluated_at:
+          type: string
+
+    FrameworkDetailResponse:
+      type: object
+      required:
+        - framework
+        - endpoint_scores
+      properties:
+        framework:
+          $ref: "#/components/schemas/FrameworkListItem"
+        config:
+          $ref: "#/components/schemas/TenantFrameworkConfig"
+        score:
+          $ref: "#/components/schemas/ComplianceScore"
+        endpoint_scores:
+          type: array
+          items:
+            $ref: "#/components/schemas/EndpointComplianceScore"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryBreakdown"
+        non_compliant_endpoints:
+          type: array
+          items:
+            $ref: "#/components/schemas/NonCompliantEndpoint"
+
+    ComplianceEvaluation:
+      type: object
+      required:
+        - id
+        - framework_id
+        - control_id
+        - cve_id
+        - state
+        - evaluated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        framework_id:
+          type: string
+        control_id:
+          type: string
+        cve_id:
+          type: string
+        state:
+          type: string
+        sla_deadline_at:
+          type:
+            - string
+            - "null"
+        remediated_at:
+          type:
+            - string
+            - "null"
+        days_remaining:
+          type:
+            - integer
+            - "null"
+        evaluated_at:
+          type: string
+
+    OverallComplianceScore:
+      type: object
+      required:
+        - overall_score
+        - total_cves
+        - compliant_cves
+        - at_risk_cves
+        - non_compliant_cves
+        - framework_count
+        - status
+      properties:
+        overall_score:
+          type: string
+        total_cves:
+          type: integer
+        compliant_cves:
+          type: integer
+        at_risk_cves:
+          type: integer
+        non_compliant_cves:
+          type: integer
+        framework_count:
+          type: integer
+        status:
+          type: string
+          enum:
+            - compliant
+            - needs_improvement
+            - non_compliant
+        last_evaluated_at:
+          type:
+            - string
+            - "null"
+
+    ControlResult:
+      type: object
+      required:
+        - control_id
+        - name
+        - description
+        - category
+        - status
+        - passing_endpoints
+        - total_endpoints
+        - evaluated_at
+      properties:
+        control_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+          enum:
+            - pass
+            - fail
+            - partial
+            - na
+        passing_endpoints:
+          type: integer
+        total_endpoints:
+          type: integer
+        remediation_hint:
+          type:
+            - string
+            - "null"
+        sla_deadline_at:
+          type:
+            - string
+            - "null"
+        days_overdue:
+          type:
+            - integer
+            - "null"
+        evaluated_at:
+          type: string
+
+    CategoryBreakdown:
+      type: object
+      required:
+        - category
+        - score
+        - total_controls
+        - passing_controls
+        - failing_controls
+        - na_controls
+        - controls
+      properties:
+        category:
+          type: string
+        score:
+          type: number
+        total_controls:
+          type: integer
+        passing_controls:
+          type: integer
+        failing_controls:
+          type: integer
+        na_controls:
+          type: integer
+        controls:
+          type: array
+          items:
+            $ref: "#/components/schemas/ControlResult"
+
+    OverdueControl:
+      type: object
+      required:
+        - framework_id
+        - framework_name
+        - control_id
+        - control_name
+        - status
+        - sla_deadline_at
+        - days_overdue
+        - affected_endpoints
+      properties:
+        framework_id:
+          type: string
+        framework_name:
+          type: string
+        control_id:
+          type: string
+        control_name:
+          type: string
+        status:
+          type: string
+        sla_deadline_at:
+          type: string
+        days_overdue:
+          type: integer
+        affected_endpoints:
+          type: integer
+
+    NonCompliantEndpoint:
+      type: object
+      required:
+        - endpoint_id
+        - hostname
+        - os_family
+        - score
+        - total_cves
+        - compliant_cves
+        - non_compliant_cves
+      properties:
+        endpoint_id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+        os_family:
+          type: string
+        score:
+          type: string
+        total_cves:
+          type: integer
+        compliant_cves:
+          type: integer
+        non_compliant_cves:
+          type: integer
+
+    TrendPoint:
+      type: object
+      required:
+        - score
+        - evaluated_at
+      properties:
+        score:
+          type: string
+        evaluated_at:
+          type: string
+
+    # --- Notification schemas ---
+
+    NotificationChannel:
+      type: object
+      required:
+        - id
+        - name
+        - channel_type
+        - enabled
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        channel_type:
+          type: string
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateChannelRequest:
+      type: object
+      required:
+        - name
+        - channel_type
+        - config
+      properties:
+        name:
+          type: string
+        channel_type:
+          type: string
+        config:
+          type: string
+
+    UpdateChannelRequest:
+      type: object
+      required:
+        - name
+        - channel_type
+        - config
+        - enabled
+      properties:
+        name:
+          type: string
+        channel_type:
+          type: string
+        config:
+          type: string
+        enabled:
+          type: boolean
+
+    NotificationPreference:
+      type: object
+      required:
+        - id
+        - trigger_type
+        - enabled
+        - channel_ids
+        - digest_frequency
+      properties:
+        id:
+          type: string
+          format: uuid
+        trigger_type:
+          type: string
+        enabled:
+          type: boolean
+        channel_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        digest_frequency:
+          type: string
+
+    PreferenceInput:
+      type: object
+      required:
+        - trigger_type
+        - enabled
+        - channel_ids
+        - digest_frequency
+      properties:
+        trigger_type:
+          type: string
+        enabled:
+          type: boolean
+        channel_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        digest_frequency:
+          type: string
+
+    UpdatePreferencesRequest:
+      type: object
+      required:
+        - preferences
+      properties:
+        preferences:
+          type: array
+          items:
+            $ref: "#/components/schemas/PreferenceInput"
+
+    NotificationHistoryEntry:
+      type: object
+      required:
+        - id
+        - trigger_type
+        - user_id
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+        trigger_type:
+          type: string
+        channel_id:
+          type: string
+        channel_type:
+          type: string
+        recipient:
+          type: string
+        subject:
+          type: string
+        user_id:
+          type: string
+        status:
+          type: string
+        retry_count:
+          type: integer
+        category:
+          type: string
+        payload:
+          type: object
+        error_message:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+
+    PreferenceEventEntry:
+      type: object
+      required:
+        - trigger_type
+        - label
+        - email_enabled
+        - slack_enabled
+        - webhook_enabled
+        - urgency
+      properties:
+        trigger_type:
+          type: string
+        label:
+          type: string
+        email_enabled:
+          type: boolean
+        slack_enabled:
+          type: boolean
+        webhook_enabled:
+          type: boolean
+        urgency:
+          type: string
+          enum: [immediate, digest]
+
+    PreferenceCategory:
+      type: object
+      required:
+        - id
+        - label
+        - description
+        - events
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PreferenceEventEntry"
+
+    ChannelStatus:
+      type: object
+      required:
+        - type
+        - configured
+      properties:
+        type:
+          type: string
+        configured:
+          type: boolean
+        channel_id:
+          type: string
+
+    NotificationPreferencesResponse:
+      type: object
+      required:
+        - categories
+        - channels
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/PreferenceCategory"
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChannelStatus"
+
+    DigestConfigResponse:
+      type: object
+      required:
+        - frequency
+        - delivery_time
+        - format
+      properties:
+        frequency:
+          type: string
+          enum: [daily, weekly]
+        delivery_time:
+          type: string
+          description: "HH:MM UTC"
+        format:
+          type: string
+          enum: [html, plaintext]
+
+    UpdateDigestConfigRequest:
+      type: object
+      properties:
+        frequency:
+          type: string
+          enum: [daily, weekly]
+        delivery_time:
+          type: string
+        format:
+          type: string
+          enum: [html, plaintext]
+
+    # --- Role schemas ---
+
+    Role:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - name
+        - description
+        - is_system
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        parent_role_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        is_system:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        permission_count:
+          type: integer
+
+    RolePermission:
+      type: object
+      required:
+        - id
+        - role_id
+        - tenant_id
+        - resource
+        - action
+        - scope
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        role_id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        resource:
+          type: string
+        action:
+          type: string
+        scope:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    PermissionInput:
+      type: object
+      required:
+        - resource
+        - action
+        - scope
+      properties:
+        resource:
+          type: string
+        action:
+          type: string
+        scope:
+          type: string
+
+    RoleRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parent_role_id:
+          type: string
+          format: uuid
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PermissionInput"
+
+    AssignRoleRequest:
+      type: object
+      required:
+        - role_id
+      properties:
+        role_id:
+          type: string
+          format: uuid
+
+    # --- License schemas ---
+
+    EndpointUsage:
+      type: object
+      required:
+        - current
+        - limit
+      properties:
+        current:
+          type: integer
+        limit:
+          type: integer
+
+    LicenseStatus:
+      type: object
+      required:
+        - license_id
+        - tier
+        - customer_name
+        - issued_at
+        - expires_at
+        - days_remaining
+        - grace_period_days
+        - in_grace_period
+        - endpoint_usage
+        - features
+      properties:
+        license_id:
+          type: string
+        tier:
+          type: string
+        customer_name:
+          type: string
+        issued_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        days_remaining:
+          type: integer
+        grace_period_days:
+          type: integer
+        in_grace_period:
+          type: boolean
+        endpoint_usage:
+          $ref: "#/components/schemas/EndpointUsage"
+        features:
+          type: object
+          additionalProperties:
+            type: boolean
+
+    # --- Hub Sync schemas ---
+
+    HubSyncStatus:
+      type: object
+      required:
+        - id
+        - hub_url
+        - status
+        - sync_interval
+        - entries_received
+        - last_entry_count
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        hub_url:
+          type: string
+        status:
+          type: string
+        last_sync_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        next_sync_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        sync_interval:
+          type: integer
+        entries_received:
+          type: integer
+        last_entry_count:
+          type: integer
+        last_error:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SyncConfigRequest:
+      type: object
+      required:
+        - hub_url
+        - api_key
+      properties:
+        hub_url:
+          type: string
+        api_key:
+          type: string
+        sync_interval:
+          type: integer
+
+    # --- Deployment Wave & Schedule schemas ---
+
+    DeploymentWave:
+      type: object
+      required:
+        - id
+        - deployment_id
+        - wave_number
+        - status
+        - percentage
+        - target_count
+        - success_count
+        - failed_count
+        - delay_after_minutes
+      properties:
+        id:
+          type: string
+          format: uuid
+        deployment_id:
+          type: string
+          format: uuid
+        wave_number:
+          type: integer
+        status:
+          type: string
+        percentage:
+          type: integer
+        target_count:
+          type: integer
+        success_count:
+          type: integer
+        failed_count:
+          type: integer
+        delay_after_minutes:
+          type: integer
+        started_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        completed_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        eligible_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+
+    WaveConfig:
+      type: object
+      required:
+        - percentage
+        - success_threshold
+        - error_rate_max
+        - delay_minutes
+      properties:
+        percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        success_threshold:
+          type: number
+        error_rate_max:
+          type: number
+        delay_minutes:
+          type: integer
+
+    DeploymentSchedule:
+      type: object
+      required:
+        - id
+        - policy_id
+        - cron_expression
+        - enabled
+        - next_run_at
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        policy_id:
+          type: string
+          format: uuid
+        cron_expression:
+          type: string
+        wave_config:
+          type: array
+          items:
+            $ref: "#/components/schemas/WaveConfig"
+        max_concurrent:
+          type:
+            - integer
+            - "null"
+        enabled:
+          type: boolean
+        last_run_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        next_run_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateScheduleRequest:
+      type: object
+      required:
+        - policy_id
+        - cron_expression
+      properties:
+        policy_id:
+          type: string
+          format: uuid
+        cron_expression:
+          type: string
+        wave_config:
+          type: array
+          items:
+            $ref: "#/components/schemas/WaveConfig"
+        max_concurrent:
+          type: integer
+        enabled:
+          type: boolean
+          default: true
+
+    UpdateScheduleRequest:
+      type: object
+      properties:
+        cron_expression:
+          type: string
+        wave_config:
+          type: array
+          items:
+            $ref: "#/components/schemas/WaveConfig"
+        max_concurrent:
+          type: integer
+        enabled:
+          type: boolean
+
+    Organization:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - type
+        - parent_org_id
+        - zitadel_org_id
+        - license_id
+        - platform_tenant_id
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        type:
+          type: string
+          enum:
+            - direct
+            - msp
+            - reseller
+        parent_org_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        zitadel_org_id:
+          type:
+            - string
+            - "null"
+        license_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        platform_tenant_id:
+          description: |
+            Hidden "platform tenant" hosting org-scoped role definitions for
+            MSP/reseller orgs. Always null for direct-type orgs. Set during
+            CreateOrganization for type=msp|reseller.
+          type:
+            - string
+            - "null"
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AssignOrgUserRoleRequest:
+      type: object
+      required:
+        - role_id
+      properties:
+        role_id:
+          type: string
+          format: uuid
+
+    OrganizationCreateRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          minLength: 1
+        slug:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum:
+            - direct
+            - msp
+            - reseller
+          default: direct
+        parent_org_id:
+          type: string
+          format: uuid
+        zitadel_org_id:
+          type: string
+
+    OrgTenantSummary:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ProvisionTenantRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          minLength: 1
+        slug:
+          type: string
+          minLength: 1
+        license_id:
+          type: string
+
+    OrgDashboardTenantRow:
+      type: object
+      required:
+        - tenant_id
+        - tenant_name
+        - endpoint_count
+      properties:
+        tenant_id:
+          type: string
+          format: uuid
+        tenant_name:
+          type: string
+        endpoint_count:
+          type: integer
+          format: int64
+
+    OrgDashboardResponse:
+      type: object
+      required:
+        - organization_id
+        - total_tenants
+        - total_endpoints
+        - tenants
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+        total_tenants:
+          type: integer
+        total_endpoints:
+          type: integer
+          format: int64
+        tenants:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrgDashboardTenantRow"
+
+paths:
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+
+  /ready:
+    get:
+      tags:
+        - System
+      summary: Readiness check
+      operationId: getReady
+      responses:
+        "200":
+          description: Service is ready to accept traffic
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - ready
+                properties:
+                  ready:
+                    type: boolean
+        "503":
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/endpoints:
+    get:
+      tags:
+        - Endpoints
+      summary: List endpoints
+      operationId: listEndpoints
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of endpoints
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Endpoint"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/endpoints/{id}:
+    get:
+      tags:
+        - Endpoints
+      summary: Get endpoint by ID
+      operationId: getEndpoint
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Endpoint details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Endpoint"
+        "404":
+          description: Endpoint not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Endpoints
+      summary: Update endpoint
+      operationId: updateEndpoint
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        "200":
+          description: Endpoint updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Endpoint"
+        "404":
+          description: Endpoint not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Endpoints
+      summary: Delete endpoint
+      operationId: deleteEndpoint
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Endpoint deleted
+        "404":
+          description: Endpoint not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/endpoints/{id}/scan:
+    post:
+      tags:
+        - Endpoints
+      summary: Trigger inventory scan on endpoint
+      operationId: triggerScan
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "202":
+          description: Scan triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Endpoint not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/patches:
+    get:
+      tags:
+        - Patches
+      summary: List patches
+      operationId: listPatches
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: os_family
+          in: query
+          schema:
+            type: string
+          description: Filter patches by OS family (e.g. debian, rhel)
+      responses:
+        "200":
+          description: Paginated list of patches
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Patch"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/patches/{id}:
+    get:
+      tags:
+        - Patches
+      summary: Get patch by ID
+      operationId: getPatch
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Patch details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patch"
+        "404":
+          description: Patch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/cves:
+    get:
+      tags:
+        - CVEs
+      summary: List CVEs
+      operationId: listCVEs
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: severity
+          in: query
+          schema:
+            type: string
+        - name: cisa_kev
+          in: query
+          schema:
+            type: string
+        - name: exploit_available
+          in: query
+          schema:
+            type: string
+        - name: attack_vector
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of CVEs
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CVE"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/cves/summary:
+    get:
+      summary: Get CVE summary counts
+      operationId: getCVESummary
+      tags:
+        - CVEs
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: CVE summary counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CVESummary'
+
+  /api/v1/cves/{id}:
+    get:
+      tags:
+        - CVEs
+      summary: Get CVE by ID
+      operationId: getCVE
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: CVE details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CVEDetail"
+        "404":
+          description: CVE not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/policies:
+    get:
+      tags:
+        - Policies
+      summary: List policies
+      operationId: listPolicies
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: mode
+          in: query
+          schema:
+            type: string
+            enum:
+              - automatic
+              - manual
+              - advisory
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: enabled
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of policies
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Policy"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Policies
+      summary: Create policy
+      operationId: createPolicy
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePolicyRequest"
+      responses:
+        "201":
+          description: Policy created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/policies/bulk:
+    post:
+      tags:
+        - Policies
+      summary: Bulk policy action
+      operationId: bulkPolicyAction
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkPolicyRequest"
+      responses:
+        "200":
+          description: Bulk action completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  affected:
+                    type: integer
+
+  /api/v1/policies/{id}:
+    get:
+      tags:
+        - Policies
+      summary: Get policy by ID
+      operationId: getPolicy
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyDetail"
+        "404":
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Policies
+      summary: Update policy
+      operationId: updatePolicy
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePolicyRequest"
+      responses:
+        "200":
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Policies
+      summary: Delete policy
+      operationId: deletePolicy
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Policy deleted
+        "404":
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/policies/{id}/evaluate:
+    post:
+      tags:
+        - Policies
+      summary: Evaluate policy (dry-run)
+      operationId: evaluatePolicy
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Evaluation results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationResult"
+        "404":
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/deployments:
+    get:
+      tags:
+        - Deployments
+      summary: List deployments
+      operationId: listDeployments
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by deployment status
+        - name: created_after
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filter deployments created after this RFC3339 timestamp
+        - name: created_before
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filter deployments created before this RFC3339 timestamp
+      responses:
+        "200":
+          description: Paginated list of deployments
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Deployment"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+                  status_counts:
+                    type: object
+                    additionalProperties:
+                      type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Deployments
+      summary: Create deployment
+      operationId: createDeployment
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeploymentRequest"
+      responses:
+        "201":
+          description: Deployment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/deployments/{id}:
+    get:
+      tags:
+        - Deployments
+      summary: Get deployment by ID
+      operationId: getDeployment
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Deployment details with per-endpoint targets
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Deployment"
+                  - type: object
+                    properties:
+                      targets:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/DeploymentTarget"
+                        default: []
+        "404":
+          description: Deployment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/deployments/{id}/cancel:
+    post:
+      tags:
+        - Deployments
+      summary: Cancel a deployment
+      operationId: cancelDeployment
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Deployment cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+        "404":
+          description: Deployment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Deployment cannot be cancelled (already completed or failed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/deployments/{id}/retry:
+    post:
+      tags:
+        - Deployments
+      summary: Retry a failed deployment
+      operationId: retryDeployment
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Deployment retried
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+        "404":
+          description: Deployment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Deployment cannot be retried in its current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/deployments/{id}/rollback:
+    post:
+      tags:
+        - Deployments
+      summary: Rollback a deployment
+      operationId: rollbackDeployment
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Deployment rollback initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+        "404":
+          description: Deployment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Deployment cannot be rolled back in its current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/deployments/{id}/patches:
+    get:
+      tags:
+        - Deployments
+      summary: List patches in a deployment with target counts
+      operationId: listDeploymentPatches
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: List of patches in the deployment
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeploymentPatchSummary"
+        "404":
+          description: Deployment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/dashboard/summary:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard summary
+      operationId: getDashboardSummary
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Dashboard summary statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/dashboard/sla-deadlines:
+    get:
+      tags:
+        - Dashboard
+      summary: List upcoming compliance SLA deadlines
+      description: >
+        Returns compliance framework evaluations whose SLA deadline falls
+        within the next 30 days, for the current tenant.
+      operationId: getDashboardSLADeadlines
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Upcoming SLA deadlines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SLADeadlineItem"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/audit:
+    get:
+      tags:
+        - Audit
+      summary: List audit events
+      operationId: listAuditEvents
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: actor_id
+          in: query
+          description: Filter by actor ID (email or system identifier)
+          schema:
+            type: string
+        - name: resource_id
+          in: query
+          description: Filter by resource ID
+          schema:
+            type: string
+        - name: actor_type
+          in: query
+          description: Filter by actor type
+          schema:
+            type: string
+            enum: [user, system, ai_assistant]
+        - name: resource
+          in: query
+          description: Filter by resource type
+          schema:
+            type: string
+        - name: action
+          in: query
+          description: Filter by action
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Filter by event type
+          schema:
+            type: string
+        - name: from_date
+          in: query
+          description: Start of date range (RFC3339)
+          schema:
+            type: string
+            format: date-time
+        - name: to_date
+          in: query
+          description: End of date range (RFC3339)
+          schema:
+            type: string
+            format: date-time
+        - name: search
+          in: query
+          description: Text search across type, resource, action
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of audit events
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AuditEvent"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/auth/login:
+    get:
+      tags:
+        - Auth
+      summary: Redirect to Zitadel for SSO login
+      operationId: authLogin
+      responses:
+        "302":
+          description: Redirect to Zitadel login page
+
+  /api/v1/auth/callback:
+    get:
+      tags:
+        - Auth
+      summary: Handle OIDC callback from Zitadel
+      operationId: authCallback
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect after successful authentication
+
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Clear session and log out
+      operationId: authLogout
+      responses:
+        "302":
+          description: Redirect after session cleared
+
+  /api/v1/auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Get current authenticated user info
+      operationId: getCurrentUser
+      responses:
+        "200":
+          description: Current user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentUser"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/settings/iam:
+    get:
+      tags:
+        - IAM
+      summary: Get IAM settings
+      operationId: getIAMSettings
+      responses:
+        "200":
+          description: IAM settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IAMSettings"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - IAM
+      summary: Update IAM settings
+      operationId: updateIAMSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IAMSettings"
+      responses:
+        "200":
+          description: IAM settings updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IAMSettings"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/settings/role-mapping:
+    get:
+      tags:
+        - IAM
+      summary: List role mappings
+      operationId: listRoleMappings
+      responses:
+        "200":
+          description: List of role mappings
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RoleMappingEntry"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - IAM
+      summary: Update role mappings
+      operationId: updateRoleMappings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoleMappingsRequest"
+      responses:
+        "200":
+          description: Role mappings updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RoleMappingEntry"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # --- Deployment Waves ---
+
+  /api/v1/deployments/{id}/waves:
+    get:
+      tags:
+        - Deployments
+      summary: List deployment waves
+      operationId: listDeploymentWaves
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: List of deployment waves
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeploymentWave"
+        "404":
+          description: Deployment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # --- Deployment Schedules ---
+
+  /api/v1/deployment-schedules:
+    get:
+      tags:
+        - DeploymentSchedules
+      summary: List deployment schedules
+      operationId: listDeploymentSchedules
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: List of deployment schedules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeploymentSchedule"
+
+    post:
+      tags:
+        - DeploymentSchedules
+      summary: Create deployment schedule
+      operationId: createDeploymentSchedule
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScheduleRequest"
+      responses:
+        "201":
+          description: Schedule created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeploymentSchedule"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/deployment-schedules/{id}:
+    get:
+      tags:
+        - DeploymentSchedules
+      summary: Get deployment schedule
+      operationId: getDeploymentSchedule
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Deployment schedule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeploymentSchedule"
+        "404":
+          description: Schedule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      tags:
+        - DeploymentSchedules
+      summary: Update deployment schedule
+      operationId: updateDeploymentSchedule
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateScheduleRequest"
+      responses:
+        "200":
+          description: Schedule updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeploymentSchedule"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Schedule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - DeploymentSchedules
+      summary: Delete deployment schedule
+      operationId: deleteDeploymentSchedule
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Schedule deleted
+        "404":
+          description: Schedule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # --- Workflows ---
+
+  /api/v1/workflows:
+    get:
+      tags:
+        - Workflows
+      summary: List workflows
+      operationId: listWorkflows
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of workflows
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WorkflowListItem"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+
+    post:
+      tags:
+        - Workflows
+      summary: Create workflow
+      operationId: createWorkflow
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkflowRequest"
+      responses:
+        "201":
+          description: Workflow created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Workflow name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/workflows/{id}:
+    get:
+      tags:
+        - Workflows
+      summary: Get workflow details
+      operationId: getWorkflow
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Workflow details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowDetailResponse"
+        "404":
+          description: Workflow not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Workflows
+      summary: Update workflow
+      operationId: updateWorkflow
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkflowRequest"
+      responses:
+        "200":
+          description: Workflow updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Workflow not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Workflow name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Workflows
+      summary: Delete workflow
+      operationId: deleteWorkflow
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Workflow deleted
+        "404":
+          description: Workflow not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/workflows/{id}/publish:
+    put:
+      tags:
+        - Workflows
+      summary: Publish workflow
+      operationId: publishWorkflow
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Workflow published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Workflow not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/workflows/{id}/versions:
+    get:
+      tags:
+        - Workflows
+      summary: List workflow versions
+      operationId: listWorkflowVersions
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: List of workflow versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowVersion"
+        "404":
+          description: Workflow not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/workflow-templates:
+    get:
+      tags:
+        - Workflows
+      summary: List workflow templates
+      operationId: listWorkflowTemplates
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: List of workflow templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowTemplate"
+
+  # --- Workflow Executions ---
+
+  /api/v1/workflows/{id}/execute:
+    post:
+      tags:
+        - Workflows
+      summary: Execute workflow
+      operationId: executeWorkflow
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "201":
+          description: Execution started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowExecution"
+        "400":
+          description: No published version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Workflow not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/workflows/{id}/executions:
+    get:
+      tags:
+        - Workflows
+      summary: List workflow executions
+      operationId: listWorkflowExecutions
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/Limit"
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of executions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowExecution"
+        "404":
+          description: Workflow not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/workflows/{id}/executions/{execId}:
+    get:
+      tags:
+        - Workflows
+      summary: Get workflow execution details
+      operationId: getWorkflowExecution
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+        - name: execId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Execution details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionDetailResponse"
+        "404":
+          description: Execution not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/workflows/{id}/executions/{execId}/cancel:
+    post:
+      tags:
+        - Workflows
+      summary: Cancel workflow execution
+      operationId: cancelWorkflowExecution
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+        - name: execId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Execution cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowExecution"
+        "404":
+          description: Execution not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Cannot cancel (invalid status)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/workflows/{id}/executions/{execId}/approve:
+    post:
+      tags:
+        - Workflows
+      summary: Approve workflow execution
+      operationId: approveWorkflowExecution
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+        - name: execId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalRequest"
+      responses:
+        "200":
+          description: Execution approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowExecution"
+        "404":
+          description: Execution not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Cannot approve (invalid status)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/workflows/{id}/executions/{execId}/reject:
+    post:
+      tags:
+        - Workflows
+      summary: Reject workflow execution
+      operationId: rejectWorkflowExecution
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+        - name: execId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalRequest"
+      responses:
+        "200":
+          description: Execution rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowExecution"
+        "404":
+          description: Execution not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Cannot reject (invalid status)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # --- Compliance ---
+
+  /api/v1/compliance/summary:
+    get:
+      tags:
+        - Compliance
+      summary: Get compliance summary
+      operationId: getComplianceSummary
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Compliance summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceSummary"
+
+  /api/v1/compliance/frameworks:
+    get:
+      tags:
+        - Compliance
+      summary: List compliance frameworks
+      operationId: listComplianceFrameworks
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: List of frameworks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FrameworkListItem"
+
+    post:
+      tags:
+        - Compliance
+      summary: Enable compliance framework
+      operationId: enableComplianceFramework
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnableFrameworkRequest"
+      responses:
+        "201":
+          description: Framework enabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantFrameworkConfig"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Framework already enabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/compliance/frameworks/{frameworkId}:
+    get:
+      tags:
+        - Compliance
+      summary: Get framework detail
+      operationId: getComplianceFramework
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - name: frameworkId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Framework details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FrameworkDetailResponse"
+        "404":
+          description: Framework not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/compliance/frameworks/{id}:
+    put:
+      tags:
+        - Compliance
+      summary: Update compliance framework
+      operationId: updateComplianceFramework
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFrameworkRequest"
+      responses:
+        "200":
+          description: Framework updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantFrameworkConfig"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Framework not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Compliance
+      summary: Disable compliance framework
+      operationId: disableComplianceFramework
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Framework disabled
+        "404":
+          description: Framework not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/compliance/endpoints/{id}:
+    get:
+      tags:
+        - Compliance
+      summary: Get endpoint compliance evaluations
+      operationId: getEndpointCompliance
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Endpoint compliance evaluations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplianceEvaluation"
+
+  /api/v1/compliance/evaluate:
+    post:
+      tags:
+        - Compliance
+      summary: Trigger compliance evaluation
+      operationId: triggerComplianceEvaluation
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Evaluation triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+
+  /api/v1/compliance/score:
+    get:
+      tags:
+        - Compliance
+      summary: Get overall compliance score
+      operationId: getOverallComplianceScore
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Overall compliance score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OverallComplianceScore"
+
+  /api/v1/compliance/overdue:
+    get:
+      tags:
+        - Compliance
+      summary: List overdue compliance controls
+      operationId: listOverdueControls
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Overdue controls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OverdueControl"
+
+  /api/v1/compliance/frameworks/{frameworkId}/controls:
+    get:
+      tags:
+        - Compliance
+      summary: List framework controls with evaluation results
+      operationId: listFrameworkControls
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - name: frameworkId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - pass
+              - fail
+              - partial
+              - na
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of control results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ControlResult"
+
+  /api/v1/compliance/frameworks/{frameworkId}/trend:
+    get:
+      tags:
+        - Compliance
+      summary: Get framework score trend
+      operationId: getFrameworkTrend
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - name: frameworkId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Score trend data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendPoint"
+
+  # --- Notifications ---
+
+  /api/v1/notifications/channels:
+    get:
+      tags:
+        - Notifications
+      summary: List notification channels
+      operationId: listNotificationChannels
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: List of channels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NotificationChannel"
+
+    post:
+      tags:
+        - Notifications
+      summary: Create notification channel
+      operationId: createNotificationChannel
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChannelRequest"
+      responses:
+        "201":
+          description: Channel created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationChannel"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/notifications/channels/{id}:
+    get:
+      tags:
+        - Notifications
+      summary: Get notification channel
+      operationId: getNotificationChannel
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Channel details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationChannel"
+        "404":
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Notifications
+      summary: Update notification channel
+      operationId: updateNotificationChannel
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChannelRequest"
+      responses:
+        "200":
+          description: Channel updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationChannel"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Notifications
+      summary: Delete notification channel
+      operationId: deleteNotificationChannel
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Channel deleted
+        "404":
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/notifications/channels/{id}/test:
+    post:
+      tags:
+        - Notifications
+      summary: Test notification channel
+      operationId: testNotificationChannel
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Test result
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+
+  /api/v1/notifications/preferences:
+    get:
+      tags:
+        - Notifications
+      summary: Get notification preferences
+      operationId: getNotificationPreferences
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Notification preferences grouped by category with channel status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferencesResponse"
+
+    put:
+      tags:
+        - Notifications
+      summary: Update notification preferences
+      operationId: updateNotificationPreferences
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePreferencesRequest"
+      responses:
+        "200":
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NotificationPreference"
+
+  /api/v1/notifications/history:
+    get:
+      tags:
+        - Notifications
+      summary: List notification history
+      operationId: listNotificationHistory
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: trigger_type
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: channel_type
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Paginated notification history
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/NotificationHistoryEntry"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+
+  /api/v1/notifications/history/{id}/retry:
+    post:
+      tags:
+        - Notifications
+      summary: Retry a failed notification
+      operationId: retryNotification
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "202":
+          description: Accepted
+        "404":
+          description: Not found
+        "422":
+          description: Cannot retry (not failed or max retries exceeded)
+
+  /api/v1/notifications/digest-config:
+    get:
+      tags:
+        - Notifications
+      summary: Get digest configuration
+      operationId: getDigestConfig
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Digest configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DigestConfigResponse"
+    put:
+      tags:
+        - Notifications
+      summary: Update digest configuration
+      operationId: updateDigestConfig
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDigestConfigRequest"
+      responses:
+        "200":
+          description: Updated digest configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DigestConfigResponse"
+
+  /api/v1/notifications/digest/test:
+    post:
+      tags:
+        - Notifications
+      summary: Send a test digest
+      operationId: sendTestDigest
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "202":
+          description: Accepted
+
+  # --- Roles ---
+
+  /api/v1/roles:
+    get:
+      tags:
+        - Roles
+      summary: List roles
+      operationId: listRoles
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of roles
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Role"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+
+    post:
+      tags:
+        - Roles
+      summary: Create role
+      operationId: createRole
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleRequest"
+      responses:
+        "201":
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Role name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/roles/{id}:
+    get:
+      tags:
+        - Roles
+      summary: Get role details
+      operationId: getRole
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Role details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "404":
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Roles
+      summary: Update role
+      operationId: updateRole
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleRequest"
+      responses:
+        "200":
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Role name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Roles
+      summary: Delete role
+      operationId: deleteRole
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Role deleted
+        "403":
+          description: Cannot delete system role
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/roles/{id}/permissions:
+    get:
+      tags:
+        - Roles
+      summary: Get role permissions
+      operationId: getRolePermissions
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: List of permissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RolePermission"
+        "404":
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # --- User Roles ---
+
+  /api/v1/users/{id}/roles:
+    get:
+      tags:
+        - UserRoles
+      summary: List user roles
+      operationId: listUserRoles
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      responses:
+        "200":
+          description: List of roles assigned to user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Role"
+
+    post:
+      tags:
+        - UserRoles
+      summary: Assign role to user
+      operationId: assignUserRole
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignRoleRequest"
+      responses:
+        "200":
+          description: Role assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/users/{id}/roles/{roleId}:
+    delete:
+      tags:
+        - UserRoles
+      summary: Revoke role from user
+      operationId: revokeUserRole
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Role ID to revoke
+      responses:
+        "204":
+          description: Role revoked
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # --- License ---
+
+  /api/v1/license/status:
+    get:
+      tags:
+        - License
+      summary: Get license status
+      operationId: getLicenseStatus
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: License status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LicenseStatus"
+
+  # --- Hub Sync ---
+
+  /api/v1/sync/status:
+    get:
+      tags:
+        - HubSync
+      summary: Get hub sync status
+      operationId: getHubSyncStatus
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Sync status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HubSyncStatus"
+        "404":
+          description: Sync not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/sync/trigger:
+    post:
+      tags:
+        - HubSync
+      summary: Trigger hub sync
+      operationId: triggerHubSync
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "202":
+          description: Sync triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Sync not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/sync/config:
+    put:
+      tags:
+        - HubSync
+      summary: Update sync configuration
+      operationId: updateSyncConfig
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncConfigRequest"
+      responses:
+        "200":
+          description: Config updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HubSyncStatus"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/alerts:
+    get:
+      tags:
+        - Alerts
+      summary: List alerts
+      operationId: listAlerts
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - name: severity
+          in: query
+          description: Filter by severity
+          schema:
+            type: string
+            enum: [critical, warning, info]
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+            enum: [deployments, agents, cves, compliance, system]
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [unread, read, acknowledged, dismissed]
+        - name: search
+          in: query
+          description: Text search across title and description
+          schema:
+            type: string
+        - name: from_date
+          in: query
+          description: Start of date range (RFC3339)
+          schema:
+            type: string
+            format: date-time
+        - name: to_date
+          in: query
+          description: End of date range (RFC3339)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Paginated list of alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Alert"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/alerts/count:
+    get:
+      tags:
+        - Alerts
+      summary: Get unread alert counts by severity
+      operationId: getAlertCount
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Unread alert counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertCountResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/alerts/{id}/status:
+    patch:
+      tags:
+        - Alerts
+      summary: Update alert status
+      operationId: updateAlertStatus
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Alert ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAlertStatusRequest"
+      responses:
+        "200":
+          description: Updated alert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Alert not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/alerts/bulk-status:
+    patch:
+      tags:
+        - Alerts
+      summary: Bulk update alert statuses
+      operationId: bulkUpdateAlertStatus
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkUpdateAlertStatusRequest"
+      responses:
+        "200":
+          description: Number of updated alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [updated]
+                properties:
+                  updated:
+                    type: integer
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/alert-rules:
+    get:
+      tags:
+        - Alerts
+      summary: List alert rules
+      operationId: listAlertRules
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: List of alert rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AlertRule"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Alerts
+      summary: Create alert rule
+      operationId: createAlertRule
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlertRuleRequest"
+      responses:
+        "201":
+          description: Created alert rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertRule"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/alert-rules/{id}:
+    put:
+      tags:
+        - Alerts
+      summary: Update alert rule
+      operationId: updateAlertRule
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Alert rule ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlertRuleRequest"
+      responses:
+        "200":
+          description: Updated alert rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertRule"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Alert rule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Alerts
+      summary: Delete alert rule
+      operationId: deleteAlertRule
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Alert rule ID
+      responses:
+        "204":
+          description: Alert rule deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Alert rule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/organizations:
+    get:
+      tags:
+        - Organizations
+      summary: List organizations
+      operationId: listOrganizations
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of organizations
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Organization"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Organizations
+      summary: Create organization
+      operationId: createOrganization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrganizationCreateRequest"
+      responses:
+        "201":
+          description: Organization created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Slug or zitadel_org_id already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/organizations/{id}:
+    get:
+      tags:
+        - Organizations
+      summary: Get organization by ID
+      operationId: getOrganization
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Organization details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Organizations
+      summary: Delete organization
+      operationId: deleteOrganization
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Organization deleted
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/organizations/{id}/tenants:
+    get:
+      tags:
+        - Organizations
+      summary: List tenants under an organization
+      operationId: listOrganizationTenants
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Tenants belonging to the organization
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/OrgTenantSummary"
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Organizations
+      summary: Provision a new tenant under an organization
+      operationId: provisionOrganizationTenant
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProvisionTenantRequest"
+      responses:
+        "201":
+          description: Tenant provisioned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrgTenantSummary"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Tenant slug already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/organizations/{id}/dashboard:
+    get:
+      tags:
+        - Organizations
+      summary: Aggregated MSP dashboard for an organization
+      operationId: getOrganizationDashboard
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Aggregated metrics across accessible tenants
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrgDashboardResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Organization scope mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/organizations/{id}/users/{user_id}/roles:
+    post:
+      tags:
+        - Organizations
+      summary: Assign an org-scoped role to a user
+      description: |
+        Grants the named role to the user inside this organization. The role
+        must be an org-scoped preset (MSP Admin / Technician / Auditor) hosted
+        in the org's platform tenant. Idempotent on the (org, user, role) tuple.
+      operationId: assignOrganizationUserRole
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignOrgUserRoleRequest"
+      responses:
+        "204":
+          description: Role assigned (or already present)
+        "400":
+          description: Invalid request body or role_id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Caller lacks organizations:manage permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/organizations/{id}/users/{user_id}/roles/{role_id}:
+    delete:
+      tags:
+        - Organizations
+      summary: Revoke an org-scoped role from a user
+      operationId: revokeOrganizationUserRole
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Role revoked
+        "400":
+          description: Invalid role_id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Caller lacks organizations:manage permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Grant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

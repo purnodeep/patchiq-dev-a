@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — NIST CSF 2.0 Detail</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:220px;--topbar-h:52px;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;display:flex;height:100vh;overflow:hidden}
+#sidebar{width:var(--sidebar-w);background:#0d1117;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s ease}
+#sidebar.collapsed{width:52px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;min-height:52px}
+.sb-logo-icon{width:28px;height:28px;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sb-logo-text{font-weight:600;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden}
+.sb-logo-sub{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden}
+#sidebar.collapsed .sb-logo-text,#sidebar.collapsed .sb-logo-sub{display:none}
+.sb-group{margin-top:4px}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
+#sidebar.collapsed .sb-group-label{padding:8px 0;justify-content:center;font-size:8px;letter-spacing:0}
+.sb-group-label:hover{color:var(--text)}
+.sb-group-label .arrow{transition:.2s;font-size:9px;flex-shrink:0}
+.sb-group-label.collapsed .arrow{transform:rotate(-90deg)}
+#sidebar.collapsed .sb-group-label .arrow{display:none}
+.sb-group-items{overflow:hidden;transition:max-height .2s ease}
+.sb-item{padding:6px 16px 6px 24px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;overflow:hidden;text-decoration:none}
+#sidebar.collapsed .sb-item{padding:8px 0;justify-content:center;gap:0}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:14px;height:14px;flex-shrink:0}
+#sidebar.collapsed .sb-item-text{display:none}
+.sb-badge{margin-left:auto;background:#ef444420;color:#ef4444;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+.sb-badge.amber{background:#f59e0b20;color:#f59e0b}
+#sidebar.collapsed .sb-badge{display:none}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.tb-menu-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);background:transparent;border:none;transition:.15s;flex-shrink:0}
+.tb-menu-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-menu-btn svg{width:16px;height:16px}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-breadcrumb a{color:var(--muted);text-decoration:none;transition:.15s}
+.tb-breadcrumb a:hover{color:var(--text)}
+.tb-breadcrumb span:last-child{color:var(--text);font-weight:500}
+.tb-sep{color:#374151}
+.tb-icons{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb-icon-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:16px;height:16px}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--danger);border-radius:50%;border:1.5px solid #0d1117}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;color:#fff;flex-shrink:0;margin-left:4px}
+#page{flex:1;overflow-y:auto;padding:20px}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d;border-color:#374151}
+.btn-ghost{background:transparent;color:var(--muted);border-color:transparent}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{background:#ef444415;color:var(--danger);border-color:#ef444430}
+.btn-danger:hover{background:#ef444425}
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.badge-success{background:#10b98120;color:#10b981;border:1px solid #10b98130}
+.badge-warn{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b30}
+.badge-danger{background:#ef444420;color:#ef4444;border:1px solid #ef444430}
+.badge-info{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f630}
+.badge-muted{background:#ffffff10;color:var(--muted);border:1px solid var(--border)}
+.badge-purple{background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630}
+
+/* ID HEADER */
+.id-header{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.id-top{display:flex;align-items:flex-start;gap:20px;margin-bottom:16px}
+.id-gauge-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.id-gauge-center{position:absolute;text-align:center}
+.id-pct{font-size:22px;font-weight:800;color:var(--text)}
+.id-label{font-size:9px;color:var(--muted)}
+.id-meta{flex:1}
+.id-fw-name{font-size:24px;font-weight:800;color:var(--text);margin-bottom:6px}
+.id-actions{display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap}
+
+/* CONTEXT RING */
+.ctx-ring{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.ctx-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;transition:.2s}
+.ctx-card:hover{border-color:#374151;transform:translateY(-1px)}
+.ctx-val{font-size:18px;font-weight:700;color:var(--text)}
+.ctx-label{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* TABS */
+.tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{padding:8px 14px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;background:transparent;border-top:none;border-left:none;border-right:none}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* HEATMAP */
+.heatmap-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px}
+.hm-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px}
+.hm-table{width:100%;border-collapse:separate;border-spacing:4px}
+.hm-table th{font-size:10px;font-weight:600;color:var(--muted);text-align:center;padding:4px 8px}
+.hm-table td.row-label{font-size:11px;font-weight:600;color:var(--muted);padding-right:8px;white-space:nowrap}
+.hm-cell{height:32px;border-radius:6px;text-align:center;font-size:10px;font-weight:600;cursor:pointer;transition:.15s;position:relative}
+.hm-cell:hover{filter:brightness(1.3);transform:scale(1.05)}
+.hm-cell.pass{background:#10b98130;color:#10b981;border:1px solid #10b98140}
+.hm-cell.fail{background:#ef444430;color:#ef4444;border:1px solid #ef444440}
+.hm-cell.partial{background:#f59e0b30;color:#f59e0b;border:1px solid #f59e0b40}
+.hm-cell.na{background:#ffffff08;color:var(--muted);border:1px solid var(--border)}
+
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.table-scroll{overflow-x:auto}
+.table-scroll::-webkit-scrollbar{height:4px}
+.table-scroll::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+.data-table td{padding:9px 12px;border-bottom:1px solid #1e293b60;font-size:12px;vertical-align:middle}
+.data-table tr:hover td{background:#ffffff04}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr.overdue-row td{border-left:3px solid var(--danger)}
+.data-table tr.overdue-row:first-child td:first-child{border-left:3px solid var(--danger)}
+.category-header td{background:#0f172a;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 12px}
+.exp-row td{padding:0!important}
+.exp-content{padding:16px;background:#0a0e1a;border-top:1px solid var(--border)}
+.gauge-bar{height:4px;background:#ffffff10;border-radius:2px;overflow:hidden}
+.gauge-fill{height:100%;border-radius:2px}
+
+/* SLA TIMERS */
+.sla-timers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.sla-timer-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;align-items:center;gap:12px}
+.sla-timer-circle{position:relative;flex-shrink:0}
+.sla-timer-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sla-days{font-size:16px;font-weight:800;color:var(--text)}
+.sla-d-label{font-size:8px;color:var(--muted)}
+.sla-info{flex:1;min-width:0}
+.sla-control{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sla-deadline{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* EVIDENCE REPORT CARDS */
+.report-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.report-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;gap:14px;transition:.2s}
+.report-card:hover{border-color:#374151}
+.report-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.report-icon.pdf{background:#ef444415}
+.report-icon.csv{background:#10b98115}
+.report-icon.json{background:#3b82f615}
+.report-card-body{flex:1;min-width:0}
+.report-card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.report-card-desc{font-size:11px;color:var(--muted);margin-bottom:10px}
+.report-card-footer{display:flex;align-items:center;justify-content:space-between}
+.report-last-gen{font-size:10px;color:var(--muted)}
+
+/* TREND CHART CARD */
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div>
+      <div class="sb-logo-text">PatchIQ</div>
+      <div class="sb-logo-sub">Patch Manager</div>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Overview <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="../patch-manager.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="sb-item-text">Dashboard</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Inventory <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="sb-item-text">Endpoints</span><span class="sb-badge blue">247</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg><span class="sb-item-text">Patches</span><span class="sb-badge">12</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="sb-item-text">CVEs</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Operations <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg><span class="sb-item-text">Policies</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M12 12L8 8m4 4l4-4M3 6l9-4 9 4M3 6v12l9 4M3 6l9 4M21 6v12l-9 4M12 10v12"/></svg><span class="sb-item-text">Deployments</span><span class="sb-badge amber">3</span></a>
+      <a class="sb-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="sb-item-text">Workflows</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Reports <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item active" href="compliance.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg><span class="sb-item-text">Compliance</span></a>
+      <a class="sb-item" href="audit.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span class="sb-item-text">Audit</span></a>
+    </div>
+  </div>
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup(this)">Configuration <span class="arrow">▾</span></div>
+    <div class="sb-group-items">
+      <a class="sb-item" href="settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 115.64 19.07M19.07 4.93L15.5 8.5M4.93 19.07L8.5 15.5"/></svg><span class="sb-item-text">Settings</span></a>
+      <a class="sb-item" href="roles.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span class="sb-item-text">Roles</span></a>
+      <a class="sb-item" href="notifications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg><span class="sb-item-text">Notifications</span></a>
+    </div>
+  </div>
+</nav>
+
+<div id="main">
+  <div id="topbar">
+    <button class="tb-menu-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="tb-breadcrumb">
+      <a href="../patch-manager.html">Home</a><span class="tb-sep">›</span>
+      <a href="compliance.html">Compliance</a><span class="tb-sep">›</span>
+      <span>NIST CSF 2.0</span>
+    </div>
+    <div class="tb-icons">
+      <button class="tb-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg><span class="notif-dot"></span></button>
+      <button class="tb-icon-btn" onclick="toggleDark()">
+        <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+        <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <div class="tb-avatar">JD</div>
+    </div>
+  </div>
+
+  <div id="page">
+    <!-- Identity Header -->
+    <div class="id-header">
+      <div class="id-top">
+        <div class="id-gauge-wrap">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="10"/>
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#f59e0b" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="55.3"
+              style="transform:rotate(-90deg);transform-origin:50px 50px"/>
+          </svg>
+          <div class="id-gauge-center">
+            <div class="id-pct">78%</div>
+            <div class="id-label">Score</div>
+          </div>
+        </div>
+        <div class="id-meta">
+          <div class="id-fw-name">NIST CSF 2.0</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span class="badge badge-warn">⚠ Needs Improvement</span>
+            <span style="font-size:11px;color:var(--muted)">Last evaluated 2 hours ago</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">National Institute of Standards and Technology Cybersecurity Framework version 2.0. 45 controls across 5 categories evaluated against 240 endpoints.</div>
+        </div>
+      </div>
+      <div class="id-actions">
+        <button class="btn btn-primary btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          Evaluate Now
+        </button>
+        <button class="btn btn-outline btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export Evidence
+        </button>
+        <button class="btn btn-ghost btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Download PDF Report
+        </button>
+        <a href="compliance.html" class="btn btn-ghost btn-sm" style="margin-left:auto">← Back to Compliance</a>
+      </div>
+    </div>
+
+    <!-- Context Ring -->
+    <div class="ctx-ring">
+      <div class="ctx-card"><div class="ctx-val">45</div><div class="ctx-label">Total Controls</div></div>
+      <div class="ctx-card"><div class="ctx-val" style="color:var(--success)">35</div><div class="ctx-label">Passing</div></div>
+      <div class="ctx-card"><div class="ctx-val" style="color:var(--danger)">7</div><div class="ctx-label">Failing</div></div>
+      <div class="ctx-card"><div class="ctx-val" style="color:var(--muted)">3</div><div class="ctx-label">N/A</div></div>
+      <div class="ctx-card"><div class="ctx-val">240</div><div class="ctx-label">Endpoints Evaluated</div></div>
+      <div class="ctx-card"><div class="ctx-val" style="color:var(--danger)">12</div><div class="ctx-label">Overdue Patches</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(this,'tab-overview')">Overview</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-controls')">Controls</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-endpoints')">Endpoints</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-sla')">SLA Tracking</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-evidence')">Evidence & Reports</button>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="heatmap-section">
+        <div class="hm-title">Control Heatmap — Categories × Endpoint Groups</div>
+        <table class="hm-table">
+          <thead>
+            <tr>
+              <th style="text-align:left">Category</th>
+              <th>Production</th><th>Staging</th><th>Development</th><th>DMZ</th><th>Corporate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-label">Identify (ID)</td>
+              <td><div class="hm-cell pass" title="ID.AM-1: Pass — 48/48 endpoints">✓</div></td>
+              <td><div class="hm-cell pass" title="ID.AM-1: Pass — 24/24 endpoints">✓</div></td>
+              <td><div class="hm-cell partial" title="ID.BE-1: Partial — 18/32 endpoints">~</div></td>
+              <td><div class="hm-cell pass" title="ID.GV-1: Pass — 12/12 endpoints">✓</div></td>
+              <td><div class="hm-cell fail" title="ID.RA-1: Fail — 22/64 endpoints">✗</div></td>
+            </tr>
+            <tr>
+              <td class="row-label">Protect (PR)</td>
+              <td><div class="hm-cell fail" title="PR.AC-1: Fail — 31/48 endpoints">✗</div></td>
+              <td><div class="hm-cell partial" title="PR.DS-1: Partial — 16/24 endpoints">~</div></td>
+              <td><div class="hm-cell pass" title="PR.IP-1: Pass — 32/32 endpoints">✓</div></td>
+              <td><div class="hm-cell pass" title="PR.MA-1: Pass — 12/12 endpoints">✓</div></td>
+              <td><div class="hm-cell fail" title="PR.PT-1: Fail — 28/64 endpoints">✗</div></td>
+            </tr>
+            <tr>
+              <td class="row-label">Detect (DE)</td>
+              <td><div class="hm-cell partial" title="DE.AE-1: Partial — 36/48 endpoints">~</div></td>
+              <td><div class="hm-cell pass" title="DE.CM-1: Pass — 24/24 endpoints">✓</div></td>
+              <td><div class="hm-cell pass" title="DE.CM-7: Pass — 32/32 endpoints">✓</div></td>
+              <td><div class="hm-cell na" title="DE.DP-1: N/A">—</div></td>
+              <td><div class="hm-cell fail" title="DE.CM-7: Fail — 18/64 endpoints">✗</div></td>
+            </tr>
+            <tr>
+              <td class="row-label">Respond (RS)</td>
+              <td><div class="hm-cell pass" title="RS.AN-1: Pass — 48/48 endpoints">✓</div></td>
+              <td><div class="hm-cell pass" title="RS.CO-1: Pass — 24/24 endpoints">✓</div></td>
+              <td><div class="hm-cell na" title="RS.IM-1: N/A">—</div></td>
+              <td><div class="hm-cell partial" title="RS.MI-2: Partial — 8/12 endpoints">~</div></td>
+              <td><div class="hm-cell pass" title="RS.RP-1: Pass — 58/64 endpoints">✓</div></td>
+            </tr>
+            <tr>
+              <td class="row-label">Recover (RC)</td>
+              <td><div class="hm-cell pass" title="RC.RP-1: Pass — 48/48 endpoints">✓</div></td>
+              <td><div class="hm-cell pass" title="RC.IM-1: Pass — 24/24 endpoints">✓</div></td>
+              <td><div class="hm-cell pass" title="RC.CO-1: Pass — 32/32 endpoints">✓</div></td>
+              <td><div class="hm-cell na" title="RC.CO-3: N/A">—</div></td>
+              <td><div class="hm-cell partial" title="RC.IM-2: Partial — 44/64 endpoints">~</div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:#10b98130;border:1px solid #10b98140"></div>Pass</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:#ef444430;border:1px solid #ef444440"></div>Fail</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:#f59e0b30;border:1px solid #f59e0b40"></div>Partial</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)"><div style="width:12px;height:12px;border-radius:3px;background:#ffffff08;border:1px solid var(--border)"></div>N/A</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: CONTROLS -->
+    <div id="tab-controls" class="tab-content">
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="data-table" style="min-width:860px">
+            <thead>
+              <tr><th>Control ID</th><th>Name</th><th>Category</th><th>Status</th><th>Passing/Total</th><th>SLA</th><th>Action</th></tr>
+            </thead>
+            <tbody id="controls-tbody">
+              <tr class="category-header"><td colspan="7">Identify (ID) — 9 controls</td></tr>
+              <tr onclick="toggleExpand(this,'exp-id-am1')">
+                <td style="font-family:monospace;font-size:11px">ID.AM-1</td>
+                <td>Asset Management — Hardware Inventory</td>
+                <td><span class="badge badge-info">Identify</span></td>
+                <td><span class="badge badge-success">Pass</span></td>
+                <td>240/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:100%;background:var(--success)"></div></div></td>
+                <td style="color:var(--success);font-size:11px">✓ On track</td>
+                <td><button class="btn btn-ghost btn-sm">Details</button></td>
+              </tr>
+              <tr class="exp-row" id="exp-id-am1" style="display:none"><td colspan="7"><div class="exp-content">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+                  <div><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Evidence</div><div style="font-size:11px;color:var(--text)">All 240 endpoints reporting hardware inventory via agent. Last scan: 2h ago.</div></div>
+                  <div><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Satisfying Patches</div><div style="font-size:11px;color:var(--muted)">No patches required — configuration control</div></div>
+                  <div><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Remediation</div><div style="font-size:11px;color:var(--success)">No action required</div></div>
+                </div>
+              </div></td></tr>
+
+              <tr class="overdue-row" onclick="toggleExpand(this,'exp-pr-ac1')" style="cursor:pointer">
+                <td style="font-family:monospace;font-size:11px">PR.AC-1</td>
+                <td>Identity Management & Access Control</td>
+                <td><span class="badge" style="background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630">Protect</span></td>
+                <td><span class="badge badge-danger">Fail</span></td>
+                <td>193/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:80%;background:var(--danger)"></div></div></td>
+                <td style="color:var(--danger);font-size:11px;font-weight:600">⚠ 10d overdue</td>
+                <td><button class="btn btn-primary btn-sm">Deploy Fix</button></td>
+              </tr>
+              <tr class="exp-row" id="exp-pr-ac1" style="display:none"><td colspan="7"><div class="exp-content">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+                  <div><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Failing Evidence</div><div style="font-size:11px;color:var(--text)">47 endpoints missing MFA configuration. Windows endpoints missing Group Policy enforcement.</div></div>
+                  <div><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Missing Patches</div><div style="font-size:11px;color:var(--danger)">KB5034441 (Windows Hello for Business) — 47 endpoints</div></div>
+                  <div><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Remediation Path</div><div style="font-size:11px;color:var(--text)">Deploy KB5034441 to all Windows endpoints. ETA: 2-4 hours.</div><button class="btn btn-primary btn-sm" style="margin-top:8px">Deploy Fix</button></div>
+                </div>
+              </div></td></tr>
+
+              <tr onclick="toggleExpand(this,'exp-de-cm7')" style="cursor:pointer" class="overdue-row">
+                <td style="font-family:monospace;font-size:11px">DE.CM-7</td>
+                <td>Monitoring for Unauthorized Personnel</td>
+                <td><span class="badge badge-warn">Detect</span></td>
+                <td><span class="badge badge-danger">Fail</span></td>
+                <td>209/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:87%;background:var(--danger)"></div></div></td>
+                <td style="color:var(--danger);font-size:11px;font-weight:600">⚠ 9d overdue</td>
+                <td><button class="btn btn-primary btn-sm">Deploy Fix</button></td>
+              </tr>
+              <tr class="exp-row" id="exp-de-cm7" style="display:none"><td colspan="7"><div class="exp-content"><div style="font-size:12px;color:var(--muted)">31 endpoints missing auditd configuration. Remediation: deploy audit-policy-2.1.0 package.</div></div></td></tr>
+
+              <tr class="category-header"><td colspan="7">Protect (PR) — 14 controls</td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">PR.DS-1</td><td>Data-at-Rest Protection</td><td><span class="badge" style="background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630">Protect</span></td><td><span class="badge badge-warn">Partial</span></td><td>204/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:85%;background:var(--warn)"></div></div></td><td style="color:var(--warn);font-size:11px">Mar 20, 2026</td><td><button class="btn btn-ghost btn-sm">Details</button></td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">PR.IP-1</td><td>Baseline Configuration</td><td><span class="badge" style="background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630">Protect</span></td><td><span class="badge badge-success">Pass</span></td><td>240/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:100%;background:var(--success)"></div></div></td><td style="color:var(--success);font-size:11px">✓ On track</td><td><button class="btn btn-ghost btn-sm">Details</button></td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">PR.MA-2</td><td>Remote Maintenance</td><td><span class="badge" style="background:#8b5cf620;color:#8b5cf6;border:1px solid #8b5cf630">Protect</span></td><td><span class="badge badge-success">Pass</span></td><td>235/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:98%;background:var(--success)"></div></div></td><td style="color:var(--success);font-size:11px">✓ On track</td><td><button class="btn btn-ghost btn-sm">Details</button></td></tr>
+
+              <tr class="category-header"><td colspan="7">Detect (DE) — 8 controls</td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">DE.AE-2</td><td>Anomaly & Event Analysis</td><td><span class="badge badge-warn">Detect</span></td><td><span class="badge badge-warn">Partial</span></td><td>198/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:82%;background:var(--warn)"></div></div></td><td style="color:var(--warn);font-size:11px">Mar 15, 2026</td><td><button class="btn btn-ghost btn-sm">Details</button></td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">DE.CM-4</td><td>Malicious Code Detection</td><td><span class="badge badge-warn">Detect</span></td><td><span class="badge badge-success">Pass</span></td><td>240/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:100%;background:var(--success)"></div></div></td><td style="color:var(--success);font-size:11px">✓ On track</td><td><button class="btn btn-ghost btn-sm">Details</button></td></tr>
+
+              <tr class="category-header"><td colspan="7">Respond (RS) — 8 controls</td></tr>
+              <tr class="overdue-row"><td style="font-family:monospace;font-size:11px">RS.MI-2</td><td>Incident Mitigation</td><td><span class="badge badge-danger">Respond</span></td><td><span class="badge badge-warn">Partial</span></td><td>218/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:91%;background:var(--warn)"></div></div></td><td style="color:var(--danger);font-size:11px;font-weight:600">⚠ 5d overdue</td><td><button class="btn btn-primary btn-sm">Deploy Fix</button></td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">RS.AN-3</td><td>Forensics Investigation</td><td><span class="badge badge-danger">Respond</span></td><td><span class="badge badge-muted">N/A</span></td><td>N/A</td><td style="color:var(--muted);font-size:11px">—</td><td><button class="btn btn-ghost btn-sm">Details</button></td></tr>
+
+              <tr class="category-header"><td colspan="7">Recover (RC) — 6 controls</td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">RC.RP-1</td><td>Recovery Plan Execution</td><td><span class="badge badge-info">Recover</span></td><td><span class="badge badge-success">Pass</span></td><td>240/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:100%;background:var(--success)"></div></div></td><td style="color:var(--success);font-size:11px">✓ On track</td><td><button class="btn btn-ghost btn-sm">Details</button></td></tr>
+              <tr><td style="font-family:monospace;font-size:11px">RC.IM-2</td><td>Recovery Improvements</td><td><span class="badge badge-info">Recover</span></td><td><span class="badge badge-warn">Partial</span></td><td>222/240<div class="gauge-bar" style="margin-top:3px"><div class="gauge-fill" style="width:92%;background:var(--warn)"></div></div></td><td style="color:var(--warn);font-size:11px">Apr 1, 2026</td><td><button class="btn btn-ghost btn-sm">Details</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: ENDPOINTS -->
+    <div id="tab-endpoints" class="tab-content">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-outline btn-sm">Evaluate Selected</button>
+        <button class="btn btn-primary btn-sm">Deploy Fixes</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="data-table" style="min-width:820px">
+            <thead>
+              <tr><th><input type="checkbox"></th><th>Hostname</th><th>OS</th><th>Score</th><th>Passing</th><th>Failing</th><th>Overdue</th></tr>
+            </thead>
+            <tbody>
+              <tr onclick="toggleExpand(this,'ep-exp-1')" style="cursor:pointer">
+                <td><input type="checkbox" onclick="event.stopPropagation()"></td>
+                <td style="font-family:monospace;font-size:11px">prod-web-01.acme.com</td>
+                <td>Ubuntu 22.04</td>
+                <td><svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle;transform:rotate(-90deg)"><circle cx="14" cy="14" r="10" fill="none" stroke="#1e293b" stroke-width="4"/><circle cx="14" cy="14" r="10" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="62.8" stroke-dashoffset="5.7" stroke-linecap="round"/></svg> <span style="font-size:11px">91%</span></td>
+                <td style="color:var(--success)">41/45</td>
+                <td style="color:var(--danger)">3</td>
+                <td style="color:var(--muted)">0</td>
+              </tr>
+              <tr class="exp-row" id="ep-exp-1" style="display:none"><td colspan="7"><div class="exp-content">
+                <table class="data-table" style="min-width:600px"><thead><tr><th>Control ID</th><th>Control Name</th><th>Status</th><th>Evidence</th></tr></thead>
+                <tbody>
+                  <tr><td style="font-family:monospace;font-size:11px">PR.AC-1</td><td>Identity Management</td><td><span class="badge badge-danger">Fail</span></td><td style="font-size:11px;color:var(--muted)">MFA not configured on SSH access</td></tr>
+                  <tr><td style="font-family:monospace;font-size:11px">DE.CM-7</td><td>Monitoring</td><td><span class="badge badge-danger">Fail</span></td><td style="font-size:11px;color:var(--muted)">auditd service not running</td></tr>
+                  <tr><td style="font-family:monospace;font-size:11px">RS.MI-2</td><td>Incident Mitigation</td><td><span class="badge badge-warn">Partial</span></td><td style="font-size:11px;color:var(--muted)">Incident runbook outdated (> 90 days)</td></tr>
+                </tbody></table>
+              </div></td></tr>
+              <tr onclick="toggleExpand(this,'ep-exp-2')" style="cursor:pointer">
+                <td><input type="checkbox" onclick="event.stopPropagation()"></td>
+                <td style="font-family:monospace;font-size:11px">prod-db-01.acme.com</td>
+                <td>RHEL 9.2</td>
+                <td><svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle;transform:rotate(-90deg)"><circle cx="14" cy="14" r="10" fill="none" stroke="#1e293b" stroke-width="4"/><circle cx="14" cy="14" r="10" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="62.8" stroke-dashoffset="19.5" stroke-linecap="round"/></svg> <span style="font-size:11px">69%</span></td>
+                <td style="color:var(--warn)">31/45</td>
+                <td style="color:var(--danger)">9</td>
+                <td style="color:var(--danger)">2</td>
+              </tr>
+              <tr class="exp-row" id="ep-exp-2" style="display:none"><td colspan="7"><div class="exp-content"><div style="font-size:12px;color:var(--muted)">9 controls failing. Primary issues: missing security patches, auditd not running, SELinux in permissive mode.</div></div></td></tr>
+              <tr><td><input type="checkbox"></td><td style="font-family:monospace;font-size:11px">prod-app-02.acme.com</td><td>Windows Server 2022</td><td><svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle;transform:rotate(-90deg)"><circle cx="14" cy="14" r="10" fill="none" stroke="#1e293b" stroke-width="4"/><circle cx="14" cy="14" r="10" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="62.8" stroke-dashoffset="8.2" stroke-linecap="round"/></svg> <span style="font-size:11px">87%</span></td><td style="color:var(--success)">39/45</td><td style="color:var(--warn)">4</td><td style="color:var(--muted)">0</td></tr>
+              <tr><td><input type="checkbox"></td><td style="font-family:monospace;font-size:11px">staging-web-01.acme.com</td><td>Ubuntu 22.04</td><td><svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle;transform:rotate(-90deg)"><circle cx="14" cy="14" r="10" fill="none" stroke="#1e293b" stroke-width="4"/><circle cx="14" cy="14" r="10" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="62.8" stroke-dashoffset="0" stroke-linecap="round"/></svg> <span style="font-size:11px">100%</span></td><td style="color:var(--success)">45/45</td><td style="color:var(--muted)">0</td><td style="color:var(--muted)">0</td></tr>
+              <tr><td><input type="checkbox"></td><td style="font-family:monospace;font-size:11px">corp-laptop-142.acme.com</td><td>macOS 14.3</td><td><svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:middle;transform:rotate(-90deg)"><circle cx="14" cy="14" r="10" fill="none" stroke="#1e293b" stroke-width="4"/><circle cx="14" cy="14" r="10" fill="none" stroke="#ef4444" stroke-width="4" stroke-dasharray="62.8" stroke-dashoffset="31.4" stroke-linecap="round"/></svg> <span style="font-size:11px">50%</span></td><td style="color:var(--danger)">22/45</td><td style="color:var(--danger)">18</td><td style="color:var(--danger)">4</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SLA TRACKING -->
+    <div id="tab-sla" class="tab-content">
+      <div class="sla-timers-grid">
+        <div class="sla-timer-card">
+          <div class="sla-timer-circle">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#1e293b" stroke-width="6"/>
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#ef4444" stroke-width="6" stroke-dasharray="150.8" stroke-dashoffset="0" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:30px 30px"/>
+            </svg>
+            <div class="sla-timer-text"><div class="sla-days" style="color:var(--danger)">0</div><div class="sla-d-label">days</div></div>
+          </div>
+          <div class="sla-info">
+            <div class="sla-control">PR.AC-1: Identity Management</div>
+            <div class="sla-deadline" style="color:var(--danger)">⚠ 10 days overdue</div>
+            <div class="sla-deadline">47 affected endpoints</div>
+          </div>
+        </div>
+        <div class="sla-timer-card">
+          <div class="sla-timer-circle">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#1e293b" stroke-width="6"/>
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#ef4444" stroke-width="6" stroke-dasharray="150.8" stroke-dashoffset="0" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:30px 30px"/>
+            </svg>
+            <div class="sla-timer-text"><div class="sla-days" style="color:var(--danger)">0</div><div class="sla-d-label">days</div></div>
+          </div>
+          <div class="sla-info">
+            <div class="sla-control">DE.CM-7: Monitoring</div>
+            <div class="sla-deadline" style="color:var(--danger)">⚠ 9 days overdue</div>
+            <div class="sla-deadline">31 affected endpoints</div>
+          </div>
+        </div>
+        <div class="sla-timer-card">
+          <div class="sla-timer-circle">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#1e293b" stroke-width="6"/>
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#ef4444" stroke-width="6" stroke-dasharray="150.8" stroke-dashoffset="0" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:30px 30px"/>
+            </svg>
+            <div class="sla-timer-text"><div class="sla-days" style="color:var(--danger)">0</div><div class="sla-d-label">days</div></div>
+          </div>
+          <div class="sla-info">
+            <div class="sla-control">RS.MI-2: Incident Mitigation</div>
+            <div class="sla-deadline" style="color:var(--danger)">⚠ 5 days overdue</div>
+            <div class="sla-deadline">22 affected endpoints</div>
+          </div>
+        </div>
+        <div class="sla-timer-card">
+          <div class="sla-timer-circle">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#1e293b" stroke-width="6"/>
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#f59e0b" stroke-width="6" stroke-dasharray="150.8" stroke-dashoffset="110.6" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:30px 30px"/>
+            </svg>
+            <div class="sla-timer-text"><div class="sla-days" style="color:var(--warn)">5</div><div class="sla-d-label">days</div></div>
+          </div>
+          <div class="sla-info">
+            <div class="sla-control">PR.DS-1: Data-at-Rest</div>
+            <div class="sla-deadline">Due Mar 15, 2026</div>
+            <div class="sla-deadline">36 affected endpoints</div>
+          </div>
+        </div>
+        <div class="sla-timer-card">
+          <div class="sla-timer-circle">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#1e293b" stroke-width="6"/>
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#f59e0b" stroke-width="6" stroke-dasharray="150.8" stroke-dashoffset="100.5" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:30px 30px"/>
+            </svg>
+            <div class="sla-timer-text"><div class="sla-days" style="color:var(--warn)">10</div><div class="sla-d-label">days</div></div>
+          </div>
+          <div class="sla-info">
+            <div class="sla-control">DE.AE-2: Anomaly Analysis</div>
+            <div class="sla-deadline">Due Mar 20, 2026</div>
+            <div class="sla-deadline">42 affected endpoints</div>
+          </div>
+        </div>
+        <div class="sla-timer-card">
+          <div class="sla-timer-circle">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#1e293b" stroke-width="6"/>
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#3b82f6" stroke-width="6" stroke-dasharray="150.8" stroke-dashoffset="78.4" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:30px 30px"/>
+            </svg>
+            <div class="sla-timer-text"><div class="sla-days" style="color:var(--primary)">22</div><div class="sla-d-label">days</div></div>
+          </div>
+          <div class="sla-info">
+            <div class="sla-control">RC.IM-2: Recovery Improvements</div>
+            <div class="sla-deadline">Due Apr 1, 2026</div>
+            <div class="sla-deadline">18 affected endpoints</div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">NIST CSF 2.0 Compliance Trend — 90 Days</div>
+        </div>
+        <canvas id="slaChart" height="80"></canvas>
+      </div>
+    </div>
+
+    <!-- TAB 5: EVIDENCE & REPORTS -->
+    <div id="tab-evidence" class="tab-content">
+      <div class="report-cards">
+        <div class="report-card">
+          <div class="report-icon pdf"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="report-card-body">
+            <div class="report-card-title">Full Compliance Report</div>
+            <div class="report-card-desc">Complete audit-ready compliance report with all control evidence, endpoint details, and remediation status.</div>
+            <div class="report-card-footer">
+              <div class="report-last-gen">Last generated: Mar 9, 2026 at 14:22</div>
+              <button class="btn btn-outline btn-sm">Generate PDF</button>
+            </div>
+          </div>
+        </div>
+        <div class="report-card">
+          <div class="report-icon csv"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <div class="report-card-body">
+            <div class="report-card-title">Control Evidence (CSV)</div>
+            <div class="report-card-desc">Machine-readable export of all control evaluations with patch data, endpoint lists, and evidence artifacts.</div>
+            <div class="report-card-footer">
+              <div class="report-last-gen">Last generated: Mar 10, 2026 at 08:00</div>
+              <button class="btn btn-outline btn-sm">Export CSV</button>
+            </div>
+          </div>
+        </div>
+        <div class="report-card">
+          <div class="report-icon json"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+          <div class="report-card-body">
+            <div class="report-card-title">Audit Trail (JSON)</div>
+            <div class="report-card-desc">Raw audit trail of all evaluation runs, evidence collection events, and compliance state changes in JSON format.</div>
+            <div class="report-card-footer">
+              <div class="report-last-gen">Last generated: Mar 10, 2026 at 10:15</div>
+              <button class="btn btn-outline btn-sm">Export JSON</button>
+            </div>
+          </div>
+        </div>
+        <div class="report-card">
+          <div class="report-icon pdf"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
+          <div class="report-card-body">
+            <div class="report-card-title">Executive Summary</div>
+            <div class="report-card-desc">Two-page executive summary with compliance scores, risk highlights, and recommended priorities for leadership.</div>
+            <div class="report-card-footer">
+              <div class="report-last-gen">Last generated: Mar 8, 2026 at 09:30</div>
+              <button class="btn btn-primary btn-sm">Generate PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">Generated Reports</div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Format</th><th>Generated</th><th>Size</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>NIST-CSF-2.0-Full-Report-2026-03-09.pdf</td><td><span class="badge badge-danger">PDF</span></td><td>Mar 9, 2026 14:22</td><td>2.4 MB</td><td><button class="btn btn-outline btn-sm">Download</button></td></tr>
+            <tr><td>NIST-CSF-2.0-Evidence-2026-03-10.csv</td><td><span class="badge badge-success">CSV</span></td><td>Mar 10, 2026 08:00</td><td>348 KB</td><td><button class="btn btn-outline btn-sm">Download</button></td></tr>
+            <tr><td>NIST-CSF-2.0-Audit-Trail-2026-03-10.json</td><td><span class="badge badge-info">JSON</span></td><td>Mar 10, 2026 10:15</td><td>1.1 MB</td><td><button class="btn btn-outline btn-sm">Download</button></td></tr>
+            <tr><td>NIST-CSF-2.0-Executive-Summary-2026-03-08.pdf</td><td><span class="badge badge-danger">PDF</span></td><td>Mar 8, 2026 09:30</td><td>410 KB</td><td><button class="btn btn-outline btn-sm">Download</button></td></tr>
+            <tr><td>NIST-CSF-2.0-Full-Report-2026-02-28.pdf</td><td><span class="badge badge-danger">PDF</span></td><td>Feb 28, 2026 16:45</td><td>2.1 MB</td><td><button class="btn btn-outline btn-sm">Download</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('collapsed'); }
+function toggleGroup(el){
+  el.classList.toggle('collapsed');
+  const items = el.nextElementSibling;
+  items.style.maxHeight = el.classList.contains('collapsed') ? '0' : '200px';
+}
+document.querySelectorAll('.sb-group-items').forEach(g=>g.style.maxHeight='200px');
+
+function toggleDark(){
+  const dark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', dark?'dark':'light');
+}
+if(localStorage.getItem('theme')==='light') document.documentElement.classList.remove('dark');
+
+function switchTab(btn, id){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  if(id==='tab-sla' && !window.slaChartInit) initSLAChart();
+}
+
+function toggleExpand(row, expId){
+  const expRow = document.getElementById(expId);
+  if(expRow.style.display==='none') expRow.style.display='table-row';
+  else expRow.style.display='none';
+}
+
+function initSLAChart(){
+  window.slaChartInit = true;
+  const labels = [];
+  for(let i=89;i>=0;i--){
+    const d = new Date('2026-03-10');
+    d.setDate(d.getDate()-i);
+    labels.push(i%20===0 ? d.toLocaleDateString('en',{month:'short',day:'numeric'}) : '');
+  }
+  const data = Array.from({length:90},(_,i)=>Math.min(100,Math.max(50,65+i*0.14+(Math.random()-0.5)*5)));
+  data[89]=78;
+  const ctx = document.getElementById('slaChart').getContext('2d');
+  new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label:'NIST CSF 2.0',data,borderColor:'#f59e0b',backgroundColor:'#f59e0b10',borderWidth:2,pointRadius:0,tension:.4,fill:true}]},
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e293b',borderColor:'#374151',borderWidth:1,callbacks:{label:c=>`Score: ${c.parsed.y.toFixed(1)}%`}}},
+      scales:{
+        x:{grid:{color:'#1e293b50'},ticks:{color:'#475569',font:{size:10}},border:{display:false}},
+        y:{grid:{color:'#1e293b50'},ticks:{color:'#475569',font:{size:10},callback:v=>v+'%'},border:{display:false},min:50,max:100}
+      }
+    }
+  });
+}
+
+// Handle URL hash for tab
+const hash = location.hash.replace('#','');
+if(hash){
+  const btn = document.querySelector(`[onclick*="${hash}"]`);
+  if(btn) btn.click();
+}
+</script>
+</body>
+</html>

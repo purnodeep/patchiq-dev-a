@@ -1,0 +1,867 @@
+openapi: 3.1.0
+
+info:
+  title: PatchIQ Hub Manager API
+  version: 0.1.0
+  license:
+    name: Proprietary
+    url: https://patchiq.io/license
+
+servers:
+  - url: http://localhost:8082
+
+tags:
+  - name: System
+    description: Health and readiness checks
+  - name: Catalog
+    description: Patch catalog management
+  - name: Licenses
+    description: License management
+  - name: Clients
+    description: Patch Manager client management
+
+components:
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Opaque pagination cursor from a previous response
+
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+      description: Maximum number of items to return
+
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Unique resource identifier (UUID)
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: TENANT_NOT_FOUND
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+          default: []
+
+    CatalogEntry:
+      type: object
+      required:
+        - id
+        - name
+        - version
+        - os_family
+        - severity
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: string
+        os_family:
+          type: string
+        severity:
+          type: string
+          enum:
+            - critical
+            - high
+            - medium
+            - low
+            - none
+        cve_ids:
+          type: array
+          items:
+            type: string
+          default: []
+        description:
+          type:
+            - string
+            - "null"
+        installer_type:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateCatalogEntryRequest:
+      type: object
+      required:
+        - name
+        - version
+        - os_family
+        - severity
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        version:
+          type: string
+          minLength: 1
+        os_family:
+          type: string
+          minLength: 1
+        severity:
+          type: string
+          enum:
+            - critical
+            - high
+            - medium
+            - low
+            - none
+        cve_ids:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        installer_type:
+          type: string
+
+    Client:
+      type: object
+      required:
+        - id
+        - hostname
+        - endpoint_count
+        - status
+        - sync_interval
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+        version:
+          type:
+            - string
+            - "null"
+        os:
+          type:
+            - string
+            - "null"
+        endpoint_count:
+          type: integer
+        contact_email:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+          enum:
+            - pending
+            - approved
+            - declined
+            - suspended
+        sync_interval:
+          type: integer
+        last_sync_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        notes:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ClientListResponse:
+      type: object
+      required:
+        - clients
+        - total
+      properties:
+        clients:
+          type: array
+          items:
+            $ref: "#/components/schemas/Client"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    PendingCountResponse:
+      type: object
+      required:
+        - count
+      properties:
+        count:
+          type: integer
+
+    License:
+      type: object
+      required:
+        - id
+        - tier
+        - max_endpoints
+        - issued_at
+        - expires_at
+        - customer_name
+        - license_key
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        client_id:
+          type:
+            - string
+            - "null"
+          format: uuid
+        client_hostname:
+          type:
+            - string
+            - "null"
+        tier:
+          type: string
+          enum:
+            - community
+            - professional
+            - enterprise
+            - msp
+        max_endpoints:
+          type: integer
+        issued_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        customer_name:
+          type: string
+        customer_email:
+          type:
+            - string
+            - "null"
+        notes:
+          type:
+            - string
+            - "null"
+        license_key:
+          type: string
+          description: Masked license key (last 4 chars shown). Full key only returned on Create.
+        client_endpoint_count:
+          type:
+            - integer
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    LicenseListResponse:
+      type: object
+      required:
+        - licenses
+        - total
+      properties:
+        licenses:
+          type: array
+          items:
+            $ref: "#/components/schemas/License"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+paths:
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+
+  /api/v1/catalog:
+    get:
+      tags:
+        - Catalog
+      summary: List catalog entries
+      operationId: listCatalogEntries
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Paginated list of catalog entries
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - next_cursor
+                  - total_count
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CatalogEntry"
+                  next_cursor:
+                    type:
+                      - string
+                      - "null"
+                  total_count:
+                    type: integer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Catalog
+      summary: Create catalog entry
+      operationId: createCatalogEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCatalogEntryRequest"
+      responses:
+        "201":
+          description: Catalog entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogEntry"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/catalog/{id}:
+    get:
+      tags:
+        - Catalog
+      summary: Get catalog entry by ID
+      operationId: getCatalogEntry
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Catalog entry details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogEntry"
+        "404":
+          description: Catalog entry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/clients:
+    get:
+      tags:
+        - Clients
+      summary: List clients
+      operationId: listClients
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - approved
+              - declined
+              - suspended
+          description: Filter by client status
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/clients/pending-count:
+    get:
+      tags:
+        - Clients
+      summary: Get pending client count
+      operationId: getPendingClientCount
+      responses:
+        "200":
+          description: Count of clients awaiting approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PendingCountResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/clients/{id}:
+    get:
+      tags:
+        - Clients
+      summary: Get client by ID
+      operationId: getClient
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Client details
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - client
+                properties:
+                  client:
+                    $ref: "#/components/schemas/Client"
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      tags:
+        - Clients
+      summary: Update client
+      operationId: updateClient
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hostname:
+                  type: string
+                sync_interval:
+                  type: integer
+                notes:
+                  type: string
+      responses:
+        "200":
+          description: Updated client
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - client
+                properties:
+                  client:
+                    $ref: "#/components/schemas/Client"
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Clients
+      summary: Delete client
+      operationId: deleteClient
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Client deleted
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/clients/{id}/approve:
+    post:
+      tags:
+        - Clients
+      summary: Approve a pending client
+      operationId: approveClient
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Client approved, API key returned (show to user — stored hashed)
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - api_key
+                properties:
+                  api_key:
+                    type: string
+        "404":
+          description: Client not found or not in pending status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/clients/{id}/decline:
+    post:
+      tags:
+        - Clients
+      summary: Decline a pending client
+      operationId: declineClient
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Client declined
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: declined
+        "404":
+          description: Client not found or not in pending status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/clients/{id}/suspend:
+    post:
+      tags:
+        - Clients
+      summary: Suspend an approved client
+      operationId: suspendClient
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Client suspended
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: string
+                    example: suspended
+        "404":
+          description: Client not found or not in approved status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/licenses:
+    get:
+      tags:
+        - Licenses
+      summary: List licenses
+      operationId: listLicenses
+      parameters:
+        - name: tier
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - community
+              - professional
+              - enterprise
+              - msp
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: List of licenses (license_key masked to last 4 chars)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LicenseListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Licenses
+      summary: Create a new license
+      operationId: createLicense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customer_name
+                - tier
+                - max_endpoints
+                - expires_at
+              properties:
+                customer_name:
+                  type: string
+                  minLength: 1
+                customer_email:
+                  type: string
+                  format: email
+                tier:
+                  type: string
+                  enum:
+                    - community
+                    - professional
+                    - enterprise
+                    - msp
+                max_endpoints:
+                  type: integer
+                  minimum: 1
+                expires_at:
+                  type: string
+                  format: date-time
+                client_id:
+                  type: string
+                  format: uuid
+                notes:
+                  type: string
+      responses:
+        "201":
+          description: License created (full license_key returned — copy now)
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - license
+                properties:
+                  license:
+                    $ref: "#/components/schemas/License"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/licenses/{id}:
+    get:
+      tags:
+        - Licenses
+      summary: Get license by ID
+      operationId: getLicense
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: License details (license_key masked to last 4 chars)
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - license
+                properties:
+                  license:
+                    $ref: "#/components/schemas/License"
+        "404":
+          description: License not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/licenses/{id}/revoke:
+    post:
+      tags:
+        - Licenses
+      summary: Revoke a license
+      operationId: revokeLicense
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: License revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - license
+                properties:
+                  license:
+                    $ref: "#/components/schemas/License"
+        "404":
+          description: License not found or already revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/licenses/{id}/assign:
+    post:
+      tags:
+        - Licenses
+      summary: Assign a license to a client
+      operationId: assignLicense
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - client_id
+              properties:
+                client_id:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: License assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - license
+                properties:
+                  license:
+                    $ref: "#/components/schemas/License"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: License not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

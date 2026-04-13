@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Workflow Editor</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #09090b;
+      --card: #18181b;
+      --card-hover: #1c1c1f;
+      --border: #27272a;
+      --border-subtle: #1e1e22;
+      --canvas-bg: #0f0f12;
+      --text: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --brand: #3b82f6;
+      --brand-hover: #2563eb;
+
+      --violet: #8b5cf6;
+      --blue: #3b82f6;
+      --amber: #f59e0b;
+      --green: #22c55e;
+      --cyan: #06b6d4;
+      --indigo: #6366f1;
+      --teal: #14b8a6;
+      --red: #ef4444;
+      --fuchsia: #d946ef;
+      --zinc: #71717a;
+      --orange: #f97316;
+      --sky: #0ea5e9;
+    }
+
+    body {
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── TOP BAR ─────────────────────────────────────────────── */
+    .topbar {
+      height: 52px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 8px;
+    }
+
+    .topbar-logo-mark {
+      width: 28px;
+      height: 28px;
+      background: var(--brand);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .topbar-logo-mark svg { width: 16px; height: 16px; }
+
+    .topbar-logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    .topbar-sep {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .breadcrumb-item { color: var(--text-muted); cursor: pointer; }
+    .breadcrumb-item:hover { color: var(--text-secondary); }
+    .breadcrumb-chevron { color: var(--text-muted); }
+    .breadcrumb-current { color: var(--text); font-weight: 500; }
+
+    .topbar-spacer { flex: 1; }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ─── EDITOR TOP BAR ──────────────────────────────────────── */
+    .editor-topbar {
+      height: 52px;
+      background: #111113;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+      z-index: 99;
+    }
+
+    .workflow-name-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: 'Geist', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      min-width: 200px;
+      cursor: text;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+
+    .workflow-name-input:hover { background: rgba(255,255,255,0.04); }
+    .workflow-name-input:focus { background: rgba(255,255,255,0.06); }
+
+    .status-badge {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+
+    .editor-topbar-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .editor-topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ─── BUTTONS ─────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Geist', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.04); border-color: #3f3f46; color: var(--text); }
+
+    .btn-outline-amber {
+      background: transparent;
+      border: 1px solid rgba(245,158,11,0.4);
+      color: #f59e0b;
+    }
+    .btn-outline-amber:hover { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.6); }
+
+    .btn-primary {
+      background: var(--brand);
+      color: white;
+      border: 1px solid transparent;
+    }
+    .btn-primary:hover { background: var(--brand-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+
+    .btn-icon {
+      padding: 6px;
+      width: 30px;
+      height: 30px;
+      justify-content: center;
+    }
+
+    /* ─── MAIN LAYOUT ─────────────────────────────────────────── */
+    .editor-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ─── SIDEBAR NAV ─────────────────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-section {
+      padding: 16px 12px 8px;
+    }
+
+    .sidebar-section-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 8px;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 8px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      transition: all 0.12s;
+      user-select: none;
+    }
+
+    .sidebar-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .sidebar-item.active { background: rgba(59,130,246,0.12); color: var(--brand); }
+    .sidebar-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.8; }
+    .sidebar-item.active svg { opacity: 1; }
+
+    .sidebar-badge {
+      margin-left: auto;
+      font-size: 11px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-muted);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    .sidebar-item.active .sidebar-badge {
+      background: rgba(59,130,246,0.2);
+      color: var(--brand);
+    }
+
+    /* ─── EDITOR CONTENT ──────────────────────────────────────── */
+    .editor-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ─── NODE PALETTE ────────────────────────────────────────── */
+    .palette {
+      width: 220px;
+      background: #111113;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #27272a transparent;
+    }
+
+    .palette::-webkit-scrollbar { width: 4px; }
+    .palette::-webkit-scrollbar-track { background: transparent; }
+    .palette::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
+
+    .palette-search {
+      padding: 12px 12px 8px;
+      position: sticky;
+      top: 0;
+      background: #111113;
+      z-index: 10;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .palette-search-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px 10px 6px 30px;
+      font-family: 'Geist', sans-serif;
+      font-size: 12.5px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .palette-search-input::placeholder { color: var(--text-muted); }
+    .palette-search-input:focus { border-color: rgba(59,130,246,0.4); }
+
+    .palette-search-icon {
+      position: absolute;
+      left: 21px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .palette-search-icon svg { width: 13px; height: 13px; }
+
+    .palette-section {
+      padding: 12px 10px 6px;
+    }
+
+    .palette-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 4px;
+      margin-bottom: 6px;
+    }
+
+    .palette-node {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 10px;
+      height: 40px;
+      border-radius: 7px;
+      cursor: grab;
+      transition: all 0.12s;
+      border: 1px solid transparent;
+      margin-bottom: 3px;
+    }
+
+    .palette-node:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: var(--border);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .palette-node:active { cursor: grabbing; transform: translateY(-2px); }
+
+    .palette-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .palette-icon { color: var(--text-muted); flex-shrink: 0; }
+    .palette-icon svg { width: 14px; height: 14px; }
+
+    .palette-name {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      flex: 1;
+    }
+
+    /* ─── CANVAS ──────────────────────────────────────────────── */
+    .canvas-area {
+      flex: 1;
+      position: relative;
+      background: var(--canvas-bg);
+      overflow: hidden;
+    }
+
+    .canvas-grid {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, #27272a 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0.5;
+    }
+
+    .canvas-viewport {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .canvas-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 2400px;
+      height: 1800px;
+      transform-origin: top left;
+    }
+
+    /* ─── WORKFLOW NODES ──────────────────────────────────────── */
+    .wf-node {
+      position: absolute;
+      width: 210px;
+      border-radius: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+
+    .wf-node:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .wf-node.selected {
+      transform: scale(1.02);
+      box-shadow: 0 0 0 2px var(--node-color), 0 0 20px rgba(var(--node-color-rgb), 0.25), 0 4px 24px rgba(0,0,0,0.5);
+    }
+
+    .wf-node-header {
+      height: 22px;
+      border-radius: 10px 10px 0 0;
+      background: var(--node-color);
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 6px;
+    }
+
+    .wf-node-header svg { width: 11px; height: 11px; color: rgba(255,255,255,0.9); flex-shrink: 0; }
+
+    .wf-node-type {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .wf-node-body {
+      padding: 10px 12px 12px;
+    }
+
+    .wf-node-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.2px;
+      margin-bottom: 4px;
+    }
+
+    .wf-node-detail {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .wf-node-meta {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .wf-node-tag {
+      font-size: 10.5px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-muted);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .wf-node-port {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 2px solid var(--node-color);
+      cursor: crosshair;
+      transition: transform 0.1s, background 0.1s;
+    }
+
+    .wf-node-port:hover {
+      transform: scale(1.4);
+      background: var(--node-color);
+    }
+
+    .wf-node-port.top { top: -6px; left: 50%; transform: translateX(-50%); }
+    .wf-node-port.bottom { bottom: -6px; left: 50%; transform: translateX(-50%); }
+    .wf-node-port.left { left: -6px; top: 50%; transform: translateY(-50%); }
+    .wf-node-port.right { right: -6px; top: 50%; transform: translateY(-50%); }
+
+    /* ─── SVG CONNECTIONS ─────────────────────────────────────── */
+    .canvas-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .edge-path {
+      fill: none;
+      stroke: #3f3f46;
+      stroke-width: 2;
+      transition: stroke 0.15s;
+    }
+
+    .edge-path.animated {
+      stroke-dasharray: 6 4;
+      animation: flow 1.2s linear infinite;
+    }
+
+    @keyframes flow {
+      from { stroke-dashoffset: 20; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    .edge-path:hover { stroke: var(--brand); }
+
+    .edge-arrow {
+      fill: #3f3f46;
+    }
+
+    /* ─── CANVAS CONTROLS ─────────────────────────────────────── */
+    .canvas-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 50;
+    }
+
+    .canvas-control-group {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .canvas-ctrl-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .canvas-ctrl-btn:last-child { border-bottom: none; }
+    .canvas-ctrl-btn:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .canvas-ctrl-btn svg { width: 14px; height: 14px; }
+
+    .zoom-level {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      text-align: center;
+      font-family: 'GeistMono', monospace;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    /* ─── MINIMAP ─────────────────────────────────────────────── */
+    .minimap {
+      position: absolute;
+      bottom: 20px;
+      right: 296px;
+      width: 160px;
+      height: 110px;
+      background: #0d0d10;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 50;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+
+    .minimap-node {
+      position: absolute;
+      border-radius: 2px;
+      opacity: 0.7;
+    }
+
+    .minimap-viewport {
+      position: absolute;
+      border: 1px solid rgba(59,130,246,0.5);
+      background: rgba(59,130,246,0.05);
+      border-radius: 3px;
+    }
+
+    /* ─── PROPERTIES PANEL ────────────────────────────────────── */
+    .properties-panel {
+      width: 280px;
+      background: #111113;
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #27272a transparent;
+      animation: slideIn 0.2s ease-out;
+    }
+
+    .properties-panel::-webkit-scrollbar { width: 4px; }
+    .properties-panel::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
+
+    @keyframes slideIn {
+      from { transform: translateX(20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .props-header {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      position: sticky;
+      top: 0;
+      background: #111113;
+      z-index: 10;
+    }
+
+    .props-type-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+
+    .props-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .props-close {
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .props-close:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+    .props-close svg { width: 13px; height: 13px; }
+
+    .props-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .props-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .props-field {
+      margin-bottom: 10px;
+    }
+
+    .props-field:last-child { margin-bottom: 0; }
+
+    .props-label {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .props-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-family: 'Geist', sans-serif;
+      font-size: 12.5px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .props-input:focus { border-color: rgba(59,130,246,0.4); }
+    .props-input::placeholder { color: var(--text-muted); }
+
+    .props-textarea {
+      resize: none;
+      height: 60px;
+      line-height: 1.5;
+    }
+
+    .props-select {
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      cursor: pointer;
+    }
+
+    .tag-expression {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      min-height: 38px;
+      align-items: center;
+    }
+
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 500;
+      font-family: 'GeistMono', monospace;
+    }
+
+    .tag-pill.key-value {
+      background: rgba(59,130,246,0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59,130,246,0.2);
+    }
+
+    .tag-pill.operator {
+      background: rgba(113,113,122,0.12);
+      color: var(--text-muted);
+      border: 1px solid rgba(113,113,122,0.2);
+      font-size: 10.5px;
+      letter-spacing: 0.05em;
+    }
+
+    .computed-value {
+      font-size: 12px;
+      color: #a1a1aa;
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .computed-value svg { width: 12px; height: 12px; color: var(--green); }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .toggle-label-group { display: flex; flex-direction: column; gap: 1px; }
+
+    .toggle-label {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .toggle-sublabel {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      background: var(--green);
+      border-radius: 10px;
+      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .toggle.off { background: #3f3f46; }
+
+    .toggle-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      transition: transform 0.15s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .toggle.off .toggle-thumb {
+      transform: translateX(-16px);
+    }
+
+    .props-row-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .window-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 9px;
+      background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #4ade80;
+      font-family: 'GeistMono', monospace;
+    }
+
+    /* ─── STATUS BAR ──────────────────────────────────────────── */
+    .statusbar {
+      height: 26px;
+      background: #0d0d10;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .statusbar-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .statusbar-item svg { width: 12px; height: 12px; }
+
+    .statusbar-valid {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      color: #4ade80;
+      margin-left: auto;
+    }
+
+    .statusbar-valid svg { width: 12px; height: 12px; }
+
+    .statusbar-sep { width: 1px; height: 14px; background: #27272a; }
+
+    /* ─── TOOLTIP ─────────────────────────────────────────────── */
+    .tooltip-badge {
+      font-size: 10px;
+      background: rgba(34,197,94,0.12);
+      color: #4ade80;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(34,197,94,0.2);
+    }
+
+    .selected-indicator {
+      font-size: 11.5px;
+      color: var(--green);
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .selected-indicator svg { width: 12px; height: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TOP BAR
+════════════════════════════════════════════════════════════════ -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="topbar-logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <span class="topbar-logo-text">PatchIQ</span>
+  </div>
+
+  <div class="topbar-sep"></div>
+
+  <nav class="breadcrumb">
+    <span class="breadcrumb-item">Operations</span>
+    <span class="breadcrumb-chevron">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </span>
+    <span class="breadcrumb-item">Workflows</span>
+    <span class="breadcrumb-chevron">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </span>
+    <span class="breadcrumb-current">Critical Patch Pipeline</span>
+  </nav>
+
+  <div class="topbar-spacer"></div>
+
+  <div class="topbar-actions">
+    <button class="btn btn-icon btn-ghost" title="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    </button>
+    <div class="avatar">H</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EDITOR TOP BAR
+════════════════════════════════════════════════════════════════ -->
+<div class="editor-topbar">
+  <input type="text" class="workflow-name-input" value="Critical Patch Pipeline" />
+  <div class="status-badge">
+    <span class="status-dot"></span>
+    Draft &bull; Last saved 2m ago
+  </div>
+
+  <div class="editor-topbar-center">
+    <button class="btn btn-outline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Load Template
+    </button>
+    <button class="btn btn-ghost">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+      Auto Layout
+    </button>
+  </div>
+
+  <div class="editor-topbar-right">
+    <button class="btn btn-outline-amber">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Validate
+    </button>
+    <button class="btn btn-outline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save Draft
+    </button>
+    <button class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Publish
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     EDITOR BODY
+════════════════════════════════════════════════════════════════ -->
+<div class="editor-body">
+
+  <!-- ─── SIDEBAR NAV ──────────────────────────────────────────── -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Monitoring</div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h7v7H14z" stroke-dasharray="2 2"/></svg>
+        Dashboard
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Endpoints
+        <span class="sidebar-badge">2,847</span>
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Compliance
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Patching</div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        Patches
+        <span class="sidebar-badge">143</span>
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 012-2h6a2 2 0 012 2v1.662"/></svg>
+        CVEs
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Operations</div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        Deployments
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Schedules
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+        Policies
+      </div>
+      <div class="sidebar-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 01-2 2H8a2 2 0 01-2-2V9"/><path d="M12 12v3"/></svg>
+        Workflows
+        <span class="sidebar-badge">12</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Settings</div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Roles
+      </div>
+      <div class="sidebar-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 19.07a10 10 0 010-14.14"/></svg>
+        Settings
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── EDITOR CONTENT ────────────────────────────────────────── -->
+  <div class="editor-content">
+
+    <!-- ─── NODE PALETTE ────────────────────────────────────────── -->
+    <div class="palette">
+      <div class="palette-search" style="position:relative;">
+        <span class="palette-search-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" class="palette-search-input" placeholder="Search nodes..." />
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-section-label">Triggers</div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#8b5cf6;"></div>
+          <span class="palette-icon" style="color:#8b5cf6;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span class="palette-name">Schedule Trigger</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#8b5cf6;"></div>
+          <span class="palette-icon" style="color:#8b5cf6;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
+          <span class="palette-name">CVE Trigger</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#8b5cf6;"></div>
+          <span class="palette-icon" style="color:#8b5cf6;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 00-2-2v0a2 2 0 00-2 2v0"/><path d="M14 10V4a2 2 0 00-2-2v0a2 2 0 00-2 2v2"/><path d="M10 10.5V6a2 2 0 00-2-2v0a2 2 0 00-2 2v8"/><path d="M18 8a2 2 0 114 0v6a8 8 0 01-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 012.83-2.82L7 15"/></svg>
+          </span>
+          <span class="palette-name">Manual Trigger</span>
+        </div>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-section-label">Logic</div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#3b82f6;"></div>
+          <span class="palette-icon" style="color:#3b82f6;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          </span>
+          <span class="palette-name">Filter</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#d946ef;"></div>
+          <span class="palette-icon" style="color:#d946ef;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 01-9 9"/></svg>
+          </span>
+          <span class="palette-name">Decision</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#06b6d4;"></div>
+          <span class="palette-icon" style="color:#06b6d4;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span class="palette-name">Gate</span>
+        </div>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-section-label">Actions</div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#22c55e;"></div>
+          <span class="palette-icon" style="color:#22c55e;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+          </span>
+          <span class="palette-name">Deploy Wave</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#6366f1;"></div>
+          <span class="palette-icon" style="color:#6366f1;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </span>
+          <span class="palette-name">Script</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#f97316;"></div>
+          <span class="palette-icon" style="color:#f97316;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          </span>
+          <span class="palette-name">Reboot</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#ef4444;"></div>
+          <span class="palette-icon" style="color:#ef4444;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          </span>
+          <span class="palette-name">Rollback</span>
+        </div>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-section-label">Integrations</div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#f59e0b;"></div>
+          <span class="palette-icon" style="color:#f59e0b;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+          </span>
+          <span class="palette-name">Approval</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#14b8a6;"></div>
+          <span class="palette-icon" style="color:#14b8a6;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          </span>
+          <span class="palette-name">Notification</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#0ea5e9;"></div>
+          <span class="palette-icon" style="color:#0ea5e9;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          </span>
+          <span class="palette-name">Compliance Check</span>
+        </div>
+
+        <div class="palette-node">
+          <div class="palette-dot" style="background:#71717a;"></div>
+          <span class="palette-icon" style="color:#71717a;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          </span>
+          <span class="palette-name">Complete</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── CANVAS ─────────────────────────────────────────────── -->
+    <div class="canvas-area">
+      <div class="canvas-grid"></div>
+      <div class="canvas-viewport">
+        <div class="canvas-inner" id="canvas-inner">
+
+          <!-- SVG CONNECTIONS -->
+          <svg class="canvas-svg" id="canvas-svg">
+            <defs>
+              <marker id="arrow-gray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#3f3f46"/>
+              </marker>
+              <marker id="arrow-gray-2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#3f3f46"/>
+              </marker>
+            </defs>
+
+            <!-- Schedule Trigger → Filter -->
+            <path class="edge-path animated"
+              d="M 256,148 C 256,220 380,220 380,295"
+              marker-end="url(#arrow-gray)"/>
+
+            <!-- Filter → Approval -->
+            <path class="edge-path animated"
+              d="M 380,375 C 380,430 380,460 380,520"
+              marker-end="url(#arrow-gray)"/>
+
+            <!-- Approval → Deploy Wave 1 -->
+            <path class="edge-path animated"
+              d="M 380,620 C 380,680 380,710 380,760"
+              marker-end="url(#arrow-gray)"/>
+
+            <!-- Deploy Wave 1 → Gate -->
+            <path class="edge-path animated"
+              d="M 380,870 C 380,930 380,960 380,1010"
+              marker-end="url(#arrow-gray)"/>
+
+            <!-- Gate → Deploy Wave 2 -->
+            <path class="edge-path animated"
+              d="M 380,1110 C 380,1170 380,1200 380,1250"
+              marker-end="url(#arrow-gray)"/>
+
+            <!-- Deploy Wave 2 → Compliance Check -->
+            <path class="edge-path animated"
+              d="M 380,1360 C 380,1420 380,1450 380,1500"
+              marker-end="url(#arrow-gray)"/>
+
+            <!-- Compliance Check → Notification (right branch) -->
+            <path class="edge-path animated"
+              d="M 487,1560 C 580,1560 630,1560 670,1560"
+              marker-end="url(#arrow-gray)"/>
+
+            <!-- Compliance Check → Complete (down) -->
+            <path class="edge-path animated"
+              d="M 380,1620 C 380,1680 380,1710 380,1740"
+              marker-end="url(#arrow-gray)"/>
+
+          </svg>
+
+          <!-- NODE 1: Schedule Trigger -->
+          <div class="wf-node" style="
+            left: 151px; top: 60px;
+            --node-color: #8b5cf6;
+            --node-color-rgb: 139,92,246;
+          ">
+            <div class="wf-node-header" style="background:#8b5cf6;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span class="wf-node-type">Schedule Trigger</span>
+            </div>
+            <div class="wf-node-body">
+              <div class="wf-node-name">Patch Scan Schedule</div>
+              <div class="wf-node-detail">Every 6 hours</div>
+              <div class="wf-node-meta">
+                <span class="wf-node-tag">cron: 0 */6 * * *</span>
+                <span class="wf-node-tag">tz: UTC</span>
+              </div>
+            </div>
+            <div class="wf-node-port bottom" style="border-color:#8b5cf6; left:50%; transform:translateX(-50%) translateY(50%); bottom:-6px;"></div>
+          </div>
+
+          <!-- NODE 2: Filter -->
+          <div class="wf-node" style="
+            left: 174px; top: 295px;
+            --node-color: #3b82f6;
+            --node-color-rgb: 59,130,246;
+          ">
+            <div class="wf-node-header" style="background:#3b82f6;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              <span class="wf-node-type">Filter</span>
+            </div>
+            <div class="wf-node-body">
+              <div class="wf-node-name">Critical CVEs Only</div>
+              <div class="wf-node-detail">severity &ge; critical</div>
+              <div class="wf-node-meta">
+                <span class="wf-node-tag">CVSS &ge; 9.0</span>
+                <span class="wf-node-tag">CISA KEV</span>
+              </div>
+            </div>
+            <div class="wf-node-port top" style="border-color:#3b82f6;"></div>
+            <div class="wf-node-port bottom" style="border-color:#3b82f6;"></div>
+          </div>
+
+          <!-- NODE 3: Approval -->
+          <div class="wf-node" style="
+            left: 174px; top: 520px;
+            --node-color: #f59e0b;
+            --node-color-rgb: 245,158,11;
+          ">
+            <div class="wf-node-header" style="background:#f59e0b;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+              <span class="wf-node-type">Approval</span>
+            </div>
+            <div class="wf-node-body">
+              <div class="wf-node-name">Security Lead Sign-off</div>
+              <div class="wf-node-detail">timeout: 72h &bull; escalate on expire</div>
+              <div class="wf-node-meta">
+                <span class="wf-node-tag">@security-leads</span>
+                <span class="wf-node-tag">Slack</span>
+              </div>
+            </div>
+            <div class="wf-node-port top" style="border-color:#f59e0b;"></div>
+            <div class="wf-node-port bottom" style="border-color:#f59e0b;"></div>
+          </div>
+
+          <!-- NODE 4: Deploy Wave 1 (SELECTED) -->
+          <div class="wf-node selected" style="
+            left: 174px; top: 760px;
+            --node-color: #22c55e;
+            --node-color-rgb: 34,197,94;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 2px #22c55e, 0 0 24px rgba(34,197,94,0.25), 0 4px 24px rgba(0,0,0,0.5);
+            transform: scale(1.02);
+          ">
+            <div class="wf-node-header" style="background:#22c55e;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+              <span class="wf-node-type">Deploy Wave</span>
+              <span class="tooltip-badge" style="margin-left:auto;">Selected</span>
+            </div>
+            <div class="wf-node-body">
+              <div class="wf-node-name">Staging Rollout</div>
+              <div class="wf-node-detail">env:staging &bull; Rolling 25% batches</div>
+              <div class="wf-node-meta">
+                <span class="wf-node-tag">47 targets</span>
+                <span class="wf-node-tag">auto-rollback</span>
+                <span class="wf-node-tag">win: Sat 02:00</span>
+              </div>
+            </div>
+            <div class="wf-node-port top" style="border-color:#22c55e;"></div>
+            <div class="wf-node-port bottom" style="border-color:#22c55e;"></div>
+          </div>
+
+          <!-- NODE 5: Gate -->
+          <div class="wf-node" style="
+            left: 174px; top: 1010px;
+            --node-color: #06b6d4;
+            --node-color-rgb: 6,182,212;
+          ">
+            <div class="wf-node-header" style="background:#06b6d4;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span class="wf-node-type">Gate</span>
+            </div>
+            <div class="wf-node-body">
+              <div class="wf-node-name">Soak Period</div>
+              <div class="wf-node-detail">Wait 24h + 0 failures</div>
+              <div class="wf-node-meta">
+                <span class="wf-node-tag">min-wait: 24h</span>
+                <span class="wf-node-tag">fail-threshold: 0%</span>
+              </div>
+            </div>
+            <div class="wf-node-port top" style="border-color:#06b6d4;"></div>
+            <div class="wf-node-port bottom" style="border-color:#06b6d4;"></div>
+          </div>
+
+          <!-- NODE 6: Deploy Wave 2 -->
+          <div class="wf-node" style="
+            left: 174px; top: 1250px;
+            --node-color: #22c55e;
+            --node-color-rgb: 34,197,94;
+          ">
+            <div class="wf-node-header" style="background:#22c55e;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+              <span class="wf-node-type">Deploy Wave</span>
+            </div>
+            <div class="wf-node-body">
+              <div class="wf-node-name">Production Rollout</div>
+              <div class="wf-node-detail">env:production &bull; Rolling 10% batches</div>
+              <div class="wf-node-meta">
+                <span class="wf-node-tag">1,842 targets</span>
+                <span class="wf-node-tag">canary-first</span>
+              </div>
+            </div>
+            <div class="wf-node-port top" style="border-color:#22c55e;"></div>
+            <div class="wf-node-port bottom" style="border-color:#22c55e;"></div>
+          </div>
+
+          <!-- NODE 7: Compliance Check -->
+          <div class="wf-node" style="
+            left: 174px; top: 1500px;
+            --node-color: #0ea5e9;
+            --node-color-rgb: 14,165,233;
+          ">
+            <div class="wf-node-header" style="background:#0ea5e9;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              <span class="wf-node-type">Compliance Check</span>
+            </div>
+            <div class="wf-node-body">
+              <div class="wf-node-name">PCI-DSS Validation</div>
+              <div class="wf-node-detail">frameworks: PCI-DSS, CIS L2</div>
+              <div class="wf-node-meta">
+                <span class="wf-node-tag">block on fail</span>
+                <span class="wf-node-tag">audit: true</span>
+              </div>
+            </div>
+            <div class="wf-node-port top" style="border-color:#0ea5e9;"></div>
+            <div class="wf-node-port right" style="border-color:#0ea5e9;"></div>
+            <div class="wf-node-port bottom" style="border-color:#0ea5e9;"></div>
+          </div>
+
+          <!-- NODE 8: Notification (Slack) -->
+          <div class="wf-node" style="
+            left: 670px; top: 1500px;
+            --node-color: #14b8a6;
+            --node-color-rgb: 20,184,166;
+          ">
+            <div class="wf-node-header" style="background:#14b8a6;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+              <span class="wf-node-type">Notification</span>
+            </div>
+            <div class="wf-node-body">
+              <div class="wf-node-name">Slack: #ops-alerts</div>
+              <div class="wf-node-detail">Deployment complete summary</div>
+              <div class="wf-node-meta">
+                <span class="wf-node-tag">Slack</span>
+                <span class="wf-node-tag">#ops-alerts</span>
+              </div>
+            </div>
+            <div class="wf-node-port left" style="border-color:#14b8a6;"></div>
+          </div>
+
+          <!-- NODE 9: Complete -->
+          <div class="wf-node" style="
+            left: 174px; top: 1740px;
+            --node-color: #71717a;
+            --node-color-rgb: 113,113,122;
+          ">
+            <div class="wf-node-header" style="background:#71717a;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              <span class="wf-node-type">Complete</span>
+            </div>
+            <div class="wf-node-body">
+              <div class="wf-node-name">Pipeline Complete</div>
+              <div class="wf-node-detail">Emit completion event</div>
+              <div class="wf-node-meta">
+                <span class="wf-node-tag">audit-log</span>
+                <span class="wf-node-tag">emit-event</span>
+              </div>
+            </div>
+            <div class="wf-node-port top" style="border-color:#71717a;"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Canvas Controls -->
+      <div class="canvas-controls">
+        <div class="zoom-level">75%</div>
+        <div class="canvas-control-group">
+          <button class="canvas-ctrl-btn" title="Zoom In">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </button>
+          <button class="canvas-ctrl-btn" title="Zoom Out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </button>
+          <button class="canvas-ctrl-btn" title="Fit to View">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          </button>
+          <button class="canvas-ctrl-btn" title="Toggle Minimap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="7" y="7" width="4" height="4"/><rect x="14" y="7" width="4" height="4"/><rect x="7" y="14" width="4" height="4"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Minimap -->
+      <div class="minimap">
+        <!-- Mini nodes representation -->
+        <div class="minimap-node" style="background:#8b5cf6; width:18px; height:10px; left:55px; top:8px;"></div>
+        <div class="minimap-node" style="background:#3b82f6; width:18px; height:10px; left:55px; top:24px;"></div>
+        <div class="minimap-node" style="background:#f59e0b; width:18px; height:10px; left:55px; top:40px;"></div>
+        <div class="minimap-node" style="background:#22c55e; width:18px; height:10px; left:55px; top:56px; border: 1px solid #22c55e; box-shadow: 0 0 4px rgba(34,197,94,0.4);"></div>
+        <div class="minimap-node" style="background:#06b6d4; width:18px; height:10px; left:55px; top:72px;"></div>
+        <div class="minimap-node" style="background:#22c55e; width:18px; height:10px; left:55px; top:85px;"></div>
+        <div class="minimap-node" style="background:#0ea5e9; width:18px; height:10px; left:40px; top:95px;"></div>
+        <div class="minimap-node" style="background:#14b8a6; width:18px; height:10px; left:100px; top:95px;"></div>
+        <div class="minimap-node" style="background:#71717a; width:18px; height:10px; left:55px; top:100px;"></div>
+        <!-- Connecting lines in minimap -->
+        <svg style="position:absolute;top:0;left:0;width:100%;height:100%;" overflow="visible">
+          <line x1="64" y1="18" x2="64" y2="24" stroke="#3f3f46" stroke-width="1"/>
+          <line x1="64" y1="34" x2="64" y2="40" stroke="#3f3f46" stroke-width="1"/>
+          <line x1="64" y1="50" x2="64" y2="56" stroke="#3f3f46" stroke-width="1"/>
+          <line x1="64" y1="66" x2="64" y2="72" stroke="#3f3f46" stroke-width="1"/>
+          <line x1="64" y1="82" x2="64" y2="88" stroke="#3f3f46" stroke-width="1"/>
+          <line x1="49" y1="100" x2="49" y2="105" stroke="#3f3f46" stroke-width="1"/>
+          <line x1="58" y1="100" x2="109" y2="98" stroke="#3f3f46" stroke-width="1"/>
+        </svg>
+        <!-- Viewport indicator -->
+        <div class="minimap-viewport" style="left:30px; top:48px; width:80px; height:40px;"></div>
+        <!-- Minimap label -->
+        <div style="position:absolute; bottom:5px; right:7px; font-size:9px; color:#52525b; font-family:'Geist',sans-serif;">OVERVIEW</div>
+      </div>
+    </div>
+
+    <!-- ─── PROPERTIES PANEL ─────────────────────────────────────── -->
+    <div class="properties-panel">
+      <div class="props-header">
+        <div class="props-type-dot"></div>
+        <span class="props-title">Deploy Wave</span>
+        <button class="props-close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Configuration -->
+      <div class="props-section">
+        <div class="props-section-label">Configuration</div>
+
+        <div class="props-field">
+          <div class="props-label">Name</div>
+          <input type="text" class="props-input" value="Staging Rollout" />
+        </div>
+
+        <div class="props-field">
+          <div class="props-label">Description</div>
+          <textarea class="props-input props-textarea">Deploy to staging environment first to validate patch stability.</textarea>
+        </div>
+      </div>
+
+      <!-- Targeting -->
+      <div class="props-section">
+        <div class="props-section-label">Targeting</div>
+
+        <div class="props-field">
+          <div class="props-label">Tag Expression</div>
+          <div class="tag-expression">
+            <span class="tag-pill key-value">env:staging</span>
+            <span class="tag-pill operator">AND</span>
+            <span class="tag-pill key-value">priority:critical</span>
+          </div>
+          <div class="computed-value">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            47 endpoints matched
+          </div>
+        </div>
+      </div>
+
+      <!-- Deployment -->
+      <div class="props-section">
+        <div class="props-section-label">Deployment</div>
+
+        <div class="props-field">
+          <div class="props-label">Strategy</div>
+          <select class="props-input props-select">
+            <option selected>Rolling</option>
+            <option>Big Bang</option>
+            <option>Canary</option>
+          </select>
+        </div>
+
+        <div class="props-row-2col">
+          <div class="props-field">
+            <div class="props-label">Batch Size</div>
+            <input type="text" class="props-input" value="25%" />
+          </div>
+          <div class="props-field">
+            <div class="props-label">Timeout</div>
+            <input type="text" class="props-input" value="4h" />
+          </div>
+        </div>
+
+        <div class="props-field" style="padding:10px; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.12); border-radius:8px;">
+          <div class="toggle-row" style="margin-bottom:8px;">
+            <div class="toggle-label-group">
+              <span class="toggle-label">Auto-rollback</span>
+              <span class="toggle-sublabel">Revert on threshold breach</span>
+            </div>
+            <div class="toggle">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+          <div class="props-field" style="margin-bottom:0;">
+            <div class="props-label">Rollback threshold</div>
+            <input type="text" class="props-input" value="10% failures" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheduling -->
+      <div class="props-section">
+        <div class="props-section-label">Scheduling</div>
+
+        <div class="props-field">
+          <div class="toggle-row" style="margin-bottom:10px;">
+            <div class="toggle-label-group">
+              <span class="toggle-label">Maintenance Window</span>
+              <span class="toggle-sublabel">Restrict to approved hours</span>
+            </div>
+            <div class="toggle">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+          <div class="props-label" style="margin-bottom:6px;">Window</div>
+          <div class="window-tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Sat 02:00 &mdash; 06:00 UTC
+          </div>
+        </div>
+      </div>
+
+      <!-- Node ID footer -->
+      <div style="padding:12px 16px; border-top:1px solid var(--border-subtle);">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="font-size:11px; color:var(--text-muted); font-family:'GeistMono',monospace;">node_01JQMXX4YZAB</span>
+          <button class="btn btn-ghost" style="padding:3px 8px; font-size:11px; color:var(--red); opacity:0.7;">
+            <svg style="width:11px;height:11px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     STATUS BAR
+════════════════════════════════════════════════════════════════ -->
+<div class="statusbar">
+  <div class="statusbar-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v1a2 2 0 01-2 2H8a2 2 0 01-2-2V9"/><path d="M12 12v3"/></svg>
+    9 nodes
+  </div>
+  <div class="statusbar-sep"></div>
+  <div class="statusbar-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    8 connections
+  </div>
+  <div class="statusbar-sep"></div>
+  <div class="statusbar-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Deploy Wave selected
+  </div>
+  <div class="statusbar-sep"></div>
+  <div class="statusbar-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Est. runtime: ~30h
+  </div>
+  <div class="statusbar-valid">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    Valid &bull; Ready to publish
+  </div>
+</div>
+
+<script>
+  // Scale the canvas to fit — simple transform for the static mockup
+  (function() {
+    const inner = document.getElementById('canvas-inner');
+    const area = inner.parentElement.parentElement; // canvas-area
+
+    function fitCanvas() {
+      const areaW = area.clientWidth;
+      const areaH = area.clientHeight;
+      // Show the workflow centered and slightly scaled down
+      const scale = Math.min(areaW / 960, (areaH - 40) / 1400, 0.62);
+      const tx = (areaW - 960 * scale) / 2 - 40;
+      const ty = 30;
+      inner.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }
+
+    fitCanvas();
+    window.addEventListener('resize', fitCanvas);
+
+    // Make nodes clickable to show "selection" effect
+    document.querySelectorAll('.wf-node').forEach(node => {
+      node.addEventListener('mouseenter', () => {
+        node.style.zIndex = '10';
+      });
+      node.addEventListener('mouseleave', () => {
+        if (!node.classList.contains('selected')) {
+          node.style.zIndex = '';
+        }
+      });
+    });
+
+    // Palette drag ghost effect
+    document.querySelectorAll('.palette-node').forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+      item.setAttribute('draggable', 'true');
+    });
+
+    // Name input keyboard handling
+    const nameInput = document.querySelector('.workflow-name-input');
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') nameInput.blur();
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "value": [
+    {
+      "ID": "2024-Feb",
+      "DocumentTitle": "February 2024 Security Updates",
+      "Severity": "Critical",
+      "InitialReleaseDate": "2024-02-13T08:00:00Z",
+      "CvrfUrl": "https://api.msrc.microsoft.com/cvrf/v3.0/cvrf/2024-Feb",
+      "Vulnerabilities": [
+        {
+          "CVE": "CVE-2024-21351",
+          "Title": "Windows SmartScreen Security Feature Bypass",
+          "Severity": "High",
+          "KBArticles": [
+            {
+              "ID": "5034763",
+              "URL": "https://support.microsoft.com/kb/5034763"
+            }
+          ],
+          "AffectedProducts": ["Windows 11 Version 23H2", "Windows 10 Version 22H2"]
+        },
+        {
+          "CVE": "CVE-2024-21412",
+          "Title": "Internet Shortcut Files Security Feature Bypass",
+          "Severity": "Critical",
+          "KBArticles": [
+            {
+              "ID": "5034763",
+              "URL": "https://support.microsoft.com/kb/5034763"
+            }
+          ],
+          "AffectedProducts": ["Windows 11 Version 23H2"]
+        }
+      ]
+    }
+  ]
+}

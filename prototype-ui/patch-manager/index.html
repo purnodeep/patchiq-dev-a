@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ — PM Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#0f172a;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#3b82f6;--success:#10b981;
+  --warn:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --sidebar-w:260px;--topbar-h:56px;
+}
+html{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+body{display:flex;height:100vh;overflow:hidden;background:var(--bg)}
+#sidebar{width:var(--sidebar-w);background:#0d1117;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;transition:width .2s ease}
+#sidebar.collapsed{width:64px}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-icon{width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.sb-logo-text{font-weight:700;font-size:14px;color:var(--text)}
+.sb-logo-sub{font-size:10px;color:var(--muted)}
+.sb-group{margin-top:6px}
+.sb-group-label{padding:8px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.sb-group-label:hover{color:var(--text)}
+.sb-group-items{overflow:hidden}
+.sb-item{padding:7px 16px 7px 20px;display:flex;align-items:center;gap:9px;cursor:pointer;color:var(--muted);transition:.15s;position:relative;white-space:nowrap;text-decoration:none;font-size:12.5px}
+.sb-item:hover{background:#ffffff08;color:var(--text)}
+.sb-item.active{background:#3b82f615;color:var(--primary);font-weight:500}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--primary)}
+.sb-item svg{width:15px;height:15px;flex-shrink:0}
+.sb-badge{margin-left:auto;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600}
+.sb-badge.red{background:#ef444420;color:#ef4444}
+.sb-badge.blue{background:#3b82f620;color:#3b82f6}
+.sb-badge.amber{background:#f59e0b20;color:#f59e0b}
+.sb-toggle{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;flex-shrink:0}
+.sb-toggle-btn{width:28px;height:28px;border-radius:6px;background:#1e293b;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:.15s}
+.sb-toggle-btn:hover{background:#273344;color:var(--text)}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{height:var(--topbar-h);background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.tb-brand{display:flex;align-items:center;gap:8px;margin-right:8px}
+.tb-brand-logo{font-weight:800;font-size:15px;color:var(--primary);letter-spacing:-.3px}
+.tb-breadcrumb{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+.tb-sep{color:#374151}
+.tb-current{color:var(--text);font-weight:500}
+.tb-search{flex:1;max-width:360px;margin:0 auto}
+.tb-search-btn{width:100%;background:#ffffff08;border:1px solid var(--border);border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);font-size:12px;transition:.15s}
+.tb-search-btn:hover{border-color:#374151;background:#ffffff0d}
+.tb-search-kbd{margin-left:auto;background:#1e293b;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600}
+.tb-icons{display:flex;align-items:center;gap:4px}
+.tb-icon-btn{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.15s;position:relative;background:transparent;border:none}
+.tb-icon-btn:hover{background:#ffffff0d;color:var(--text)}
+.tb-icon-btn svg{width:17px;height:17px}
+.notif-badge{position:absolute;top:5px;right:5px;background:var(--danger);color:#fff;border-radius:10px;font-size:9px;font-weight:700;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid #0d1117;padding:0 3px}
+.tb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;color:#fff;flex-shrink:0}
+.tb-user{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border-radius:7px;transition:.15s}
+.tb-user:hover{background:#ffffff08}
+.tb-user-name{font-size:12px;font-weight:500}
+#page{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 24px}
+#page::-webkit-scrollbar{width:6px}
+#page::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;transition:box-shadow .2s}
+.card:hover{box-shadow:0 4px 24px #00000040}
+.card-hd{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.btn{padding:6px 12px;border-radius:7px;font-size:11.5px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.btn-sm{padding:4px 9px;font-size:11px;border-radius:5px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:#ffffff0d}
+.btn-ghost{background:transparent;color:var(--muted);border-color:transparent}
+.btn-ghost:hover{background:#ffffff08;color:var(--text)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:all .2s}
+.stat-card:hover{border-color:#374151;box-shadow:0 4px 20px #00000040;transform:translateY(-1px)}
+.stat-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.stat-icon svg{width:15px;height:15px}
+.stat-val{font-size:24px;font-weight:700;line-height:1;color:var(--text)}
+.stat-label{font-size:11px;color:var(--muted)}
+.stat-trend{font-size:10.5px;display:flex;align-items:center;gap:3px}
+.trend-up{color:var(--success)}
+.trend-dn{color:var(--danger)}
+.stat-viz{margin-top:4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.row4{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600}
+.badge-red{background:#ef444420;color:#ef4444}
+.badge-green{background:#10b98120;color:#10b981}
+.badge-amber{background:#f59e0b20;color:#f59e0b}
+.badge-blue{background:#3b82f620;color:#3b82f6}
+.badge-purple{background:#8b5cf620;color:#8b5cf6}
+.timeline-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #1e293b30;cursor:pointer}
+.timeline-item:last-child{border-bottom:none}
+.timeline-dot-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+.timeline-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700}
+.timeline-line{width:1px;background:#1e293b;flex:1;min-height:8px}
+.timeline-content{flex:1;padding-bottom:4px}
+.timeline-title{font-size:12px;font-weight:600;color:var(--text)}
+.timeline-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.timeline-detail{margin-top:8px;display:none}
+.timeline-item.expanded .timeline-detail{display:block}
+.progress-bar{height:6px;background:#1e293b;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s ease}
+@keyframes pulse-ring{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.6);opacity:0}}
+@keyframes pulse-dot{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes sweep{from{stroke-dashoffset:283}to{stroke-dashoffset:var(--target-offset)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes amber-glow{0%,100%{box-shadow:0 0 0 0 #f59e0b30,inset 3px 0 0 #f59e0b}50%{box-shadow:0 0 16px 2px #f59e0b20,inset 3px 0 0 #f59e0b}}
+.alert-banner{border-radius:10px;padding:11px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;background:#f59e0b0a;border:1px solid #f59e0b30;backdrop-filter:blur(8px);animation:amber-glow 2.5s ease-in-out infinite}
+.modal-overlay{position:fixed;inset:0;background:#00000070;backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding-top:80px;display:none}
+.modal-overlay.open{display:flex}
+.modal-box{background:#0f172a;border:1px solid var(--border);border-radius:12px;width:580px;overflow:hidden}
+.modal-search{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.modal-search input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:14px}
+.modal-results{max-height:360px;overflow-y:auto}
+.modal-result-item{padding:10px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.15s}
+.modal-result-item:hover{background:#ffffff08}
+.modal-result-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-section{padding:6px 16px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+@keyframes node-fadein{from{opacity:0;r:0}to{opacity:1}}
+.node-graph-tooltip{position:absolute;background:#1e293b;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:11px;pointer-events:none;z-index:10;display:none;min-width:130px}
+.heatmap-cell{border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:#fff;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
+.heatmap-cell:hover{transform:scale(1.06);box-shadow:0 2px 12px #00000060;z-index:2}
+.heatmap-tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:10.5px;white-space:nowrap;pointer-events:none;z-index:10;display:none}
+.heatmap-cell:hover .heatmap-tooltip{display:block}
+.ring-arc{transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)}
+.countdown-circle{transition:stroke-dashoffset 1s ease}
+.flow-segment{transition:opacity .2s}
+.flow-segment:hover{opacity:.85}
+.pipeline-node{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative}
+.pipeline-node-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;position:relative}
+.pipeline-line{height:2px;flex:1;min-width:20px}
+.pipeline-connector{display:flex;align-items:center;flex:1}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.pulse-green{display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;position:relative}
+.pulse-green::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid #10b981;animation:pulse-ring 1.5s ease-out infinite}
+select{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:11.5px;outline:none;cursor:pointer}
+</style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">P</div>
+    <div class="sb-logo-labels">
+      <div class="sb-logo-text">PatchIQ</div>
+      <div class="sb-logo-sub">Patch Manager</div>
+    </div>
+  </div>
+  <!-- Overview -->
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup('grp-overview')">
+      <span>Overview</span>
+      <svg id="grp-overview-arr" viewBox="0 0 16 16" fill="currentColor" style="width:10px;height:10px;transition:.2s"><path d="M4 6l4 4 4-4"/></svg>
+    </div>
+    <div class="sb-group-items" id="grp-overview">
+      <a href="index.html" class="sb-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Dashboard</span>
+      </a>
+    </div>
+  </div>
+  <!-- Inventory -->
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup('grp-inventory')"><span>Inventory</span><svg id="grp-inventory-arr" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;transition:.2s"><path d="M4 6l4 4 4-4"/></svg></div>
+    <div class="sb-group-items" id="grp-inventory">
+      <a href="endpoints.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span>Endpoints</span>
+        <span class="sb-badge blue">247</span>
+      </a>
+      <a href="patches.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <span>Patches</span>
+        <span class="sb-badge red">12</span>
+      </a>
+      <a href="cves.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>CVEs</span>
+      </a>
+    </div>
+  </div>
+  <!-- Operations -->
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup('grp-ops')"><span>Operations</span><svg id="grp-ops-arr" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;transition:.2s"><path d="M4 6l4 4 4-4"/></svg></div>
+    <div class="sb-group-items" id="grp-ops">
+      <a href="policies.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6M9 16h6M9 8h6M5 3h14a2 2 0 012 2v16a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
+        <span>Policies</span>
+      </a>
+      <a href="deployments.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span>Deployments</span>
+        <span class="sb-badge amber">3</span>
+      </a>
+      <a href="workflows.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+        <span>Workflows</span>
+      </a>
+    </div>
+  </div>
+  <!-- Reports -->
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup('grp-reports')"><span>Reports</span><svg id="grp-reports-arr" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;transition:.2s"><path d="M4 6l4 4 4-4"/></svg></div>
+    <div class="sb-group-items" id="grp-reports">
+      <a href="compliance.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span>Compliance</span>
+      </a>
+      <a href="audit.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span>Audit</span>
+      </a>
+    </div>
+  </div>
+  <!-- Configuration -->
+  <div class="sb-group">
+    <div class="sb-group-label" onclick="toggleGroup('grp-config')"><span>Configuration</span><svg id="grp-config-arr" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;transition:.2s"><path d="M4 6l4 4 4-4"/></svg></div>
+    <div class="sb-group-items" id="grp-config">
+      <a href="settings.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span>Settings</span>
+      </a>
+      <a href="roles.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <span>Roles</span>
+      </a>
+      <a href="notifications.html" class="sb-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span>Notifications</span>
+      </a>
+    </div>
+  </div>
+  <div style="flex:1"></div>
+  <div class="sb-toggle">
+    <button class="sb-toggle-btn" id="sb-toggle-btn" onclick="toggleSidebar()">
+      <svg id="sb-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+  </div>
+</nav>
+<!-- MAIN -->
+<div id="main">
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="tb-brand">
+    <div class="tb-brand-logo">PatchIQ</div>
+    <div class="tb-breadcrumb">
+      <span class="tb-sep">/</span>
+      <span class="tb-current">Dashboard</span>
+    </div>
+  </div>
+  <div class="tb-search">
+    <button class="tb-search-btn" onclick="openCmdPalette()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <span>Search endpoints, patches, CVEs...</span>
+      <span class="tb-search-kbd">⌘K</span>
+    </button>
+  </div>
+  <div class="tb-icons">
+    <button class="tb-icon-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+      <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    </button>
+    <button class="tb-icon-btn" title="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span class="notif-badge">3</span>
+    </button>
+    <div class="tb-user">
+      <div class="tb-avatar">A</div>
+      <span class="tb-user-name">admin@acme.com</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;color:var(--muted)"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE CONTENT -->
+<div id="page">
+
+<!-- ROW 1: Alert Banner -->
+<div class="alert-banner" id="alert-banner">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  <span style="color:#f59e0b;font-weight:600;font-size:12px">⚠ 3 critical patches overdue SLA</span>
+  <span style="color:var(--muted);font-size:12px;margin-left:4px">• 2 deployments failed in last hour • prod-web-01, db-primary-02, cache-03 at risk</span>
+  <button onclick="document.getElementById('alert-banner').style.display='none'" style="margin-left:auto;background:transparent;border:none;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:4px;font-size:16px;line-height:1;transition:.15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">×</button>
+</div>
+
+<!-- ROW 2: Stat Cards Row 1 -->
+<div class="stat-grid">
+  <!-- Card 1: Endpoints Online -->
+  <div class="stat-card" onclick="this.style.borderColor='var(--primary)'">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="stat-icon" style="background:#10b98115;color:#10b981;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div class="stat-val">247</div>
+        <div class="stat-label">Endpoints Online</div>
+        <div class="stat-trend trend-up" style="margin-top:4px">↑ 2.1% <span style="color:var(--muted)">vs last week</span></div>
+      </div>
+      <div class="stat-viz">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="24" fill="none" stroke="#1e293b" stroke-width="6"/>
+          <circle cx="30" cy="30" r="24" fill="none" stroke="#10b981" stroke-width="6" stroke-dasharray="150.7 13.7" stroke-linecap="round" transform="rotate(-90 30 30)" style="animation:sweep .8s ease forwards"/>
+          <text x="30" y="27" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">247</text>
+          <text x="30" y="37" text-anchor="middle" font-size="7" fill="#64748b">/ 260</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <!-- Card 2: Critical Patches -->
+  <div class="stat-card" onclick="this.style.borderColor='var(--danger)'">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="stat-icon" style="background:#ef444415;color:#ef4444;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+        <div class="stat-val" style="color:var(--danger)">12</div>
+        <div class="stat-label">Critical Patches</div>
+        <div class="stat-trend trend-dn" style="margin-top:4px">↑ 4 <span style="color:var(--muted)">since Patch Tue</span></div>
+      </div>
+      <div class="stat-viz" style="width:80px">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-align:right">by severity</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:4px">
+            <div style="width:4px;height:4px;border-radius:50%;background:#ef4444;flex-shrink:0"></div>
+            <div style="flex:1;height:5px;background:#1e293b;border-radius:2px;overflow:hidden"><div style="width:22%;height:100%;background:#ef4444;border-radius:2px"></div></div>
+            <span style="font-size:9px;color:var(--muted);width:16px;text-align:right">4</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <div style="width:4px;height:4px;border-radius:50%;background:#f97316;flex-shrink:0"></div>
+            <div style="flex:1;height:5px;background:#1e293b;border-radius:2px;overflow:hidden"><div style="width:44%;height:100%;background:#f97316;border-radius:2px"></div></div>
+            <span style="font-size:9px;color:var(--muted);width:16px;text-align:right">8</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <div style="width:4px;height:4px;border-radius:50%;background:#f59e0b;flex-shrink:0"></div>
+            <div style="flex:1;height:5px;background:#1e293b;border-radius:2px;overflow:hidden"><div style="width:85%;height:100%;background:#f59e0b;border-radius:2px"></div></div>
+            <span style="font-size:9px;color:var(--muted);width:16px;text-align:right">23</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <div style="width:4px;height:4px;border-radius:50%;background:#3b82f6;flex-shrink:0"></div>
+            <div style="flex:1;height:5px;background:#1e293b;border-radius:2px;overflow:hidden"><div style="width:100%;height:100%;background:#3b82f6;border-radius:2px"></div></div>
+            <span style="font-size:9px;color:var(--muted);width:16px;text-align:right">45</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Card 3: Compliance Rate -->
+  <div class="stat-card" onclick="this.style.borderColor='var(--success)'">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="stat-icon" style="background:#10b98115;color:#10b981;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div class="stat-val">87.3%</div>
+        <div class="stat-label">Compliance Rate</div>
+        <div class="stat-trend trend-up" style="margin-top:4px">↑ 1.2% <span style="color:var(--muted)">this week</span></div>
+      </div>
+      <div class="stat-viz">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <defs>
+            <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#ef4444"/>
+              <stop offset="50%" stop-color="#f59e0b"/>
+              <stop offset="100%" stop-color="#10b981"/>
+            </linearGradient>
+          </defs>
+          <circle cx="30" cy="30" r="24" fill="none" stroke="#1e293b" stroke-width="6" stroke-dasharray="113 64" stroke-linecap="round" transform="rotate(135 30 30)"/>
+          <circle cx="30" cy="30" r="24" fill="none" stroke="url(#gaugeGrad)" stroke-width="6" stroke-dasharray="98.5 78.5" stroke-linecap="round" transform="rotate(135 30 30)" style="animation:sweep .9s ease forwards"/>
+          <text x="30" y="33" text-anchor="middle" font-size="10" font-weight="700" fill="#10b981">87%</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <!-- Card 4: Active Deployments -->
+  <div class="stat-card" onclick="this.style.borderColor='var(--primary)'">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="stat-icon" style="background:#3b82f615;color:#3b82f6;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <div class="stat-val">3</div>
+        <div class="stat-label">Active Deployments</div>
+        <div class="stat-trend" style="margin-top:4px;color:var(--muted)">2 running • 1 pending</div>
+      </div>
+      <div class="stat-viz" style="display:flex;flex-direction:column;gap:5px;padding-top:4px">
+        <div style="display:flex;gap:4px;align-items:center">
+          <div style="width:10px;height:10px;border-radius:50%;background:#10b981;position:relative"><div style="position:absolute;inset:-2px;border-radius:50%;border:1.5px solid #10b981;animation:pulse-ring 1.5s ease-out infinite"></div></div>
+          <span style="font-size:9.5px;color:var(--muted)">DEP-2024-089</span>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <div style="width:10px;height:10px;border-radius:50%;background:#10b981;position:relative"><div style="position:absolute;inset:-2px;border-radius:50%;border:1.5px solid #10b981;animation:pulse-ring 1.5s ease-out .3s infinite"></div></div>
+          <span style="font-size:9.5px;color:var(--muted)">DEP-2024-091</span>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <div style="width:10px;height:10px;border-radius:50%;background:#3b82f6"></div>
+          <span style="font-size:9.5px;color:var(--muted)">DEP-2024-092</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROW 2: Stat Cards Row 2 -->
+<div class="stat-grid">
+  <!-- Card 5: Overdue SLA -->
+  <div class="stat-card" onclick="this.style.borderColor='var(--danger)'">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="stat-icon" style="background:#ef444415;color:#ef4444;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="stat-val" style="color:var(--danger)">5</div>
+        <div class="stat-label">Overdue SLA</div>
+        <div class="stat-trend trend-dn" style="margin-top:4px">↑ 2 <span style="color:var(--muted)">new today</span></div>
+      </div>
+      <div class="stat-viz" style="padding-top:4px">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:4px">oldest:</div>
+        <div style="font-size:15px;font-weight:700;color:#ef4444;font-variant-numeric:tabular-nums">2d 4h</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">KB5034441</div>
+      </div>
+    </div>
+  </div>
+  <!-- Card 6: Failed Deployments -->
+  <div class="stat-card" onclick="this.style.borderColor='var(--danger)'">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="stat-icon" style="background:#ef444415;color:#ef4444;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        <div class="stat-val" style="color:var(--danger)">2</div>
+        <div class="stat-label">Failed Deployments</div>
+        <div class="stat-trend trend-dn" style="margin-top:4px">↓ trending <span style="color:var(--muted)">7 days</span></div>
+      </div>
+      <div class="stat-viz">
+        <svg width="70" height="36" viewBox="0 0 70 36">
+          <polyline points="0,28 10,20 20,24 30,12 40,18 50,8 60,14 70,6" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="0,28 10,20 20,24 30,12 40,18 50,8 60,14 70,6 70,36 0,36" fill="#ef444415"/>
+          <circle cx="70" cy="6" r="3" fill="#ef4444"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <!-- Card 7: Workflows Running -->
+  <div class="stat-card" onclick="this.style.borderColor='var(--purple)'">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="stat-icon" style="background:#8b5cf615;color:#8b5cf6;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg></div>
+        <div class="stat-val">1</div>
+        <div class="stat-label">Workflows Running</div>
+        <div class="stat-trend" style="margin-top:4px;color:var(--muted)">Auto-Deploy Critical</div>
+      </div>
+      <div class="stat-viz" style="display:flex;align-items:center;gap:3px;padding-top:8px">
+        <div style="width:10px;height:10px;border-radius:50%;background:#10b981"></div>
+        <div style="width:20px;height:1.5px;background:#1e293b"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#10b981"></div>
+        <div style="width:20px;height:1.5px;background:#1e293b"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#8b5cf6;position:relative"><div style="position:absolute;inset:-2px;border-radius:50%;border:1.5px solid #8b5cf6;animation:pulse-ring 1.5s ease-out infinite"></div></div>
+        <div style="width:20px;height:1.5px;background:#1e293b;opacity:.3"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#1e293b;border:1px solid #374151"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Card 8: Hub Sync -->
+  <div class="stat-card" onclick="this.style.borderColor='var(--success)'">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div class="stat-icon" style="background:#10b98115;color:#10b981;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div class="stat-val" style="color:var(--success)">Sync'd</div>
+        <div class="stat-label">Hub Sync Status</div>
+        <div class="stat-trend trend-up" style="margin-top:4px">↑ healthy <span style="color:var(--muted)">2m ago</span></div>
+      </div>
+      <div class="stat-viz" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:4px">
+        <span class="pulse-green"></span>
+        <span style="font-size:9.5px;color:var(--muted);margin-top:6px">2m ago</span>
+        <span style="font-size:9px;color:var(--muted)">hub.acme.com</span>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ROW 3: Hero Widgets -->
+<div class="row2" style="margin-bottom:16px">
+  <!-- Left: Blast Radius Node Graph -->
+  <div class="card" style="min-height:420px">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">Active Blast Radius</div>
+        <div class="card-sub">Endpoints affected by selected CVE</div>
+      </div>
+      <select id="cve-select" onchange="updateBlastRadius()">
+        <option value="CVE-2024-1234">CVE-2024-1234 (CVSS 9.8)</option>
+        <option value="CVE-2024-5678">CVE-2024-5678 (CVSS 8.1)</option>
+        <option value="CVE-2024-9012">CVE-2024-9012 (CVSS 7.5)</option>
+        <option value="CVE-2023-44487">CVE-2023-44487 (CVSS 7.5)</option>
+      </select>
+    </div>
+    <div style="padding:16px;position:relative">
+      <svg id="blast-svg" width="100%" height="340" viewBox="0 0 520 340" style="overflow:visible">
+        <!-- Lines -->
+        <line x1="260" y1="170" x2="130" y2="80" stroke="#ef444440" stroke-width="3" stroke-dasharray="4 2"/>
+        <line x1="260" y1="170" x2="390" y2="80" stroke="#3b82f640" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <line x1="260" y1="170" x2="120" y2="260" stroke="#f9731640" stroke-width="2" stroke-dasharray="4 2"/>
+        <line x1="260" y1="170" x2="400" y2="270" stroke="#8b5cf640" stroke-width="2" stroke-dasharray="4 2"/>
+        <line x1="260" y1="170" x2="260" y2="310" stroke="#10b98140" stroke-width="1.5" stroke-dasharray="4 2"/>
+        <!-- CVE Center -->
+        <circle cx="260" cy="170" r="44" fill="#ef444410" stroke="#ef4444" stroke-width="2.5" style="animation:fadeInUp .5s ease forwards"/>
+        <circle cx="260" cy="170" r="44" fill="none" stroke="#ef444430" stroke-width="8" style="animation:pulse-ring 2s ease-out infinite"/>
+        <text x="260" y="163" text-anchor="middle" font-size="10" font-weight="700" fill="#ef4444">CVE-2024-1234</text>
+        <text x="260" y="176" text-anchor="middle" font-size="9" fill="#ef4444">CVSS 9.8</text>
+        <text x="260" y="189" text-anchor="middle" font-size="8" fill="#64748b">38 affected</text>
+        <!-- Windows Servers node -->
+        <circle cx="130" cy="80" r="32" fill="#3b82f610" stroke="#3b82f6" stroke-width="2" style="animation:fadeInUp .6s ease forwards"/>
+        <text x="130" y="75" text-anchor="middle" font-size="9" font-weight="600" fill="#3b82f6">Windows</text>
+        <text x="130" y="87" text-anchor="middle" font-size="8" fill="#3b82f6">Servers</text>
+        <text x="130" y="99" text-anchor="middle" font-size="8" fill="#64748b">18 hosts</text>
+        <!-- Ubuntu node -->
+        <circle cx="390" cy="80" r="28" fill="#f9731610" stroke="#f97316" stroke-width="2" style="animation:fadeInUp .7s ease forwards"/>
+        <text x="390" y="75" text-anchor="middle" font-size="9" font-weight="600" fill="#f97316">Ubuntu</text>
+        <text x="390" y="87" text-anchor="middle" font-size="8" fill="#f97316">22.04</text>
+        <text x="390" y="99" text-anchor="middle" font-size="8" fill="#64748b">12 hosts</text>
+        <!-- RHEL node -->
+        <circle cx="120" cy="260" r="24" fill="#8b5cf610" stroke="#8b5cf6" stroke-width="2" style="animation:fadeInUp .8s ease forwards"/>
+        <text x="120" y="255" text-anchor="middle" font-size="9" font-weight="600" fill="#8b5cf6">RHEL 9</text>
+        <text x="120" y="267" text-anchor="middle" font-size="8" fill="#64748b">8 hosts</text>
+        <!-- Debian node -->
+        <circle cx="400" cy="270" r="20" fill="#10b98110" stroke="#10b981" stroke-width="2" style="animation:fadeInUp .9s ease forwards"/>
+        <text x="400" y="265" text-anchor="middle" font-size="9" font-weight="600" fill="#10b981">Debian</text>
+        <text x="400" y="277" text-anchor="middle" font-size="8" fill="#64748b">0 hosts</text>
+        <!-- CentOS node -->
+        <circle cx="260" cy="310" r="18" fill="#f59e0b10" stroke="#f59e0b" stroke-width="1.5" style="animation:fadeInUp 1s ease forwards"/>
+        <text x="260" y="306" text-anchor="middle" font-size="8.5" font-weight="600" fill="#f59e0b">CentOS</text>
+        <text x="260" y="318" text-anchor="middle" font-size="7.5" fill="#64748b">0 hosts</text>
+      </svg>
+      <!-- Legend -->
+      <div style="position:absolute;bottom:20px;right:20px;display:flex;flex-direction:column;gap:4px;background:#0f172a;border:1px solid #1e293b;border-radius:7px;padding:8px 10px">
+        <div style="font-size:9px;color:var(--muted);font-weight:600;margin-bottom:2px">COMPLIANCE</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:9.5px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:50%;background:#ef4444"></div>Critical</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:9.5px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:50%;background:#f59e0b"></div>At Risk</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:9.5px;color:var(--muted)"><div style="width:8px;height:8px;border-radius:50%;background:#10b981"></div>Compliant</div>
+      </div>
+    </div>
+  </div>
+  <!-- Right: Risk Delta Projection -->
+  <div class="card" style="min-height:420px">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">Risk Delta Projection</div>
+        <div class="card-sub">Next 30 days • 3 scenarios</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <span class="badge badge-green">Deploy All</span>
+        <span class="badge badge-blue">Trajectory</span>
+        <span class="badge badge-red">Do Nothing</span>
+      </div>
+    </div>
+    <div style="padding:16px;height:360px">
+      <canvas id="riskChart"></canvas>
+    </div>
+  </div>
+</div>
+<!-- ROW 4: Operational Widgets -->
+<div class="row3" style="margin-bottom:16px">
+  <!-- SLA Bridge Waterfall -->
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">SLA Bridge</div>
+        <div class="card-sub">Compliance gap waterfall</div>
+      </div>
+    </div>
+    <div style="padding:16px">
+      <svg width="100%" height="220" viewBox="0 0 280 220">
+        <!-- Y axis label -->
+        <text x="8" y="20" font-size="9" fill="#64748b">Gap</text>
+        <!-- Grid lines -->
+        <line x1="30" y1="30" x2="270" y2="30" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="30" y1="80" x2="270" y2="80" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="30" y1="130" x2="270" y2="130" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="30" y1="180" x2="270" y2="180" stroke="#1e293b" stroke-width="1"/>
+        <!-- Y axis labels -->
+        <text x="22" y="34" font-size="8" fill="#64748b" text-anchor="end">45</text>
+        <text x="22" y="84" font-size="8" fill="#64748b" text-anchor="end">30</text>
+        <text x="22" y="134" font-size="8" fill="#64748b" text-anchor="end">15</text>
+        <text x="22" y="184" font-size="8" fill="#64748b" text-anchor="end">0</text>
+        <!-- Bar 1: Starting Gap (45) starts at 0, goes to 45 -->
+        <rect x="40" y="30" width="40" height="150" fill="#ef4444" rx="3" opacity=".85" style="animation:fadeInUp .4s ease forwards"/>
+        <text x="60" y="24" text-anchor="middle" font-size="9" font-weight="600" fill="#ef4444">45</text>
+        <text x="60" y="200" text-anchor="middle" font-size="8.5" fill="#64748b">Starting</text>
+        <text x="60" y="210" text-anchor="middle" font-size="8.5" fill="#64748b">Gap</text>
+        <!-- Bar 2: Patches Deployed (-30): floats from y=30, height=100 going down => y=30 height=100 fill green -->
+        <rect x="100" y="80" width="40" height="100" fill="#10b981" rx="3" opacity=".85" style="animation:fadeInUp .6s ease forwards"/>
+        <text x="120" y="74" text-anchor="middle" font-size="9" font-weight="600" fill="#10b981">-30</text>
+        <text x="120" y="200" text-anchor="middle" font-size="8.5" fill="#64748b">Deployed</text>
+        <!-- Connector line from bar1 top to bar2 top -->
+        <line x1="80" y1="30" x2="100" y2="30" stroke="#374151" stroke-width="1" stroke-dasharray="3 2"/>
+        <line x1="80" y1="180" x2="100" y2="180" stroke="#374151" stroke-width="1" stroke-dasharray="3 2"/>
+        <!-- Bar 3: New CVEs (+8): floats from y=80, height ~27 going up -->
+        <rect x="160" y="53" width="40" height="27" fill="#ef4444" rx="3" opacity=".85" style="animation:fadeInUp .8s ease forwards"/>
+        <text x="180" y="47" text-anchor="middle" font-size="9" font-weight="600" fill="#ef4444">+8</text>
+        <text x="180" y="200" text-anchor="middle" font-size="8.5" fill="#64748b">New CVEs</text>
+        <!-- Connector -->
+        <line x1="140" y1="80" x2="160" y2="80" stroke="#374151" stroke-width="1" stroke-dasharray="3 2"/>
+        <!-- Bar 4: Projected (23): from y=53 -->
+        <rect x="220" y="53" width="40" height="127" fill="#3b82f6" rx="3" opacity=".85" style="animation:fadeInUp 1s ease forwards"/>
+        <text x="240" y="47" text-anchor="middle" font-size="9" font-weight="600" fill="#3b82f6">23</text>
+        <text x="240" y="200" text-anchor="middle" font-size="8.5" fill="#64748b">Projected</text>
+        <!-- Connector -->
+        <line x1="200" y1="53" x2="220" y2="53" stroke="#374151" stroke-width="1" stroke-dasharray="3 2"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Deployment Activity Timeline -->
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">Deployment Activity</div>
+        <div class="card-sub">Live event stream</div>
+      </div>
+      <span class="badge badge-green" style="font-size:9px">LIVE</span>
+    </div>
+    <div style="padding:12px 16px;max-height:280px;overflow-y:auto">
+      <!-- Timeline item 1 -->
+      <div class="timeline-item" onclick="this.classList.toggle('expanded')">
+        <div class="timeline-dot-wrap">
+          <div class="timeline-dot" style="background:#10b98120;color:#10b981;border:2px solid #10b981;position:relative">
+            <div style="position:absolute;inset:-3px;border-radius:50%;border:2px solid #10b981;animation:pulse-ring 2s ease-out infinite"></div>
+            ▶
+          </div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-title">DEP-2024-091 — Windows Critical Batch</div>
+          <div class="timeline-meta">Running • 142/180 endpoints • started 38m ago</div>
+          <div class="timeline-detail">
+            <div style="margin-top:6px">
+              <div style="display:flex;justify-content:space-between;font-size:10.5px;margin-bottom:4px"><span style="color:var(--muted)">Progress</span><span style="color:var(--text)">142 / 180</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:78%;background:#10b981"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Timeline item 2 -->
+      <div class="timeline-item" onclick="this.classList.toggle('expanded')">
+        <div class="timeline-dot-wrap">
+          <div class="timeline-dot" style="background:#10b98120;color:#10b981;border:2px solid #10b981">✓</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-title">DEP-2024-089 — Ubuntu Security Patch</div>
+          <div class="timeline-meta">Completed • 68/68 endpoints • 2h ago</div>
+          <div class="timeline-detail">
+            <div style="margin-top:6px">
+              <div class="progress-bar"><div class="progress-fill" style="width:100%;background:#10b981"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Timeline item 3 -->
+      <div class="timeline-item" onclick="this.classList.toggle('expanded')">
+        <div class="timeline-dot-wrap">
+          <div class="timeline-dot" style="background:#ef444420;color:#ef4444;border:2px solid #ef4444">✗</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-title">DEP-2024-087 — RHEL Kernel Update</div>
+          <div class="timeline-meta">Failed • 3 errors • 4h ago</div>
+          <div class="timeline-detail">
+            <div style="margin-top:6px;font-size:10.5px;color:#ef4444;background:#ef444410;border-radius:5px;padding:6px">Error: reboot required on prod-db-01, db-replica-03, cache-02</div>
+          </div>
+        </div>
+      </div>
+      <!-- Timeline item 4 -->
+      <div class="timeline-item" onclick="this.classList.toggle('expanded')">
+        <div class="timeline-dot-wrap">
+          <div class="timeline-dot" style="background:#3b82f620;color:#3b82f6;border:2px solid #3b82f6;transform:rotate(45deg);border-radius:4px">◆</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-title">DEP-2024-092 — Wave Deploy: Web Tier</div>
+          <div class="timeline-meta">Pending approval • 48 endpoints • scheduled 6h</div>
+        </div>
+      </div>
+      <!-- Timeline item 5 -->
+      <div class="timeline-item">
+        <div class="timeline-dot-wrap">
+          <div class="timeline-dot" style="background:#10b98120;color:#10b981;border:2px solid #10b981">✓</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-title">DEP-2024-085 — Patch Tuesday Rollout</div>
+          <div class="timeline-meta">Completed • 247/247 endpoints • yesterday 11:30 PM</div>
+        </div>
+      </div>
+      <!-- Timeline item 6 -->
+      <div class="timeline-item">
+        <div class="timeline-dot-wrap">
+          <div class="timeline-dot" style="background:#f59e0b20;color:#f59e0b;border:2px solid #f59e0b">⏸</div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-title">DEP-2024-083 — Emergency CVE Patch</div>
+          <div class="timeline-meta">Paused • 22/60 endpoints • rolled back</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Vulnerable Endpoints Heatmap -->
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">Risk Heatmap</div>
+        <div class="card-sub">Top 30 endpoints by CVE exposure</div>
+      </div>
+    </div>
+    <div style="padding:12px 16px">
+      <div id="heatmap-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px"></div>
+    </div>
+  </div>
+</div>
+<!-- ROW 5: Secondary Widgets -->
+<div class="row3" style="margin-bottom:16px">
+  <!-- Compliance Concentric Rings -->
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">Compliance Gauges</div>
+        <div class="card-sub">Framework coverage</div>
+      </div>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;align-items:center">
+      <div style="position:relative;width:200px;height:200px">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <!-- Outer ring: NIST 78% -->
+          <circle cx="100" cy="100" r="88" fill="none" stroke="#1e293b" stroke-width="14"/>
+          <circle cx="100" cy="100" r="88" fill="none" stroke="#10b981" stroke-width="14"
+            stroke-dasharray="431.6 123.5" stroke-linecap="round" transform="rotate(-90 100 100)"
+            class="ring-arc" style="--target-offset:0;stroke-dashoffset:0;animation:none"/>
+          <!-- Middle ring: PCI DSS 92% -->
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#1e293b" stroke-width="12"/>
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#3b82f6" stroke-width="12"
+            stroke-dasharray="404.3 35.7" stroke-linecap="round" transform="rotate(-90 100 100)"
+            class="ring-arc" style="animation:none"/>
+          <!-- Inner ring: HIPAA 65% -->
+          <circle cx="100" cy="100" r="53" fill="none" stroke="#1e293b" stroke-width="11"/>
+          <circle cx="100" cy="100" r="53" fill="none" stroke="#f59e0b" stroke-width="11"
+            stroke-dasharray="216.5 116.5" stroke-linecap="round" transform="rotate(-90 100 100)"
+            class="ring-arc" style="animation:none"/>
+          <!-- Center text -->
+          <text x="100" y="95" text-anchor="middle" font-size="22" font-weight="700" fill="#e2e8f0">78%</text>
+          <text x="100" y="112" text-anchor="middle" font-size="10" fill="#64748b">overall</text>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;width:100%;margin-top:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:50%;background:#10b981"></div><span style="font-size:11px;color:var(--muted)">NIST CSF</span></div>
+          <span style="font-size:11px;font-weight:600;color:#10b981">78%</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:50%;background:#3b82f6"></div><span style="font-size:11px;color:var(--muted)">PCI DSS</span></div>
+          <span style="font-size:11px;font-weight:600;color:#3b82f6">92%</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:50%;background:#f59e0b"></div><span style="font-size:11px;color:var(--muted)">HIPAA</span></div>
+          <span style="font-size:11px;font-weight:600;color:#f59e0b">65%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Rollout Flow -->
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">Agent Rollout Flow</div>
+        <div class="card-sub">Enrollment funnel • 260 targets</div>
+      </div>
+    </div>
+    <div style="padding:16px">
+      <svg width="100%" height="260" viewBox="0 0 280 260">
+        <!-- Stage labels and flow bars -->
+        <!-- Total: 260 -->
+        <text x="0" y="30" font-size="10" font-weight="600" fill="#e2e8f0">Total</text>
+        <text x="0" y="42" font-size="9" fill="#64748b">260</text>
+        <rect x="60" y="22" width="200" height="18" fill="#3b82f6" rx="3" opacity=".8"/>
+        <text x="265" y="34" font-size="9" fill="#64748b" text-anchor="end">100%</text>
+        <!-- Installed: 247 -->
+        <text x="0" y="72" font-size="10" font-weight="600" fill="#e2e8f0">Installed</text>
+        <text x="0" y="84" font-size="9" fill="#64748b">247</text>
+        <rect x="60" y="62" width="190" height="18" fill="#3b82f6" rx="3" opacity=".8"/>
+        <rect x="250" y="62" width="10" height="18" fill="#ef4444" rx="1" opacity=".7"/>
+        <text x="265" y="74" font-size="9" fill="#64748b" text-anchor="end">95%</text>
+        <!-- Drop label -->
+        <text x="252" y="58" font-size="8" fill="#ef4444" text-anchor="middle">-13</text>
+        <!-- Enrolled: 245 -->
+        <text x="0" y="114" font-size="10" font-weight="600" fill="#e2e8f0">Enrolled</text>
+        <text x="0" y="126" font-size="9" fill="#64748b">245</text>
+        <rect x="60" y="104" width="188" height="18" fill="#3b82f6" rx="3" opacity=".8"/>
+        <rect x="248" y="104" width="12" height="18" fill="#ef4444" rx="1" opacity=".7"/>
+        <text x="265" y="116" font-size="9" fill="#64748b" text-anchor="end">94%</text>
+        <text x="252" y="100" font-size="8" fill="#ef4444" text-anchor="middle">-2</text>
+        <!-- Healthy: 240 -->
+        <text x="0" y="156" font-size="10" font-weight="600" fill="#e2e8f0">Healthy</text>
+        <text x="0" y="168" font-size="9" fill="#64748b">240</text>
+        <rect x="60" y="146" width="184" height="18" fill="#10b981" rx="3" opacity=".8"/>
+        <rect x="244" y="146" width="16" height="18" fill="#f59e0b" rx="1" opacity=".7"/>
+        <text x="265" y="158" font-size="9" fill="#64748b" text-anchor="end">92%</text>
+        <text x="252" y="142" font-size="8" fill="#f59e0b" text-anchor="middle">-5</text>
+        <!-- Scanning: 238 -->
+        <text x="0" y="198" font-size="10" font-weight="600" fill="#e2e8f0">Scanning</text>
+        <text x="0" y="210" font-size="9" fill="#64748b">238</text>
+        <rect x="60" y="188" width="183" height="18" fill="#10b981" rx="3" opacity=".8"/>
+        <rect x="243" y="188" width="17" height="18" fill="#ef4444" rx="1" opacity=".7"/>
+        <text x="265" y="200" font-size="9" fill="#64748b" text-anchor="end">92%</text>
+        <text x="252" y="184" font-size="8" fill="#ef4444" text-anchor="middle">-2</text>
+        <!-- Legend -->
+        <rect x="60" y="238" width="12" height="8" fill="#3b82f6" rx="1" opacity=".8"/>
+        <text x="76" y="246" font-size="9" fill="#64748b">Active flow</text>
+        <rect x="150" y="238" width="12" height="8" fill="#ef4444" rx="1" opacity=".7"/>
+        <text x="166" y="246" font-size="9" fill="#64748b">Drop-off</text>
+        <rect x="220" y="238" width="12" height="8" fill="#f59e0b" rx="1" opacity=".7"/>
+        <text x="236" y="246" font-size="9" fill="#64748b">Degraded</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- SLA Countdown Timers -->
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">SLA Countdown</div>
+        <div class="card-sub">Patch deployment deadlines</div>
+      </div>
+    </div>
+    <div style="padding:12px 16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <!-- Timer 1: 2d 4h remaining -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#1e293b" stroke-width="5"/>
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#f59e0b" stroke-width="5"
+              stroke-dasharray="105.7 70.0" stroke-linecap="round" transform="rotate(-90 35 35)"/>
+            <text x="35" y="31" text-anchor="middle" font-size="9" font-weight="700" fill="#f59e0b">2d</text>
+            <text x="35" y="43" text-anchor="middle" font-size="8" fill="#f59e0b">4h</text>
+          </svg>
+          <div style="font-size:9px;color:var(--muted);text-align:center;line-height:1.3">KB5034441</div>
+        </div>
+        <!-- Timer 2: 18h -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#1e293b" stroke-width="5"/>
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#f97316" stroke-width="5"
+              stroke-dasharray="70.5 105.2" stroke-linecap="round" transform="rotate(-90 35 35)"/>
+            <text x="35" y="31" text-anchor="middle" font-size="9" font-weight="700" fill="#f97316">18h</text>
+            <text x="35" y="43" text-anchor="middle" font-size="8" fill="#64748b">left</text>
+          </svg>
+          <div style="font-size:9px;color:var(--muted);text-align:center;line-height:1.3">USN-6587-1</div>
+        </div>
+        <!-- Timer 3: 3h 12m -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#1e293b" stroke-width="5"/>
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#ef4444" stroke-width="5"
+              stroke-dasharray="21.3 154.4" stroke-linecap="round" transform="rotate(-90 35 35)"/>
+            <text x="35" y="31" text-anchor="middle" font-size="8.5" font-weight="700" fill="#ef4444">3h</text>
+            <text x="35" y="43" text-anchor="middle" font-size="8" fill="#ef4444">12m</text>
+          </svg>
+          <div style="font-size:9px;color:var(--muted);text-align:center;line-height:1.3">RHSA-2024-0563</div>
+        </div>
+        <!-- Timer 4: OVERDUE -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#1e293b" stroke-width="5"/>
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#ef4444" stroke-width="5"
+              stroke-dasharray="175.7 0" stroke-linecap="round" transform="rotate(-90 35 35)" style="animation:pulse-dot 1s ease-in-out infinite"/>
+            <text x="35" y="33" text-anchor="middle" font-size="8" font-weight="700" fill="#ef4444">OVER</text>
+            <text x="35" y="44" text-anchor="middle" font-size="8" font-weight="700" fill="#ef4444">DUE</text>
+          </svg>
+          <div style="font-size:9px;color:#ef4444;text-align:center;line-height:1.3">KB5035853</div>
+        </div>
+        <!-- Timer 5: 5d 2h -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#1e293b" stroke-width="5"/>
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#10b981" stroke-width="5"
+              stroke-dasharray="145.7 30" stroke-linecap="round" transform="rotate(-90 35 35)"/>
+            <text x="35" y="31" text-anchor="middle" font-size="9" font-weight="700" fill="#10b981">5d</text>
+            <text x="35" y="43" text-anchor="middle" font-size="8" fill="#10b981">2h</text>
+          </svg>
+          <div style="font-size:9px;color:var(--muted);text-align:center;line-height:1.3">DSA-5620-1</div>
+        </div>
+        <!-- Timer 6: OVERDUE -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <svg width="70" height="70" viewBox="0 0 70 70">
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#1e293b" stroke-width="5"/>
+            <circle cx="35" cy="35" r="28" fill="none" stroke="#ef4444" stroke-width="5"
+              stroke-dasharray="175.7 0" stroke-linecap="round" transform="rotate(-90 35 35)" style="animation:pulse-dot 1.3s ease-in-out infinite"/>
+            <text x="35" y="33" text-anchor="middle" font-size="8" font-weight="700" fill="#ef4444">OVER</text>
+            <text x="35" y="44" text-anchor="middle" font-size="8" font-weight="700" fill="#ef4444">DUE</text>
+          </svg>
+          <div style="font-size:9px;color:#ef4444;text-align:center;line-height:1.3">GLSA-202401-25</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ROW 6: Bottom Widgets -->
+<div class="row2" style="margin-bottom:16px">
+  <!-- Workflow Execution Pipeline -->
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">Workflow Execution</div>
+        <div class="card-sub">Active pipeline stages</div>
+      </div>
+      <a href="workflows.html" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:20px">
+      <!-- Workflow 1: Auto-Deploy Critical -->
+      <div>
+        <div style="font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span class="badge badge-purple">Auto-Deploy Critical</span>
+          <span style="font-size:10px;color:var(--muted)">started 38m ago</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0">
+          <!-- Trigger: done -->
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#10b98120;border:2px solid #10b981;color:#10b981">✓</div>
+            <span style="font-size:9px;color:#10b981">Trigger</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#10b981"></div></div>
+          <!-- Filter: done -->
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#10b98120;border:2px solid #10b981;color:#10b981">✓</div>
+            <span style="font-size:9px;color:#10b981">Filter</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#10b981"></div></div>
+          <!-- Approval: pulsing (current) -->
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#8b5cf620;border:2px solid #8b5cf6;color:#8b5cf6;position:relative">
+              <div style="position:absolute;inset:-4px;border-radius:50%;border:2px solid #8b5cf6;animation:pulse-ring 1.5s ease-out infinite"></div>
+              ⏳
+            </div>
+            <span style="font-size:9px;color:#8b5cf6">Approval</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#1e293b"></div></div>
+          <!-- Deploy: pending -->
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#1e293b;border:2px solid #374151;color:#64748b">→</div>
+            <span style="font-size:9px;color:#64748b">Deploy</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#1e293b"></div></div>
+          <!-- Complete: pending -->
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#1e293b;border:2px solid #374151;color:#64748b">⊙</div>
+            <span style="font-size:9px;color:#64748b">Done</span>
+          </div>
+        </div>
+      </div>
+      <!-- Workflow 2: Weekly Scan -->
+      <div>
+        <div style="font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span class="badge badge-green">Weekly Scan</span>
+          <span style="font-size:10px;color:var(--muted)">completed 2h ago</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0">
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#10b98120;border:2px solid #10b981;color:#10b981">✓</div>
+            <span style="font-size:9px;color:#10b981">Trigger</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#10b981"></div></div>
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#10b98120;border:2px solid #10b981;color:#10b981">✓</div>
+            <span style="font-size:9px;color:#10b981">Scan</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#10b981"></div></div>
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#10b98120;border:2px solid #10b981;color:#10b981">✓</div>
+            <span style="font-size:9px;color:#10b981">Report</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#10b981"></div></div>
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#10b98120;border:2px solid #10b981;color:#10b981">✓</div>
+            <span style="font-size:9px;color:#10b981">Notify</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#10b981"></div></div>
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#10b98120;border:2px solid #10b981;color:#10b981">✓</div>
+            <span style="font-size:9px;color:#10b981">Done</span>
+          </div>
+        </div>
+      </div>
+      <!-- Workflow 3: Emergency Response -->
+      <div>
+        <div style="font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <span class="badge badge-red">Emergency Response</span>
+          <span style="font-size:10px;color:var(--muted)">failed 4h ago</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0">
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#10b98120;border:2px solid #10b981;color:#10b981">✓</div>
+            <span style="font-size:9px;color:#10b981">Trigger</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#10b981"></div></div>
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#10b98120;border:2px solid #10b981;color:#10b981">✓</div>
+            <span style="font-size:9px;color:#10b981">Filter</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#ef4444"></div></div>
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#ef444420;border:2px solid #ef4444;color:#ef4444">✗</div>
+            <span style="font-size:9px;color:#ef4444">Deploy</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#1e293b"></div></div>
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#1e293b;border:2px solid #374151;color:#64748b">⊙</div>
+            <span style="font-size:9px;color:#64748b">Rollback</span>
+          </div>
+          <div class="pipeline-connector"><div class="pipeline-line" style="background:#1e293b"></div></div>
+          <div class="pipeline-node">
+            <div class="pipeline-node-circle" style="background:#1e293b;border:2px solid #374151;color:#64748b">⊙</div>
+            <span style="font-size:9px;color:#64748b">Done</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Critical Patches Timeline Chart -->
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">Critical Patches Timeline</div>
+        <div class="card-sub">Last 90 days • severity stacked</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <span class="badge badge-red" style="font-size:9px">Critical</span>
+        <span class="badge badge-amber" style="font-size:9px">High</span>
+        <span class="badge" style="background:#eab30820;color:#eab308;font-size:9px">Medium</span>
+      </div>
+    </div>
+    <div style="padding:16px;height:300px">
+      <canvas id="patchTimelineChart"></canvas>
+    </div>
+  </div>
+</div>
+
+</div><!-- end page -->
+</div><!-- end main -->
+
+<!-- Command Palette Modal -->
+<div class="modal-overlay" id="cmd-modal" onclick="if(event.target===this)closeCmdPalette()">
+  <div class="modal-box">
+    <div class="modal-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--muted);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="cmd-input" type="text" placeholder="Search endpoints, patches, CVEs, workflows..." autofocus/>
+      <kbd style="background:#1e293b;border-radius:4px;padding:2px 6px;font-size:10px;color:var(--muted)">ESC</kbd>
+    </div>
+    <div class="modal-results">
+      <div class="modal-section">Endpoints</div>
+      <div class="modal-result-item" onclick="closeCmdPalette()">
+        <div class="modal-result-icon" style="background:#3b82f620"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" style="width:14px;height:14px"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div><div style="font-size:12px;font-weight:500;color:var(--text)">prod-web-01</div><div style="font-size:10.5px;color:var(--muted)">Ubuntu 22.04 • 3 critical CVEs</div></div>
+        <span class="badge badge-red" style="margin-left:auto">Critical</span>
+      </div>
+      <div class="modal-result-item" onclick="closeCmdPalette()">
+        <div class="modal-result-icon" style="background:#3b82f620"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" style="width:14px;height:14px"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div><div style="font-size:12px;font-weight:500;color:var(--text)">db-primary-02</div><div style="font-size:10.5px;color:var(--muted)">RHEL 9 • 7 critical CVEs</div></div>
+        <span class="badge badge-red" style="margin-left:auto">Critical</span>
+      </div>
+      <div class="modal-section">Patches</div>
+      <div class="modal-result-item" onclick="closeCmdPalette()">
+        <div class="modal-result-icon" style="background:#ef444420"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" style="width:14px;height:14px"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg></div>
+        <div><div style="font-size:12px;font-weight:500;color:var(--text)">KB5034441</div><div style="font-size:10.5px;color:var(--muted)">Windows Server 2022 • Critical • Overdue</div></div>
+        <span class="badge badge-red" style="margin-left:auto">Overdue</span>
+      </div>
+      <div class="modal-result-item" onclick="closeCmdPalette()">
+        <div class="modal-result-icon" style="background:#ef444420"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" style="width:14px;height:14px"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg></div>
+        <div><div style="font-size:12px;font-weight:500;color:var(--text)">USN-6587-1</div><div style="font-size:10.5px;color:var(--muted)">Ubuntu 22.04 • Critical • 18h remaining</div></div>
+        <span class="badge badge-amber" style="margin-left:auto">Urgent</span>
+      </div>
+      <div class="modal-section">CVEs</div>
+      <div class="modal-result-item" onclick="closeCmdPalette()">
+        <div class="modal-result-icon" style="background:#8b5cf620"><svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" style="width:14px;height:14px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><div style="font-size:12px;font-weight:500;color:var(--text)">CVE-2024-1234</div><div style="font-size:10.5px;color:var(--muted)">CVSS 9.8 • 38 affected endpoints</div></div>
+        <span class="badge badge-red" style="margin-left:auto">9.8</span>
+      </div>
+      <div class="modal-result-item" onclick="closeCmdPalette()">
+        <div class="modal-result-icon" style="background:#8b5cf620"><svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" style="width:14px;height:14px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><div style="font-size:12px;font-weight:500;color:var(--text)">CVE-2024-5678</div><div style="font-size:10.5px;color:var(--muted)">CVSS 8.1 • 22 affected endpoints</div></div>
+        <span class="badge badge-amber" style="margin-left:auto">8.1</span>
+      </div>
+    </div>
+    <div style="padding:8px 16px;border-top:1px solid var(--border);display:flex;gap:16px;font-size:10px;color:var(--muted)">
+      <span>↑↓ navigate</span><span>↵ select</span><span>ESC close</span>
+    </div>
+  </div>
+</div>
+<script>
+// ── Theme ──────────────────────────────────────────────────────────────────
+function applyTheme(dark){
+  document.documentElement.classList.toggle('dark',dark);
+  document.getElementById('icon-sun').style.display = dark?'block':'none';
+  document.getElementById('icon-moon').style.display = dark?'none':'block';
+  if(!dark){
+    document.documentElement.style.setProperty('--bg','#f8fafc');
+    document.documentElement.style.setProperty('--card','#ffffff');
+    document.documentElement.style.setProperty('--card2','#f1f5f9');
+    document.documentElement.style.setProperty('--border','#e2e8f0');
+    document.documentElement.style.setProperty('--text','#0f172a');
+    document.documentElement.style.setProperty('--muted','#64748b');
+    document.getElementById('sidebar').style.background='#ffffff';
+    document.getElementById('sidebar').style.borderRight='1px solid #e2e8f0';
+    document.getElementById('topbar').style.background='#ffffff';
+    document.getElementById('topbar').style.borderBottom='1px solid #e2e8f0';
+  } else {
+    document.documentElement.style.setProperty('--bg','#0a0e1a');
+    document.documentElement.style.setProperty('--card','#111827');
+    document.documentElement.style.setProperty('--card2','#0f172a');
+    document.documentElement.style.setProperty('--border','#1e293b');
+    document.documentElement.style.setProperty('--text','#e2e8f0');
+    document.documentElement.style.setProperty('--muted','#64748b');
+    document.getElementById('sidebar').style.background='#0d1117';
+    document.getElementById('sidebar').style.borderRight='1px solid #1e293b';
+    document.getElementById('topbar').style.background='#0d1117';
+    document.getElementById('topbar').style.borderBottom='1px solid #1e293b';
+  }
+}
+function toggleTheme(){
+  const dark = !document.documentElement.classList.contains('dark');
+  localStorage.setItem('theme', dark?'dark':'light');
+  applyTheme(dark);
+}
+(function initTheme(){
+  const saved = localStorage.getItem('theme');
+  applyTheme(saved !== 'light');
+})();
+
+// ── Sidebar ────────────────────────────────────────────────────────────────
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  const icon = document.getElementById('sb-toggle-icon');
+  sb.classList.toggle('collapsed');
+  if(sb.classList.contains('collapsed')){
+    icon.innerHTML='<path d="M9 18l6-6-6-6"/>';
+  } else {
+    icon.innerHTML='<path d="M15 18l-6-6 6-6"/>';
+  }
+}
+function toggleGroup(id){
+  const el = document.getElementById(id);
+  const arr = document.getElementById(id+'-arr');
+  const hidden = el.style.maxHeight==='0px'||el.style.maxHeight==='';
+  if(hidden){
+    el.style.maxHeight='none';
+    if(arr) arr.style.transform='rotate(0deg)';
+  } else {
+    el.style.maxHeight='0px';
+    if(arr) arr.style.transform='rotate(-90deg)';
+  }
+}
+
+// ── Command Palette ────────────────────────────────────────────────────────
+function openCmdPalette(){
+  document.getElementById('cmd-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('cmd-input').focus(),50);
+}
+function closeCmdPalette(){
+  document.getElementById('cmd-modal').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmdPalette();}
+  if(e.key==='Escape') closeCmdPalette();
+});
+
+// ── Heatmap ────────────────────────────────────────────────────────────────
+(function buildHeatmap(){
+  const endpoints=[
+    {h:'prod-web-01',s:95,c:7},{h:'db-primary-02',s:91,c:6},{h:'cache-03',s:88,c:5},
+    {h:'api-gw-01',s:85,c:5},{h:'auth-svc-02',s:82,c:4},{h:'prod-web-02',s:78,c:4},
+    {h:'db-replica-01',s:74,c:4},{h:'lb-01',s:71,c:3},{h:'k8s-node-04',s:68,c:3},
+    {h:'monitoring-01',s:64,c:3},{h:'elk-01',s:60,c:2},{h:'ci-runner-03',s:57,c:2},
+    {h:'prod-web-03',s:54,c:2},{h:'cache-02',s:50,c:2},{h:'db-replica-02',s:47,c:2},
+    {h:'jump-host-01',s:44,c:1},{h:'k8s-node-01',s:40,c:1},{h:'k8s-node-02',s:36,c:1},
+    {h:'k8s-node-03',s:33,c:1},{h:'ntp-01',s:29,c:0},{h:'vpn-gw-01',s:26,c:0},
+    {h:'smtp-relay-01',s:22,c:0},{h:'dns-01',s:18,c:0},{h:'backup-01',s:15,c:0},
+    {h:'dev-web-01',s:12,c:0},{h:'staging-01',s:9,c:0},{h:'test-db-01',s:7,c:0},
+    {h:'qa-runner-01',s:5,c:0},{h:'sandbox-01',s:3,c:0},{h:'dummy-node-01',s:1,c:0}
+  ];
+  const grid=document.getElementById('heatmap-grid');
+  endpoints.forEach(ep=>{
+    const s=ep.s/100;
+    const r=Math.round(239*(1-s)+16*s);
+    const g=Math.round(68*(1-s)+185*s);
+    const b=Math.round(68*(1-s)+129*s);
+    const cell=document.createElement('div');
+    cell.className='heatmap-cell';
+    cell.style.background=`rgb(${r},${g},${b})`;
+    cell.style.height='40px';
+    cell.style.fontSize='8.5px';
+    cell.style.padding='3px';
+    cell.style.textAlign='center';
+    const name=ep.h.length>8?ep.h.substring(0,8)+'…':ep.h;
+    cell.innerHTML=`<span style="font-size:8px;font-weight:600;text-shadow:0 1px 2px #00000080">${name}</span>
+      <div class="heatmap-tooltip">${ep.h}<br>Risk: ${ep.s}% • CVEs: ${ep.c}</div>`;
+    cell.onclick=()=>{window.location.href='endpoint-detail.html'};
+    grid.appendChild(cell);
+  });
+})();
+
+// ── Chart.js: Risk Delta Projection ──────────────────────────────────────
+(function buildRiskChart(){
+  const labels=[];
+  const base=new Date('2026-03-10');
+  for(let i=0;i<31;i++){const d=new Date(base);d.setDate(d.getDate()+i);labels.push(`${d.getMonth()+1}/${d.getDate()}`);}
+  const doNothing=[72,74,75,77,78,80,81,83,84,86,87,89,90,91,92,93,94,95,95,96,97,97,98,99,99,100,100,100,100,100,100];
+  const trajectory=[72,71,70,69,68,68,67,66,65,64,63,63,62,61,60,59,58,58,57,56,55,54,53,53,52,51,50,49,48,48,47];
+  const deployAll=[72,68,64,60,56,52,48,44,41,38,35,32,30,28,26,25,24,23,22,21,20,20,19,18,18,17,17,16,16,15,15];
+  const ctx=document.getElementById('riskChart').getContext('2d');
+  new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Do Nothing',data:doNothing,borderColor:'#ef4444',borderWidth:1.5,fill:true,backgroundColor:'#ef444418',tension:.4,pointRadius:0},
+        {label:'Current Trajectory',data:trajectory,borderColor:'#3b82f6',borderWidth:2,fill:false,tension:.4,pointRadius:0},
+        {label:'Deploy All',data:deployAll,borderColor:'#10b981',borderWidth:1.5,fill:true,backgroundColor:'#10b98118',tension:.4,pointRadius:0}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#1e293b',titleColor:'#e2e8f0',bodyColor:'#94a3b8',
+          borderColor:'#334155',borderWidth:1,padding:10,
+          callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw}`}
+        },
+        annotation:{annotations:{
+          sla:{type:'line',xMin:7,xMax:7,borderColor:'#ef444488',borderWidth:1.5,borderDash:[4,4],label:{content:'SLA Deadline',display:true,color:'#ef4444',font:{size:9}}},
+          maint:{type:'line',xMin:14,xMax:14,borderColor:'#3b82f688',borderWidth:1.5,borderDash:[4,4],label:{content:'Maint Window',display:true,color:'#3b82f6',font:{size:9}}}
+        }}
+      },
+      scales:{
+        x:{grid:{color:'#1e293b'},ticks:{color:'#64748b',font:{size:9},maxTicksLimit:8},border:{color:'#1e293b'}},
+        y:{grid:{color:'#1e293b'},ticks:{color:'#64748b',font:{size:9}},border:{color:'#1e293b'},title:{display:true,text:'Risk Score',color:'#64748b',font:{size:9}}}
+      }
+    }
+  });
+})();
+
+// ── Chart.js: Patch Timeline Stacked Area ────────────────────────────────
+(function buildPatchTimeline(){
+  const labels=[];
+  const base=new Date('2025-12-10');
+  for(let i=0;i<90;i++){const d=new Date(base);d.setDate(d.getDate()+i);if(i%7===0||i===89)labels.push(`${d.getMonth()+1}/${d.getDate()}`);else labels.push('');}
+  function spike(base,idx,mag){return base+(Math.abs(idx%14-7)<2?mag:0)+Math.floor(Math.random()*3);}
+  const crit=[],high=[],med=[];
+  for(let i=0;i<90;i++){crit.push(spike(4,i,8)+Math.floor(Math.random()*2));high.push(spike(8,i,12)+Math.floor(Math.random()*3));med.push(spike(20,i,18)+Math.floor(Math.random()*5));}
+  const ctx=document.getElementById('patchTimelineChart').getContext('2d');
+  new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Critical',data:crit,borderColor:'#ef4444',borderWidth:1.5,fill:true,backgroundColor:'#ef444430',tension:.3,pointRadius:0},
+        {label:'High',data:high,borderColor:'#f97316',borderWidth:1.5,fill:true,backgroundColor:'#f9731625',tension:.3,pointRadius:0},
+        {label:'Medium',data:med,borderColor:'#eab308',borderWidth:1.5,fill:true,backgroundColor:'#eab30820',tension:.3,pointRadius:0}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#1e293b',titleColor:'#e2e8f0',bodyColor:'#94a3b8',borderColor:'#334155',borderWidth:1,padding:8}
+      },
+      scales:{
+        x:{stacked:true,grid:{color:'#1e293b'},ticks:{color:'#64748b',font:{size:9},maxTicksLimit:10},border:{color:'#1e293b'}},
+        y:{stacked:true,grid:{color:'#1e293b'},ticks:{color:'#64748b',font:{size:9}},border:{color:'#1e293b'}}
+      }
+    }
+  });
+})();
+
+// ── Blast Radius CVE switch ───────────────────────────────────────────────
+function updateBlastRadius(){
+  const sel=document.getElementById('cve-select').value;
+  const data={
+    'CVE-2024-1234':{c:'#ef4444',cvss:'9.8',n:38,g1:{l:'Windows\nServers',n:18,c:'#3b82f6'},g2:{l:'Ubuntu\n22.04',n:12,c:'#f97316'},g3:{l:'RHEL 9',n:8,c:'#8b5cf6'}},
+    'CVE-2024-5678':{c:'#f97316',cvss:'8.1',n:22,g1:{l:'Ubuntu\n22.04',n:14,c:'#f97316'},g2:{l:'Debian\n12',n:5,c:'#10b981'},g3:{l:'Windows\nDesktop',n:3,c:'#3b82f6'}},
+    'CVE-2024-9012':{c:'#f59e0b',cvss:'7.5',n:15,g1:{l:'RHEL 9',n:10,c:'#8b5cf6'},g2:{l:'CentOS\n8',n:5,c:'#f59e0b'},g3:{l:'Oracle\nLinux',n:0,c:'#64748b'}},
+    'CVE-2023-44487':{c:'#3b82f6',cvss:'7.5',n:31,g1:{l:'All Web\nServers',n:20,c:'#3b82f6'},g2:{l:'API\nGateway',n:8,c:'#10b981'},g3:{l:'Load\nBalancer',n:3,c:'#f97316'}}
+  };
+  const d=data[sel]||data['CVE-2024-1234'];
+  const svg=document.getElementById('blast-svg');
+  svg.querySelectorAll('circle,line,text').forEach(el=>el.style.opacity='0');
+  setTimeout(()=>{svg.querySelectorAll('circle,line,text').forEach(el=>el.style.opacity='');},300);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ — Create Policy</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─── CSS Variables ──────────────────────────────── */
+    :root {
+      --brand: #10b981;
+      --brand-dim: rgba(16,185,129,0.12);
+      --brand-glow: rgba(16,185,129,0.25);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.12);
+      --red: #ef4444;
+      --red-dim: rgba(239,68,68,0.12);
+      --blue: #3b82f6;
+      --blue-dim: rgba(59,130,246,0.12);
+
+      --pg: #000000;
+      --card: #111111;
+      --card2: #0d0d0d;
+      --border: #242424;
+      --border2: #2e2e2e;
+
+      --text-emphasis: #ffffff;
+      --text-primary: #cccccc;
+      --text-secondary: #a1a1a1;
+      --text-muted: #737373;
+      --text-faint: #444444;
+
+      --input-bg: #0d0d0d;
+      --input-border: #2a2a2a;
+      --hover-bg: #161616;
+      --scrollbar-thumb: #222222;
+    }
+
+    [data-theme="light"] {
+      --brand: #7c3aed;
+      --brand-dim: rgba(124,58,237,0.08);
+      --brand-glow: rgba(124,58,237,0.2);
+      --amber: #d97706;
+      --amber-dim: rgba(217,119,6,0.1);
+      --red: #dc2626;
+      --red-dim: rgba(220,38,38,0.1);
+      --blue: #2563eb;
+      --blue-dim: rgba(37,99,235,0.1);
+
+      --pg: #f5f5f5;
+      --card: #ffffff;
+      --card2: #fafafa;
+      --border: #e5e5e5;
+      --border2: #d4d4d4;
+
+      --text-emphasis: #111111;
+      --text-primary: #1a1a1a;
+      --text-secondary: #525252;
+      --text-muted: #737373;
+      --text-faint: #c0c0c0;
+
+      --input-bg: #f8f8f8;
+      --input-border: #d4d4d4;
+      --hover-bg: #f0f0f0;
+      --scrollbar-thumb: #d0d0d0;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--pg);
+      color: var(--text-primary);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+    /* ─── Layout ─────────────────────────────────────── */
+    .app { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ─── Sidebar ────────────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--pg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 20px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo-icon { width: 28px; height: 28px; flex-shrink: 0; }
+    .logo-text { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+
+    .sidebar-nav { flex: 1; padding: 12px 0; }
+
+    .nav-section { margin-bottom: 4px; }
+
+    .nav-section-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      padding: 8px 20px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 20px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: background 0.1s, color 0.1s;
+      font-size: 13px;
+      user-select: none;
+    }
+    .nav-item:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .nav-item.active { color: var(--text-emphasis); background: var(--hover-bg); }
+    .nav-item svg { flex-shrink: 0; opacity: 0.7; }
+    .nav-item.active svg { opacity: 1; color: var(--brand); }
+
+    .nav-badge {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--hover-bg);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 1px 6px;
+    }
+
+    .sidebar-bottom { padding: 12px 0; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+    /* ─── Main ───────────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* ─── Topbar ─────────────────────────────────────── */
+    .topbar {
+      height: 52px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      background: var(--pg);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+    .breadcrumb-seg { color: var(--text-muted); cursor: pointer; }
+    .breadcrumb-seg:hover { color: var(--text-secondary); }
+    .breadcrumb-sep { color: var(--text-faint); }
+    .breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+    .theme-toggle {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, background 0.15s;
+    }
+    .theme-toggle:hover { color: var(--text-primary); background: var(--hover-bg); }
+
+    /* ─── Content ────────────────────────────────────── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    /* ─── Left Column ────────────────────────────────── */
+    .col-left {
+      flex: 0 0 60%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    /* ─── Right Column ───────────────────────────────── */
+    .col-right {
+      flex: 0 0 calc(40% - 20px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      max-height: calc(100vh - 52px - 48px);
+      overflow-y: auto;
+    }
+
+    /* ─── Cards ──────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title svg { color: var(--brand); opacity: 0.8; }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ─── Form Elements ──────────────────────────────── */
+    .form-group { margin-bottom: 14px; }
+    .form-group:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+      letter-spacing: 0.01em;
+    }
+
+    input[type="text"], input[type="time"], textarea, select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: 'Geist', sans-serif;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="text"]:focus, input[type="time"]:focus, textarea:focus, select:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px var(--brand-dim);
+    }
+
+    textarea { resize: vertical; min-height: 56px; }
+
+    input::placeholder, textarea::placeholder { color: var(--text-faint); }
+
+    /* ─── Mode Cards ─────────────────────────────────── */
+    .mode-cards {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mode-card {
+      flex: 1;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      background: var(--input-bg);
+    }
+    .mode-card:hover { background: var(--hover-bg); border-color: var(--text-faint); }
+    .mode-card.selected {
+      border-color: var(--brand);
+      background: var(--brand-dim);
+    }
+
+    .mode-card-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--hover-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+    .mode-card.selected .mode-card-icon { background: var(--brand-dim); color: var(--brand); }
+
+    .mode-card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+    .mode-card.selected .mode-card-title { color: var(--text-emphasis); }
+
+    .mode-card-desc { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
+
+    /* ─── Toggle ─────────────────────────────────────── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+    }
+
+    .toggle-label { font-size: 12px; color: var(--text-primary); font-weight: 500; }
+    .toggle-desc { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: var(--input-border);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle.on { background: var(--brand); }
+    .toggle::after {
+      content: '';
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+    }
+    .toggle.on::after { transform: translateX(16px); }
+
+    /* ─── Tag Expression Builder ─────────────────────── */
+    .tag-builder { display: flex; flex-direction: column; gap: 8px; }
+
+    .tag-condition-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag-connector {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      background: var(--input-bg);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      padding: 3px 7px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .tag-connector:hover, .tag-connector.active { background: var(--brand-dim); color: var(--brand); border-color: var(--brand); }
+
+    .tag-key-select, .tag-val-select {
+      flex: 1;
+      min-width: 0;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-primary);
+      outline: none;
+    }
+    .tag-key-select:focus, .tag-val-select:focus { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand-dim); }
+
+    .tag-remove-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: none;
+      background: transparent;
+      color: var(--text-faint);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .tag-remove-btn:hover { color: var(--red); background: var(--red-dim); }
+
+    .tag-add-btn {
+      background: none;
+      border: none;
+      color: var(--brand);
+      font-size: 12px;
+      font-family: 'Geist', sans-serif;
+      cursor: pointer;
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+    .tag-add-btn:hover { opacity: 1; }
+
+    .match-result {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      background: var(--brand-dim);
+      border: 1px solid rgba(16,185,129,0.2);
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .match-count { font-size: 16px; font-weight: 700; color: var(--brand); font-family: 'GeistMono', monospace; }
+    .match-label { color: var(--text-secondary); }
+    .match-icon { color: var(--brand); }
+
+    [data-theme="light"] .match-result {
+      background: var(--brand-dim);
+      border-color: rgba(124,58,237,0.2);
+    }
+
+    /* ─── Patch Selection ────────────────────────────── */
+    .patch-mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .patch-mode-card {
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: var(--input-bg);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .patch-mode-card:hover { background: var(--hover-bg); border-color: var(--text-faint); }
+    .patch-mode-card.selected { border-color: var(--brand); background: var(--brand-dim); }
+
+    .patch-mode-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 5px;
+      background: var(--hover-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .patch-mode-card.selected .patch-mode-icon { background: var(--brand-glow); color: var(--brand); }
+
+    .patch-mode-text {}
+    .patch-mode-title { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 1px; }
+    .patch-mode-card.selected .patch-mode-title { color: var(--text-emphasis); }
+    .patch-mode-desc { font-size: 10px; color: var(--text-muted); line-height: 1.35; }
+
+    /* ─── Severity Slider ────────────────────────────── */
+    .severity-selector {
+      display: flex;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border2);
+    }
+
+    .sev-option {
+      flex: 1;
+      padding: 8px 6px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      border-right: 1px solid var(--border2);
+      color: var(--text-muted);
+      background: var(--input-bg);
+    }
+    .sev-option:last-child { border-right: none; }
+
+    .sev-option.critical { }
+    .sev-option.high { }
+    .sev-option.medium { }
+    .sev-option.low { }
+
+    .sev-option.active.critical { background: var(--red-dim); color: var(--red); border-color: var(--red); border-right-color: var(--border2); }
+    .sev-option.active.high { background: var(--amber-dim); color: var(--amber); }
+
+    /* Included range highlight */
+    .sev-range-bar {
+      display: flex;
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+      gap: 2px;
+    }
+    .sev-seg {
+      flex: 1;
+      border-radius: 2px;
+      opacity: 0.3;
+      transition: opacity 0.2s;
+    }
+    .sev-seg.included { opacity: 1; }
+    .sev-seg.critical { background: var(--red); }
+    .sev-seg.high { background: var(--amber); }
+    .sev-seg.medium { background: #6b7280; }
+    .sev-seg.low { background: #4b5563; }
+
+    .sev-bar-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    .sev-bar-label { font-size: 9px; color: var(--text-muted); flex: 1; text-align: center; }
+
+    /* ─── Tag Input (excluded pkgs) ──────────────────── */
+    .tag-input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 6px 8px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      min-height: 36px;
+      cursor: text;
+    }
+    .tag-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--hover-bg);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-secondary);
+    }
+    .tag-chip-x {
+      cursor: pointer;
+      color: var(--text-faint);
+      line-height: 1;
+      font-size: 10px;
+    }
+    .tag-chip-x:hover { color: var(--red); }
+    .tag-chip-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 11px;
+      font-family: 'GeistMono', monospace;
+      color: var(--text-primary);
+      min-width: 80px;
+      flex: 1;
+    }
+
+    /* ─── Schedule ───────────────────────────────────── */
+    .seg-toggle {
+      display: flex;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .seg-btn {
+      flex: 1;
+      padding: 7px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--input-bg);
+      color: var(--text-muted);
+      border-right: 1px solid var(--border2);
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .seg-btn:last-child { border-right: none; }
+    .seg-btn.active { background: var(--brand-dim); color: var(--brand); font-weight: 600; }
+
+    .freq-row { display: flex; gap: 6px; margin: 10px 0; }
+    .freq-btn {
+      flex: 1;
+      padding: 6px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--input-bg);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .freq-btn.active { background: var(--brand-dim); color: var(--brand); border-color: var(--brand); }
+
+    .day-pills { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
+    .day-pill {
+      width: 34px;
+      height: 28px;
+      border-radius: 5px;
+      border: 1px solid var(--border2);
+      background: var(--input-bg);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .day-pill.active { background: var(--brand-dim); color: var(--brand); border-color: var(--brand); }
+
+    .schedule-preview-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 6px 0;
+    }
+    .schedule-preview-text strong { color: var(--text-secondary); }
+
+    .time-row { display: flex; gap: 10px; align-items: flex-end; }
+    .time-row .form-group { flex: 1; margin-bottom: 0; }
+
+    /* ─── Review Card ────────────────────────────────── */
+    .review-summary {
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .review-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .review-row:last-child { border-bottom: none; }
+
+    .review-key {
+      width: 110px;
+      flex-shrink: 0;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding-top: 1px;
+    }
+    .review-val { font-size: 12px; color: var(--text-primary); flex: 1; }
+    .review-val code {
+      font-family: 'GeistMono', monospace;
+      font-size: 11px;
+      background: var(--hover-bg);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .review-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .review-badge.emerald { background: var(--brand-dim); color: var(--brand); }
+    .review-badge.amber { background: var(--amber-dim); color: var(--amber); }
+
+    .btn-primary {
+      width: 100%;
+      height: 48px;
+      background: var(--brand);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Geist', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:active { transform: scale(0.99); }
+
+    [data-theme="light"] .btn-primary { color: #fff; }
+
+    .btn-ghost {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: 'Geist', sans-serif;
+      cursor: pointer;
+      padding: 10px;
+      transition: color 0.15s;
+    }
+    .btn-ghost:hover { color: var(--text-primary); }
+
+    /* ─── RIGHT COLUMN VIZ ───────────────────────────── */
+    .viz-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .viz-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .viz-title-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--brand);
+      flex-shrink: 0;
+    }
+
+    /* Target Preview */
+    .target-hero {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .ring-container { position: relative; width: 60px; height: 60px; flex-shrink: 0; }
+
+    .ring-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-number { font-size: 18px; font-weight: 700; color: var(--text-emphasis); line-height: 1; font-family: 'GeistMono', monospace; }
+    .ring-pct { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    .target-meta {}
+    .target-meta-title { font-size: 20px; font-weight: 700; color: var(--text-emphasis); font-family: 'GeistMono', monospace; line-height: 1; }
+    .target-meta-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+    .os-bars { display: flex; flex-direction: column; gap: 5px; }
+
+    .os-bar-row { display: flex; align-items: center; gap: 8px; }
+    .os-bar-label { font-size: 11px; color: var(--text-secondary); width: 60px; flex-shrink: 0; }
+    .os-bar-track {
+      flex: 1;
+      height: 5px;
+      background: var(--border2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .os-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+    .os-bar-fill.emerald { background: var(--brand); }
+    .os-bar-fill.gray { background: var(--text-faint); }
+    .os-bar-fill.blue { background: var(--blue); }
+    .os-bar-count { font-size: 11px; color: var(--text-muted); width: 30px; text-align: right; font-family: 'GeistMono', monospace; }
+
+    .tag-summary {
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: var(--input-bg);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'GeistMono', monospace;
+    }
+    .tag-summary span { color: var(--brand); }
+
+    /* Patch Impact */
+    .impact-hero {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .impact-number { font-size: 28px; font-weight: 700; color: var(--text-emphasis); font-family: 'GeistMono', monospace; line-height: 1; }
+    .impact-label { font-size: 12px; color: var(--text-muted); }
+
+    .impact-breakdown {
+      display: flex;
+      gap: 3px;
+      height: 24px;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .impact-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      transition: flex 0.4s;
+    }
+    .impact-seg.critical { background: var(--red); }
+    .impact-seg.high { background: var(--amber); }
+    .impact-seg.excluded { background: var(--text-faint); opacity: 0.4; }
+
+    .impact-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .impact-leg-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .leg-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+
+    .excluded-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 6px 8px;
+      background: var(--input-bg);
+      border-radius: 5px;
+      margin-bottom: 12px;
+    }
+
+    /* CVSS histogram */
+    .cvss-hist {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 36px;
+      margin-bottom: 4px;
+    }
+    .cvss-bar {
+      flex: 1;
+      background: var(--brand);
+      border-radius: 2px 2px 0 0;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .cvss-bar:hover { opacity: 1; }
+    .cvss-axis {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2px;
+    }
+    .cvss-axis-label { font-size: 9px; color: var(--text-faint); font-family: 'GeistMono', monospace; }
+
+    .remediation-note {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .remediation-note strong { color: var(--text-secondary); }
+
+    /* Schedule Preview */
+    .cal-strip { display: flex; gap: 4px; margin-bottom: 12px; }
+    .cal-day {
+      flex: 1;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      background: var(--input-bg);
+      padding: 6px 4px;
+      text-align: center;
+    }
+    .cal-day.active {
+      border-color: var(--brand);
+      background: var(--brand-dim);
+    }
+    .cal-day-name { font-size: 9px; color: var(--text-muted); margin-bottom: 4px; }
+    .cal-day.active .cal-day-name { color: var(--brand); font-weight: 600; }
+    .cal-day-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+      margin: 0 auto 4px;
+    }
+    .cal-day.active .cal-day-dot { background: var(--brand); }
+    .cal-day-date { font-size: 10px; color: var(--text-faint); font-family: 'GeistMono', monospace; }
+    .cal-day.active .cal-day-date { color: var(--text-secondary); }
+
+    .maint-window-bar {
+      height: 8px;
+      background: var(--border2);
+      border-radius: 3px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .maint-window-fill {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: var(--amber);
+      opacity: 0.4;
+      border-radius: 2px;
+    }
+    .maint-window-note { font-size: 10px; color: var(--text-muted); margin-bottom: 10px; }
+
+    .next-run-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 8px 10px;
+      background: var(--input-bg);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .next-run-text strong { color: var(--brand); }
+
+    .run-history { display: flex; flex-direction: column; gap: 1px; }
+    .run-history-title { font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+
+    .run-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 5px;
+      background: var(--input-bg);
+      margin-bottom: 3px;
+    }
+    .run-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .run-dot.success { background: var(--brand); }
+    .run-dot.partial { background: var(--amber); }
+    .run-dot.failed { background: var(--red); }
+    .run-date { font-size: 11px; color: var(--text-secondary); font-family: 'GeistMono', monospace; flex: 1; }
+    .run-result { font-size: 10px; font-weight: 600; }
+    .run-result.success { color: var(--brand); }
+    .run-result.partial { color: var(--amber); }
+    .run-result.failed { color: var(--red); }
+    .run-count { font-size: 10px; color: var(--text-muted); }
+
+    /* Policy Score */
+    .score-top { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+
+    .score-ring-wrap { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+    .score-ring-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-pct { font-size: 16px; font-weight: 700; color: var(--text-emphasis); font-family: 'GeistMono', monospace; }
+    .score-sub { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+
+    .score-meta { flex: 1; }
+    .score-meta-line { font-size: 12px; color: var(--text-primary); margin-bottom: 5px; }
+    .score-meta-line strong { color: var(--brand); }
+
+    .score-risk-reduction {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      background: var(--brand-dim);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .score-risk-num { font-size: 15px; font-weight: 700; color: var(--brand); font-family: 'GeistMono', monospace; }
+    .score-risk-label { font-size: 11px; color: var(--text-secondary); }
+
+    .before-after {
+      display: flex;
+      gap: 8px;
+    }
+    .ba-col {
+      flex: 1;
+      border-radius: 6px;
+      padding: 10px;
+    }
+    .ba-col.before { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.2); }
+    .ba-col.after { background: var(--brand-dim); border: 1px solid rgba(16,185,129,0.2); }
+
+    [data-theme="light"] .ba-col.after { border-color: rgba(124,58,237,0.2); }
+
+    .ba-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .ba-col.before .ba-label { color: var(--amber); }
+    .ba-col.after .ba-label { color: var(--brand); }
+    .ba-endpoint { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+    .ba-risk { font-size: 11px; }
+    .ba-col.before .ba-risk { color: var(--amber); }
+    .ba-col.after .ba-risk { color: var(--brand); }
+
+    /* ─── Divider ────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    /* ─── Collapsible ────────────────────────────────── */
+    .collapse-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 2px 0;
+      user-select: none;
+    }
+    .collapse-header:hover .collapse-chevron { color: var(--text-primary); }
+    .collapse-chevron { color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+    .collapse-chevron.open { transform: rotate(90deg); }
+
+    .collapse-body { overflow: hidden; transition: max-height 0.3s; }
+    .collapse-body.open { max-height: 600px; }
+    .collapse-body.closed { max-height: 0; }
+
+    /* ─── Animated counter ───────────────────────────── */
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .count-anim { animation: countUp 0.4s ease; }
+
+    /* ─── Pulse dot ──────────────────────────────────── */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--brand);
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══ SIDEBAR ════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg class="logo-icon" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="6" fill="#10b981"/>
+        <path d="M7 14l5 5 9-9" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="logo-text">PatchIQ</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Platform</div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 13c0-2.2 2.7-4 6-4s6 1.8 6 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Endpoints
+          <span class="nav-badge">1,247</span>
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="5" cy="8" r="2.5" stroke="currentColor" stroke-width="1.4"/><circle cx="11" cy="4" r="2" stroke="currentColor" stroke-width="1.4"/><circle cx="11" cy="12" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M7.5 8h1M8.5 4.8l-1 1.6M8.5 11.2l-1-1.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Tags
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 8h10M3 12h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Patches
+          <span class="nav-badge">847</span>
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5l3.5-.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+          CVEs
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Operations</div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Deployments
+        </div>
+        <div class="nav-item active">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="currentColor" stroke-width="1.4"/><path d="M5 7h6M5 9.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Policies
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M11 9v4M9 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Workflows
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 12V6l4-3 4 3v6" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><rect x="6" y="9" width="4" height="3" rx="0.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          Compliance
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Monitoring</div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 8h2l1-2 1.5 4 1-2H12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Audit Log
+        </div>
+        <div class="nav-item">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v2M8 12v2M2 8h2M12 8h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.4"/></svg>
+          Notifications
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="nav-item">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 13c0-2.2 2.24-4 5-4s5 1.8 5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        heramb
+        <span class="nav-badge" style="background:var(--brand-dim);color:var(--brand);border-color:transparent">Admin</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══════════════════════════════════════ -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span class="breadcrumb-seg">Operations</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-seg">Policies</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current">Create Policy</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <svg id="theme-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5v1M8 13.5v1M1.5 8h1M13.5 8h1M3.5 3.5l.7.7M11.8 11.8l.7.7M11.8 3.5l-.7.7M3.5 11.8l-.7.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ═══ LEFT COLUMN ═══════════════════════════ -->
+      <div class="col-left">
+
+        <!-- Card 1: Basics -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="currentColor" stroke-width="1.4"/><path d="M5 7h6M5 9.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                Basics
+              </div>
+              <div class="card-subtitle">Name, description and operating mode</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Policy Name</label>
+            <input type="text" id="policy-name" value="Production Critical Patches" placeholder="e.g. Production Critical Patches" oninput="updateReview()"/>
+          </div>
+
+          <div class="form-group">
+            <label>Description <span style="color:var(--text-faint);font-weight:400">(optional)</span></label>
+            <textarea placeholder="Describe what this policy does and why it exists…" rows="2"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Mode</label>
+            <div class="mode-cards">
+              <div class="mode-card selected" onclick="selectMode(this, 'automatic')">
+                <div class="mode-card-icon">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6 7.5l1.5 1.5L10 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="mode-card-title">Automatic</div>
+                <div class="mode-card-desc">Deploy patches automatically on schedule</div>
+              </div>
+              <div class="mode-card" onclick="selectMode(this, 'manual')">
+                <div class="mode-card-icon">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M7 3v5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"/></svg>
+                </div>
+                <div class="mode-card-title">Manual</div>
+                <div class="mode-card-desc">Create deployments on demand</div>
+              </div>
+              <div class="mode-card" onclick="selectMode(this, 'advisory')">
+                <div class="mode-card-icon">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5.5v3M8 10.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </div>
+                <div class="mode-card-title">Advisory</div>
+                <div class="mode-card-desc">Monitor only, no deployments</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Policy Enabled</div>
+              <div class="toggle-desc">Starts enforcing immediately after creation</div>
+            </div>
+            <div class="toggle on" id="enabled-toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <!-- Card 2: Target Endpoints -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r=".8" fill="currentColor"/></svg>
+                Target Endpoints
+              </div>
+              <div class="card-subtitle">Tag expression to select which endpoints this policy applies to</div>
+            </div>
+          </div>
+
+          <div class="tag-builder" id="tag-builder">
+            <!-- Conditions rendered by JS -->
+          </div>
+          <div style="margin-top:8px">
+            <button class="tag-add-btn" onclick="addTagCondition()">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Add condition
+            </button>
+          </div>
+          <div class="divider"></div>
+          <div class="match-result">
+            <div class="live-dot"></div>
+            <div class="match-count" id="match-count">423</div>
+            <div class="match-label">endpoints match this expression</div>
+          </div>
+        </div>
+
+        <!-- Card 3: Patch Selection -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><path d="M9 11.5h6M12 9v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                Patch Selection
+              </div>
+              <div class="card-subtitle">Define which patches this policy includes</div>
+            </div>
+          </div>
+
+          <div class="patch-mode-grid">
+            <div class="patch-mode-card" onclick="selectPatchMode(this, 'all')">
+              <div class="patch-mode-icon">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4 8l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="patch-mode-text">
+                <div class="patch-mode-title">All Available</div>
+                <div class="patch-mode-desc">Apply all patches for matched endpoints</div>
+              </div>
+            </div>
+            <div class="patch-mode-card selected" onclick="selectPatchMode(this, 'severity')">
+              <div class="patch-mode-icon">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 12V9M6 12V6M9 12V4M12 12V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="patch-mode-text">
+                <div class="patch-mode-title">By Severity</div>
+                <div class="patch-mode-desc">Filter by minimum severity threshold</div>
+              </div>
+            </div>
+            <div class="patch-mode-card" onclick="selectPatchMode(this, 'cve')">
+              <div class="patch-mode-icon">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 7h8M3 10h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="patch-mode-text">
+                <div class="patch-mode-title">By CVE List</div>
+                <div class="patch-mode-desc">Specific CVE identifiers only</div>
+              </div>
+            </div>
+            <div class="patch-mode-card" onclick="selectPatchMode(this, 'regex')">
+              <div class="patch-mode-icon">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 5l2 6M8 5l2 6M5 8h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              </div>
+              <div class="patch-mode-text">
+                <div class="patch-mode-title">By Package Regex</div>
+                <div class="patch-mode-desc">Match package name patterns</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Severity Options (shown when severity mode active) -->
+          <div id="severity-options">
+            <label>Minimum Severity Threshold</label>
+            <div class="severity-selector" style="margin-bottom:8px">
+              <div class="sev-option critical active" onclick="selectSeverity('critical')">Critical</div>
+              <div class="sev-option high active" onclick="selectSeverity('high')">High</div>
+              <div class="sev-option medium" onclick="selectSeverity('medium')">Medium</div>
+              <div class="sev-option low" onclick="selectSeverity('low')">Low</div>
+            </div>
+            <div class="sev-range-bar">
+              <div class="sev-seg critical included" id="sev-critical"></div>
+              <div class="sev-seg high included" id="sev-high"></div>
+              <div class="sev-seg medium" id="sev-medium"></div>
+              <div class="sev-seg low" id="sev-low"></div>
+            </div>
+            <div class="sev-bar-labels">
+              <div class="sev-bar-label" style="color:var(--red);font-weight:600">Critical</div>
+              <div class="sev-bar-label" style="color:var(--amber);font-weight:600">High</div>
+              <div class="sev-bar-label">Medium</div>
+              <div class="sev-bar-label">Low</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-group" style="margin-bottom:0">
+              <label>Exclude Packages</label>
+              <div class="tag-input-row" onclick="this.querySelector('input').focus()">
+                <div class="tag-chip">kernel-debug <span class="tag-chip-x" onclick="removeChip(event, this)">×</span></div>
+                <div class="tag-chip">firmware-test <span class="tag-chip-x" onclick="removeChip(event, this)">×</span></div>
+                <input class="tag-chip-input" placeholder="Type and press Enter…" onkeydown="addChip(event, this)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Schedule -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2 7h12M5 1v4M11 1v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                Schedule
+              </div>
+              <div class="card-subtitle">When deployments are created and executed</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Schedule Type</label>
+            <div class="seg-toggle">
+              <div class="seg-btn" id="sched-manual" onclick="selectScheduleType('manual')">Manual</div>
+              <div class="seg-btn active" id="sched-recurring" onclick="selectScheduleType('recurring')">Recurring</div>
+            </div>
+          </div>
+
+          <div id="recurring-options">
+            <div class="form-group">
+              <label>Frequency</label>
+              <div class="freq-row">
+                <div class="freq-btn" onclick="selectFreq(this)">Daily</div>
+                <div class="freq-btn active" onclick="selectFreq(this)">Weekly</div>
+                <div class="freq-btn" onclick="selectFreq(this)">Monthly</div>
+                <div class="freq-btn" onclick="selectFreq(this)">Custom</div>
+              </div>
+            </div>
+
+            <div id="day-picker-wrap" class="form-group">
+              <label>Day of Week</label>
+              <div class="day-pills">
+                <div class="day-pill active" onclick="toggleDay(this)">Mon</div>
+                <div class="day-pill" onclick="toggleDay(this)">Tue</div>
+                <div class="day-pill" onclick="toggleDay(this)">Wed</div>
+                <div class="day-pill" onclick="toggleDay(this)">Thu</div>
+                <div class="day-pill" onclick="toggleDay(this)">Fri</div>
+                <div class="day-pill" onclick="toggleDay(this)">Sat</div>
+                <div class="day-pill" onclick="toggleDay(this)">Sun</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Time (UTC)</label>
+              <input type="time" value="02:00" style="max-width:160px" oninput="updateSchedulePreview()"/>
+            </div>
+
+            <div class="schedule-preview-text" id="schedule-preview-text">
+              <strong>Every Monday at 02:00 UTC</strong>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="toggle-row" style="margin-bottom:10px">
+            <div>
+              <div class="toggle-label">Maintenance Window</div>
+              <div class="toggle-desc">Restrict deployments to a specific time window</div>
+            </div>
+            <div class="toggle on" id="maint-toggle" onclick="toggleMaintWindow()"></div>
+          </div>
+
+          <div id="maint-window-opts">
+            <div class="time-row">
+              <div class="form-group">
+                <label>Window Start (UTC)</label>
+                <input type="time" value="02:00" />
+              </div>
+              <div class="form-group">
+                <label>Window End (UTC)</label>
+                <input type="time" value="06:00" />
+              </div>
+            </div>
+            <div class="schedule-preview-text">
+              Window: <strong>Sat 02:00 – 06:00 UTC</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Review -->
+        <div class="card">
+          <div class="card-header" style="margin-bottom:12px">
+            <div class="card-title">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5l3.5-.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+              Review &amp; Create
+            </div>
+            <div class="collapse-header" onclick="toggleReview()">
+              <span style="font-size:11px;color:var(--text-muted)">Summary</span>
+              <svg class="collapse-chevron" id="review-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <div class="collapse-body open" id="review-body">
+            <div class="review-summary">
+              <div class="review-row">
+                <div class="review-key">Name</div>
+                <div class="review-val" id="rv-name">Production Critical Patches</div>
+              </div>
+              <div class="review-row">
+                <div class="review-key">Mode</div>
+                <div class="review-val"><span class="review-badge emerald" id="rv-mode">Automatic</span></div>
+              </div>
+              <div class="review-row">
+                <div class="review-key">Target</div>
+                <div class="review-val"><code>env:production AND os:linux</code></div>
+              </div>
+              <div class="review-row">
+                <div class="review-key">Endpoint Count</div>
+                <div class="review-val" id="rv-endpoints"><span class="review-badge emerald">423 endpoints</span></div>
+              </div>
+              <div class="review-row">
+                <div class="review-key">Patch Filter</div>
+                <div class="review-val">By Severity — <span style="color:var(--amber)">High+</span></div>
+              </div>
+              <div class="review-row">
+                <div class="review-key">Patches</div>
+                <div class="review-val" id="rv-patches"><span class="review-badge amber">70 patches</span></div>
+              </div>
+              <div class="review-row">
+                <div class="review-key">Schedule</div>
+                <div class="review-val">Every Monday at 02:00 UTC</div>
+              </div>
+              <div class="review-row">
+                <div class="review-key">Maint. Window</div>
+                <div class="review-val">Sat 02:00 – 06:00 UTC</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="createPolicy()">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Create Policy
+          </button>
+          <button class="btn-ghost">Save as Draft</button>
+        </div>
+
+      </div>
+      <!-- END LEFT COLUMN -->
+
+      <!-- ═══ RIGHT COLUMN ══════════════════════════ -->
+      <div class="col-right">
+
+        <!-- Viz 1: Target Preview -->
+        <div class="viz-card">
+          <div class="viz-title">
+            <div class="viz-title-dot"></div>
+            Target Preview
+          </div>
+
+          <div class="target-hero">
+            <div class="ring-container">
+              <svg width="60" height="60" viewBox="0 0 60 60" style="transform:rotate(-90deg)">
+                <circle cx="30" cy="30" r="22" fill="none" stroke="var(--border2)" stroke-width="7"/>
+                <circle cx="30" cy="30" r="22" fill="none" stroke="var(--brand)" stroke-width="7"
+                  stroke-dasharray="138.2" stroke-dashoffset="91" stroke-linecap="round"
+                  id="target-ring"/>
+              </svg>
+              <div class="ring-label">
+                <div class="ring-number" style="font-size:14px">34%</div>
+                <div class="ring-pct">of fleet</div>
+              </div>
+            </div>
+            <div class="target-meta">
+              <div class="target-meta-title" id="viz-match-count">423</div>
+              <div class="target-meta-sub">endpoints matched</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:4px">of 1,247 total</div>
+            </div>
+          </div>
+
+          <div class="os-bars">
+            <div class="os-bar-row">
+              <div class="os-bar-label">Linux</div>
+              <div class="os-bar-track">
+                <div class="os-bar-fill emerald" style="width:73.8%"></div>
+              </div>
+              <div class="os-bar-count">312</div>
+            </div>
+            <div class="os-bar-row">
+              <div class="os-bar-label">Windows</div>
+              <div class="os-bar-track">
+                <div class="os-bar-fill gray" style="width:21%"></div>
+              </div>
+              <div class="os-bar-count">89</div>
+            </div>
+            <div class="os-bar-row">
+              <div class="os-bar-label">macOS</div>
+              <div class="os-bar-track">
+                <div class="os-bar-fill blue" style="width:5.2%"></div>
+              </div>
+              <div class="os-bar-count">22</div>
+            </div>
+          </div>
+
+          <div class="tag-summary">
+            <span>env:production</span> × 423 &nbsp;·&nbsp; <span>os:linux</span> × 312
+          </div>
+        </div>
+
+        <!-- Viz 2: Patch Impact -->
+        <div class="viz-card" id="patch-impact-viz">
+          <div class="viz-title">
+            <div class="viz-title-dot" style="background:var(--amber)"></div>
+            Patch Impact
+          </div>
+
+          <div class="impact-hero">
+            <div class="impact-number" id="viz-patch-count">70</div>
+            <div class="impact-label">patches included</div>
+          </div>
+
+          <div class="impact-breakdown" id="impact-breakdown">
+            <div class="impact-seg critical" id="seg-critical" style="flex:23">23</div>
+            <div class="impact-seg high" id="seg-high" style="flex:47">47</div>
+          </div>
+
+          <div class="impact-legend">
+            <div class="impact-leg-item">
+              <div class="leg-dot" style="background:var(--red)"></div>
+              <span>23 Critical</span>
+            </div>
+            <div class="impact-leg-item">
+              <div class="leg-dot" style="background:var(--amber)"></div>
+              <span>47 High</span>
+            </div>
+          </div>
+
+          <div class="excluded-note" id="excluded-note">77 below threshold (Medium + Low) excluded</div>
+
+          <div style="font-size:10px;color:var(--text-faint);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em">CVSS Distribution</div>
+          <div class="cvss-hist" id="cvss-hist">
+            <!-- rendered by JS -->
+          </div>
+          <div class="cvss-axis">
+            <span class="cvss-axis-label">7.0</span>
+            <span class="cvss-axis-label">7.5</span>
+            <span class="cvss-axis-label">8.0</span>
+            <span class="cvss-axis-label">8.5</span>
+            <span class="cvss-axis-label">9.0</span>
+            <span class="cvss-axis-label">9.5</span>
+            <span class="cvss-axis-label">10</span>
+          </div>
+
+          <div class="remediation-note">
+            Estimated remediation: <strong>~4.2h per endpoint</strong>
+          </div>
+        </div>
+
+        <!-- Viz 3: Schedule Preview -->
+        <div class="viz-card" id="schedule-viz">
+          <div class="viz-title">
+            <div class="viz-title-dot" style="background:var(--blue)"></div>
+            Schedule Preview
+          </div>
+
+          <div class="cal-strip" id="cal-strip">
+            <!-- rendered by JS -->
+          </div>
+
+          <div class="maint-window-bar">
+            <div class="maint-window-fill" style="left:8.3%;width:16.7%"></div>
+          </div>
+          <div class="maint-window-note">
+            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" style="vertical-align:middle;margin-right:3px"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="var(--amber)" stroke-width="1.4"/><path d="M2 7h12M5 1v4M11 1v4" stroke="var(--amber)" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Maintenance window: <span style="color:var(--amber)">Sat 02:00 – 06:00 UTC</span>
+          </div>
+
+          <div class="next-run-text">
+            Next run: <strong>Mon Mar 24, 02:00 UTC</strong> <span style="color:var(--text-faint)">(in 16h)</span>
+          </div>
+
+          <div class="run-history">
+            <div class="run-history-title">Last 4 runs</div>
+            <div class="run-row">
+              <div class="run-dot success"></div>
+              <div class="run-date">Mon Mar 17</div>
+              <div class="run-result success">Success</div>
+              <div class="run-count">423 patched</div>
+            </div>
+            <div class="run-row">
+              <div class="run-dot partial"></div>
+              <div class="run-date">Mon Mar 10</div>
+              <div class="run-result partial">Partial</div>
+              <div class="run-count">398/423</div>
+            </div>
+            <div class="run-row">
+              <div class="run-dot success"></div>
+              <div class="run-date">Mon Mar 03</div>
+              <div class="run-result success">Success</div>
+              <div class="run-count">421 patched</div>
+            </div>
+            <div class="run-row">
+              <div class="run-dot success"></div>
+              <div class="run-date">Mon Feb 24</div>
+              <div class="run-result success">Success</div>
+              <div class="run-count">417 patched</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Viz 4: Policy Score -->
+        <div class="viz-card">
+          <div class="viz-title">
+            <div class="viz-title-dot" style="background:var(--brand)"></div>
+            Policy Score
+          </div>
+
+          <div class="score-top">
+            <div class="score-ring-wrap">
+              <svg width="80" height="80" viewBox="0 0 80 80" style="transform:rotate(-90deg)">
+                <circle cx="40" cy="40" r="31" fill="none" stroke="var(--border2)" stroke-width="9"/>
+                <circle cx="40" cy="40" r="31" fill="none" stroke="var(--brand)" stroke-width="9"
+                  stroke-dasharray="194.8" stroke-dashoffset="59" stroke-linecap="round"/>
+              </svg>
+              <div class="score-ring-label">
+                <div class="score-pct">70%</div>
+                <div class="score-sub">score</div>
+              </div>
+            </div>
+            <div class="score-meta">
+              <div class="score-meta-line">Covers <strong>34% of fleet</strong></div>
+              <div class="score-meta-line" style="margin-top:3px;color:var(--text-secondary)">Targets <strong>70 vulnerabilities</strong></div>
+              <div class="score-meta-line" style="margin-top:3px;font-size:11px;color:var(--text-muted)">Across 423 endpoints</div>
+            </div>
+          </div>
+
+          <div class="score-risk-reduction">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M4 9l4 4 4-4" stroke="var(--brand)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="score-risk-num">−2.3</div>
+            <div class="score-risk-label">estimated risk score reduction</div>
+          </div>
+
+          <div class="before-after">
+            <div class="ba-col before">
+              <div class="ba-label">Before</div>
+              <div class="ba-endpoint">423 endpoints</div>
+              <div class="ba-risk">avg risk 4.7</div>
+            </div>
+            <div class="ba-col after">
+              <div class="ba-label">After</div>
+              <div class="ba-endpoint">423 endpoints</div>
+              <div class="ba-risk">avg risk 2.4</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- END RIGHT COLUMN -->
+
+    </div>
+    <!-- END CONTENT -->
+  </div>
+</div>
+
+<script>
+  // ─── Theme Toggle ──────────────────────────────────
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    const icon = document.getElementById('theme-icon');
+    if (isDark) {
+      icon.innerHTML = '<path d="M8 3a5 5 0 100 10A5 5 0 008 3z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M14 8a6 6 0 01-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>';
+    } else {
+      icon.innerHTML = '<circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5v1M8 13.5v1M1.5 8h1M13.5 8h1M3.5 3.5l.7.7M11.8 11.8l.7.7M11.8 3.5l-.7.7M3.5 11.8l-.7.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>';
+    }
+  }
+
+  // ─── Mode Selection ────────────────────────────────
+  function selectMode(el, mode) {
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    const labels = { automatic: 'Automatic', manual: 'Manual', advisory: 'Advisory' };
+    document.getElementById('rv-mode').textContent = labels[mode];
+  }
+
+  // ─── Tag Conditions ────────────────────────────────
+  const conditions = [
+    { key: 'env', val: 'production', connector: null },
+    { key: 'os', val: 'linux', connector: 'AND' },
+  ];
+
+  const keys = ['env', 'os', 'region', 'tier', 'dc', 'owner'];
+  const vals = {
+    env: ['production', 'staging', 'dev', 'qa'],
+    os: ['linux', 'windows', 'macos'],
+    region: ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'],
+    tier: ['web', 'db', 'api', 'worker'],
+    dc: ['dc-1', 'dc-2', 'dc-3'],
+    owner: ['platform', 'security', 'devops', 'app'],
+  };
+
+  function renderTagBuilder() {
+    const builder = document.getElementById('tag-builder');
+    builder.innerHTML = '';
+    conditions.forEach((c, i) => {
+      const row = document.createElement('div');
+      row.className = 'tag-condition-row';
+      let html = '';
+      if (i > 0) {
+        const conn = c.connector || 'AND';
+        html += `<div class="tag-connector active" onclick="toggleConnector(${i})">${conn}</div>`;
+      }
+      const keyOpts = keys.map(k => `<option value="${k}" ${k === c.key ? 'selected' : ''}>${k}</option>`).join('');
+      const valOpts = (vals[c.key] || [c.val]).map(v => `<option value="${v}" ${v === c.val ? 'selected' : ''}>${v}</option>`).join('');
+      html += `<select class="tag-key-select" onchange="updateConditionKey(${i}, this.value)">${keyOpts}</select>`;
+      html += `<span style="color:var(--text-faint);font-size:11px;flex-shrink:0">:</span>`;
+      html += `<select class="tag-val-select" onchange="updateConditionVal(${i}, this.value)">${valOpts}</select>`;
+      if (i > 0) {
+        html += `<button class="tag-remove-btn" onclick="removeCondition(${i})" title="Remove">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>`;
+      }
+      row.innerHTML = html;
+      builder.appendChild(row);
+    });
+  }
+
+  function addTagCondition() {
+    const keyOptions = keys;
+    conditions.push({ key: keyOptions[Math.floor(Math.random() * keyOptions.length)], val: 'production', connector: 'AND' });
+    renderTagBuilder();
+    updateMatchCount();
+  }
+
+  function removeCondition(i) {
+    conditions.splice(i, 1);
+    renderTagBuilder();
+    updateMatchCount();
+  }
+
+  function toggleConnector(i) {
+    conditions[i].connector = conditions[i].connector === 'AND' ? 'OR' : 'AND';
+    renderTagBuilder();
+  }
+
+  function updateConditionKey(i, key) {
+    conditions[i].key = key;
+    conditions[i].val = (vals[key] || ['value'])[0];
+    renderTagBuilder();
+    updateMatchCount();
+  }
+
+  function updateConditionVal(i, val) {
+    conditions[i].val = val;
+    updateMatchCount();
+  }
+
+  function updateMatchCount() {
+    // Simulated: randomize slightly
+    const base = 423;
+    const count = base + Math.floor((Math.random() - 0.5) * 40);
+    const el = document.getElementById('match-count');
+    el.classList.remove('count-anim');
+    void el.offsetWidth;
+    el.classList.add('count-anim');
+    el.textContent = count;
+    document.getElementById('viz-match-count').textContent = count;
+  }
+
+  // ─── Patch Mode ────────────────────────────────────
+  function selectPatchMode(el, mode) {
+    document.querySelectorAll('.patch-mode-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    const sevOpts = document.getElementById('severity-options');
+    sevOpts.style.display = mode === 'severity' ? '' : 'none';
+    const impactViz = document.getElementById('patch-impact-viz');
+    impactViz.style.display = mode === 'severity' || mode === 'all' ? '' : 'none';
+    updatePatchImpact();
+  }
+
+  // ─── Severity Selection ────────────────────────────
+  let selectedSeverity = 'high';
+
+  const severityData = {
+    critical: { critical: 23, high: 47, medium: 77, low: 38, included: ['critical'], patches: 23, excluded: 162 },
+    high:     { critical: 23, high: 47, medium: 77, low: 38, included: ['critical','high'], patches: 70, excluded: 115 },
+    medium:   { critical: 23, high: 47, medium: 77, low: 38, included: ['critical','high','medium'], patches: 147, excluded: 38 },
+    low:      { critical: 23, high: 47, medium: 77, low: 38, included: ['critical','high','medium','low'], patches: 185, excluded: 0 },
+  };
+
+  function selectSeverity(sev) {
+    selectedSeverity = sev;
+    const sevs = ['critical','high','medium','low'];
+    const threshold = sevs.indexOf(sev);
+
+    document.querySelectorAll('.sev-option').forEach((el, i) => {
+      el.classList.remove('active');
+    });
+
+    // Mark active from 0 to threshold
+    const opts = document.querySelectorAll('.sev-option');
+    for (let i = 0; i <= threshold; i++) {
+      opts[i].classList.add('active');
+    }
+
+    // Update range bar
+    sevs.forEach((s, i) => {
+      const seg = document.getElementById('sev-' + s);
+      seg.classList.toggle('included', i <= threshold);
+    });
+
+    updatePatchImpact();
+  }
+
+  function updatePatchImpact() {
+    const d = severityData[selectedSeverity];
+    if (!d) return;
+
+    // Update count
+    const pc = document.getElementById('viz-patch-count');
+    pc.classList.remove('count-anim');
+    void pc.offsetWidth;
+    pc.classList.add('count-anim');
+    pc.textContent = d.patches;
+
+    // Update breakdown bar
+    const breakdown = document.getElementById('impact-breakdown');
+    let html = '';
+    if (d.included.includes('critical')) html += `<div class="impact-seg critical" style="flex:${d.critical}">${d.critical}</div>`;
+    if (d.included.includes('high'))     html += `<div class="impact-seg high" style="flex:${d.high}">${d.high}</div>`;
+    if (d.included.includes('medium'))   html += `<div class="impact-seg" style="flex:${d.medium};background:#6b7280;color:rgba(255,255,255,0.8)">${d.medium}</div>`;
+    if (d.included.includes('low'))      html += `<div class="impact-seg" style="flex:${d.low};background:#4b5563;color:rgba(255,255,255,0.8)">${d.low}</div>`;
+    if (d.excluded > 0) html += `<div class="impact-seg excluded" style="flex:${d.excluded}"></div>`;
+    breakdown.innerHTML = html;
+
+    // Excluded note
+    const note = document.getElementById('excluded-note');
+    if (d.excluded > 0) {
+      const excludedLabels = ['critical','high','medium','low'].slice(['critical','high','medium','low'].indexOf(selectedSeverity) + 1);
+      note.textContent = `${d.excluded} below threshold (${excludedLabels.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' + ')}) excluded`;
+      note.style.display = '';
+    } else {
+      note.style.display = 'none';
+    }
+
+    // Review
+    document.getElementById('rv-patches').innerHTML = `<span class="review-badge amber">${d.patches} patches</span>`;
+  }
+
+  // ─── Chip Input ────────────────────────────────────
+  function removeChip(e, el) {
+    e.stopPropagation();
+    el.closest('.tag-chip').remove();
+  }
+
+  function addChip(e, input) {
+    if (e.key === 'Enter' && input.value.trim()) {
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.innerHTML = `${input.value.trim()} <span class="tag-chip-x" onclick="removeChip(event, this)">×</span>`;
+      input.parentNode.insertBefore(chip, input);
+      input.value = '';
+    }
+  }
+
+  // ─── Schedule ──────────────────────────────────────
+  function selectScheduleType(type) {
+    document.getElementById('sched-manual').classList.toggle('active', type === 'manual');
+    document.getElementById('sched-recurring').classList.toggle('active', type === 'recurring');
+    document.getElementById('recurring-options').style.display = type === 'recurring' ? '' : 'none';
+    document.getElementById('schedule-viz').style.display = type === 'recurring' ? '' : 'none';
+  }
+
+  function selectFreq(el) {
+    document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    const freq = el.textContent;
+    document.getElementById('day-picker-wrap').style.display = freq === 'Weekly' ? '' : 'none';
+    updateSchedulePreview();
+  }
+
+  function toggleDay(el) {
+    el.classList.toggle('active');
+    updateSchedulePreview();
+    updateCalStrip();
+  }
+
+  function updateSchedulePreview() {
+    const days = Array.from(document.querySelectorAll('.day-pill.active')).map(d => d.textContent);
+    const time = document.querySelector('input[type="time"]')?.value || '02:00';
+    const freq = document.querySelector('.freq-btn.active')?.textContent || 'Weekly';
+    let text = '';
+    if (freq === 'Weekly') {
+      text = days.length ? `Every ${days.join(', ')} at ${time} UTC` : `Every week at ${time} UTC`;
+    } else if (freq === 'Daily') {
+      text = `Every day at ${time} UTC`;
+    } else if (freq === 'Monthly') {
+      text = `Monthly at ${time} UTC`;
+    } else {
+      text = `Custom schedule at ${time} UTC`;
+    }
+    document.getElementById('schedule-preview-text').innerHTML = `<strong>${text}</strong>`;
+  }
+
+  function toggleMaintWindow() {
+    const t = document.getElementById('maint-toggle');
+    t.classList.toggle('on');
+    const opts = document.getElementById('maint-window-opts');
+    opts.style.display = t.classList.contains('on') ? '' : 'none';
+  }
+
+  // ─── Calendar Strip ────────────────────────────────
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayDates = ['24','25','26','27','28','29','30'];
+
+  function updateCalStrip() {
+    const activeDays = Array.from(document.querySelectorAll('.day-pill.active')).map(d => d.textContent);
+    const strip = document.getElementById('cal-strip');
+    strip.innerHTML = dayNames.map((d, i) => `
+      <div class="cal-day ${activeDays.includes(d) ? 'active' : ''}">
+        <div class="cal-day-name">${d}</div>
+        <div class="cal-day-dot"></div>
+        <div class="cal-day-date">Mar ${dayDates[i]}</div>
+      </div>
+    `).join('');
+  }
+
+  // ─── CVSS Histogram ────────────────────────────────
+  const cvssData = [8, 15, 22, 18, 12, 8, 4]; // bars at 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0
+  function renderCvssHist() {
+    const max = Math.max(...cvssData);
+    const hist = document.getElementById('cvss-hist');
+    hist.innerHTML = cvssData.map(v =>
+      `<div class="cvss-bar" style="height:${(v/max)*100}%" title="${v} patches"></div>`
+    ).join('');
+  }
+
+  // ─── Review ────────────────────────────────────────
+  function updateReview() {
+    const name = document.getElementById('policy-name').value;
+    document.getElementById('rv-name').textContent = name || '—';
+  }
+
+  let reviewOpen = true;
+  function toggleReview() {
+    reviewOpen = !reviewOpen;
+    const body = document.getElementById('review-body');
+    const chev = document.getElementById('review-chevron');
+    body.className = `collapse-body ${reviewOpen ? 'open' : 'closed'}`;
+    chev.classList.toggle('open', reviewOpen);
+  }
+
+  // ─── Create Policy ─────────────────────────────────
+  function createPolicy() {
+    const btn = document.querySelector('.btn-primary');
+    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Policy Created!`;
+    btn.style.background = 'var(--brand)';
+    btn.style.opacity = '0.8';
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Create Policy`;
+      btn.style.opacity = '';
+    }, 2000);
+  }
+
+  // ─── Init ──────────────────────────────────────────
+  renderTagBuilder();
+  updateCalStrip();
+  renderCvssHist();
+  updatePatchImpact();
+  selectSeverity('high');
+</script>
+</body>
+</html>

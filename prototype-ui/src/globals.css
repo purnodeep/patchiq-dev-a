@@ -1,0 +1,233 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* Light mode — light blue tinted */
+  --color-background: #fafafa;
+  --color-foreground: #0f172a;
+  --color-muted: #64748b;
+  --color-muted-foreground: #64748b;
+  --color-subtle: #94a3b8;
+  --color-separator: #bfdbfe;
+
+  --color-primary: #2563eb;
+  --color-cyan: #0ea5e9;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+  --color-warning: #d97706;
+  --color-caution: #ca8a04;
+  --color-purple: #7c3aed;
+  --color-pink: #db2777;
+
+  /* Glass tokens — white */
+  --color-glass-bg: rgba(255, 255, 255, 0.70);
+  --color-glass-border: rgba(203, 213, 225, 0.55);
+  --color-glass-card: rgba(255, 255, 255, 0.88);
+  --color-glass-hover: rgba(255, 255, 255, 0.95);
+
+  /* Blob colors — vivid blue blobs on light bg */
+  --color-blob-1: rgba(37, 99, 235, 0.14);
+  --color-blob-2: rgba(14, 165, 233, 0.12);
+  --color-blob-3: rgba(124, 58, 237, 0.08);
+}
+
+.dark {
+  /* Dark mode — deep navy blue */
+  --color-background: #0a0e1a;
+  --color-foreground: #e2e8f0;
+  --color-muted: #64748b;
+  --color-muted-foreground: #64748b;
+  --color-subtle: #475569;
+  --color-separator: #1e293b;
+
+  --color-primary: #3b82f6;
+  --color-cyan: #38bdf8;
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-caution: #eab308;
+  --color-purple: #a855f7;
+  --color-pink: #ec4899;
+
+  /* Glass tokens — dark navy */
+  --color-glass-bg: rgba(15, 23, 42, 0.65);
+  --color-glass-border: rgba(255, 255, 255, 0.06);
+  --color-glass-card: rgba(17, 24, 39, 0.80);
+  --color-glass-hover: rgba(30, 41, 59, 0.88);
+
+  /* Blob colors — blue blobs on dark bg */
+  --color-blob-1: rgba(59, 130, 246, 0.18);
+  --color-blob-2: rgba(56, 189, 248, 0.14);
+  --color-blob-3: rgba(168, 85, 247, 0.10);
+}
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -40; }
+}
+
+/* Strip React Flow's default node wrapper chrome */
+.react-flow__node {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-separator);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  /* Glass card utility */
+  .glass {
+    background: var(--color-glass-bg);
+    backdrop-filter: blur(40px) saturate(1.8);
+    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-2xl);
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.04),
+      0 2px 8px rgba(0, 0, 0, 0.05),
+      0 8px 32px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
+  }
+  .dark .glass {
+    box-shadow:
+      0 0 0 0.5px rgba(255, 255, 255, 0.03),
+      0 2px 8px rgba(0, 0, 0, 0.4),
+      0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  .glass:hover {
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.06),
+      0 4px 16px rgba(0, 0, 0, 0.08),
+      0 12px 48px rgba(0, 0, 0, 0.05);
+  }
+  .dark .glass:hover {
+    box-shadow:
+      0 0 0 0.5px rgba(255, 255, 255, 0.06),
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      0 12px 48px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Glass card (denser for content cards) */
+  .glass-card {
+    background: var(--color-glass-card);
+    backdrop-filter: blur(40px) saturate(1.8);
+    -webkit-backdrop-filter: blur(40px) saturate(1.8);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.05),
+      0 8px 32px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .dark .glass-card {
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.4),
+      0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Hoverable widget — blue glow + subtle zoom */
+  .glass-card-hover:hover {
+    transform: scale(1.015);
+    border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-primary) 30%, transparent),
+      0 4px 20px color-mix(in srgb, var(--color-primary) 15%, transparent),
+      0 12px 40px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+  }
+  .dark .glass-card-hover:hover {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-primary) 40%, transparent),
+      0 4px 20px color-mix(in srgb, var(--color-primary) 20%, transparent),
+      0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Blob animations */
+@keyframes float-blob-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -25px) scale(1.05); }
+  66% { transform: translate(-15px, 15px) scale(0.95); }
+}
+@keyframes float-blob-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-25px, 20px) scale(0.95); }
+  66% { transform: translate(20px, -10px) scale(1.05); }
+}
+@keyframes float-blob-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(15px, -20px) scale(1.03); }
+}
+
+/* Pulse ring for status dots */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Contained pulse ring — stays close to element (for tight widgets) */
+@keyframes pulse-ring-sm {
+  0% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+
+/* Sweep animation for ring gauges */
+@keyframes sweep {
+  from { stroke-dashoffset: 283; }
+}
+
+/* Stagger reveal for dashboard widgets */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-separator); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
+
+/* ── Dashboard grid edit mode ─────────────────────────────────────────────── */
+.widget-shell-edit {
+  outline: 1.5px dashed var(--color-separator);
+  outline-offset: -1px;
+  border-radius: var(--radius-xl);
+}
+
+/* Hide rgl resize handle by default; show on hover in edit mode */
+.react-resizable-handle {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.widget-shell-edit:hover .react-resizable-handle {
+  opacity: 1;
+}
+
+/* Theme the resize handle arrow to use primary color */
+.react-resizable-handle::after {
+  border-color: var(--color-primary) !important;
+}

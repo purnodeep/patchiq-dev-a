@@ -1,0 +1,22 @@
+[Unit]
+Description=PatchIQ Agent
+Documentation=https://github.com/skenzeriq/patchiq
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/patchiq-agent
+Restart=always
+RestartSec=5
+Environment=PATCHIQ_AGENT_DATA_DIR=/var/lib/patchiq
+WorkingDirectory=/var/lib/patchiq
+LimitNOFILE=65536
+# Hardening: prevent privilege escalation and restrict filesystem access
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/patchiq /etc/patchiq
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatchIQ Design Token Specification</title>
+  <style>
+    @font-face {
+      font-family: 'Geist';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GeistMono';
+      src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    /* ─── Design Tokens: Dark (default) ────────────────────── */
+    :root {
+      --bg-page:          #000000;
+      --bg-card:          #111113;
+      --bg-card-hover:    #1a1a1a;
+      --bg-elevated:      #141414;
+      --bg-canvas:        #080808;
+      --bg-inset:         #0a0a0a;
+
+      --border:           #222222;
+      --border-hover:     #2e2e2e;
+      --border-strong:    #333333;
+      --border-faint:     #1a1a1a;
+
+      --text-emphasis:    #ffffff;
+      --text-primary:     #d4d4d4;
+      --text-secondary:   #a1a1a1;
+      --text-muted:       #737373;
+      --text-faint:       #525252;
+
+      --accent:           #10b981;
+      --accent-subtle:    rgba(16,185,129,0.08);
+      --accent-border:    rgba(16,185,129,0.3);
+
+      --signal-healthy:         #22c55e;
+      --signal-critical:        #ef4444;
+      --signal-critical-dark:   #dc2626;
+      --signal-warning:         #f59e0b;
+      --signal-warning-dark:    #d97706;
+      --signal-critical-subtle: rgba(239,68,68,0.08);
+      --signal-warning-subtle:  rgba(245,158,11,0.08);
+
+      --skel-base:        #1a1a1a;
+      --skel-highlight:   #222222;
+
+      --font-sans:        'Geist', -apple-system, system-ui, sans-serif;
+      --font-mono:        'GeistMono', 'JetBrains Mono', monospace;
+
+      --space-xs:  4px;
+      --space-sm:  8px;
+      --space-md:  16px;
+      --space-lg:  24px;
+      --space-xl:  32px;
+
+      --radius-sm:   4px;
+      --radius-md:   6px;
+      --radius-lg:   8px;
+      --radius-xl:   12px;
+      --radius-full: 9999px;
+
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.5);
+      --shadow-md:   0 2px 4px rgba(0,0,0,0.4);
+      --shadow-lg:   0 8px 32px rgba(0,0,0,0.6);
+      --shadow-glow: 0 0 8px var(--accent-border);
+
+      --transition-fast:   150ms ease;
+      --transition-normal: 200ms ease;
+      --transition-slow:   300ms ease;
+      --shimmer-duration:  1.5s;
+      --pulse-duration:    4s;
+
+      --sidebar-width:         220px;
+      --sidebar-rail:          48px;
+      --topbar-height:         48px;
+      --tab-height:            40px;
+      --sheet-width:           560px;
+      --palette-width:         200px;
+      --properties-width:      260px;
+      --table-row-comfortable: 48px;
+      --table-row-compact:     36px;
+      --max-content-width:     1400px;
+    }
+
+    /* ─── Design Tokens: Light ────────────────────────────── */
+    html.light {
+      --bg-page:          #f5f5f5;
+      --bg-card:          #ffffff;
+      --bg-card-hover:    #f8f8f8;
+      --bg-elevated:      #ffffff;
+      --bg-canvas:        #eeeeee;
+      --bg-inset:         #f0f0f0;
+
+      --border:           #e0e0e0;
+      --border-hover:     #d4d4d4;
+      --border-strong:    #cccccc;
+      --border-faint:     #eeeeee;
+
+      --text-emphasis:    #0a0a0a;
+      --text-primary:     #1a1a1a;
+      --text-secondary:   #525252;
+      --text-muted:       #737373;
+      --text-faint:       #a1a1a1;
+
+      --accent:           #7c3aed;
+      --accent-subtle:    rgba(124,58,237,0.06);
+      --accent-border:    rgba(124,58,237,0.3);
+
+      --signal-healthy:         #22c55e;
+      --signal-critical:        #ef4444;
+      --signal-critical-dark:   #dc2626;
+      --signal-warning:         #f59e0b;
+      --signal-warning-dark:    #d97706;
+      --signal-critical-subtle: rgba(239,68,68,0.08);
+      --signal-warning-subtle:  rgba(245,158,11,0.08);
+
+      --skel-base:        #f0f0f0;
+      --skel-highlight:   #e5e5e5;
+
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md:   0 2px 4px rgba(0,0,0,0.08);
+      --shadow-lg:   0 8px 32px rgba(0,0,0,0.15);
+      --shadow-glow: 0 0 8px var(--accent-border);
+    }
+
+    /* ─── Base Styles ─────────────────────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.6;
+      transition: background var(--transition-normal), color var(--transition-normal);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Page Header ─────────────────────────────────────── */
+    .page-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 40px var(--space-xl) 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .page-header-inner {
+      max-width: var(--max-content-width);
+      margin: 0 auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-lg);
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      max-width: 540px;
+      line-height: 1.5;
+    }
+
+    .page-version {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .theme-toggle-btn {
+      width: 32px;
+      height: 24px;
+      border-radius: var(--radius-full);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+
+    .theme-toggle-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    /* ─── Content Layout ──────────────────────────────────── */
+    .content {
+      max-width: var(--max-content-width);
+      margin: 0 auto;
+      padding: var(--space-xl);
+    }
+
+    /* ─── Section ─────────────────────────────────────────── */
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-emphasis);
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--space-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .section-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-sm);
+      padding: 2px 6px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .subsection-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-md);
+      margin-top: var(--space-lg);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    /* ─── Token Table ─────────────────────────────────────── */
+    .token-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .token-table thead th {
+      background: var(--bg-inset);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .token-table tbody tr {
+      border-bottom: 1px solid var(--border-faint);
+      transition: background var(--transition-fast);
+    }
+
+    .token-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .token-table tbody tr:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .token-table td {
+      padding: 10px 14px;
+      vertical-align: middle;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .token-name {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .usage-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ─── Color Swatch ────────────────────────────────────── */
+    .swatch-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 40px;
+      height: 24px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(128,128,128,0.2);
+      flex-shrink: 0;
+    }
+
+    .hex-value {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .contrast-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Accent Palette Grid ─────────────────────────────── */
+    .accent-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-sm);
+    }
+
+    .accent-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      transition: border-color var(--transition-fast);
+    }
+
+    .accent-card:hover {
+      border-color: var(--border-hover);
+    }
+
+    .accent-swatch-lg {
+      width: 100%;
+      height: 48px;
+      border-radius: var(--radius-md);
+    }
+
+    .accent-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .accent-hex {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Signal Colors Grid ──────────────────────────────── */
+    .signal-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .signal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px var(--space-md);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      min-width: 220px;
+    }
+
+    .signal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+
+    /* ─── Skeleton Strip ──────────────────────────────────── */
+    .skel-demo {
+      display: flex;
+      gap: var(--space-md);
+      align-items: center;
+    }
+
+    .skel-strip {
+      height: 16px;
+      border-radius: var(--radius-sm);
+      background: var(--skel-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skel-strip::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, var(--skel-highlight), transparent);
+      animation: shimmer var(--shimmer-duration) infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* ─── Typography Showcase ─────────────────────────────── */
+    .type-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .type-table thead th {
+      background: var(--bg-inset);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .type-table tbody tr {
+      border-bottom: 1px solid var(--border-faint);
+    }
+
+    .type-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .type-table td {
+      padding: 14px;
+      vertical-align: middle;
+    }
+
+    /* ─── Spacing Visual ──────────────────────────────────── */
+    .spacing-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-faint);
+    }
+
+    .spacing-row:last-child {
+      border-bottom: none;
+    }
+
+    .spacing-name {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      width: 120px;
+      flex-shrink: 0;
+    }
+
+    .spacing-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      width: 40px;
+      flex-shrink: 0;
+    }
+
+    .spacing-bar-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .spacing-bar {
+      height: 20px;
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-sm);
+    }
+
+    .spacing-usage {
+      font-size: 12px;
+      color: var(--text-secondary);
+      width: 280px;
+      flex-shrink: 0;
+    }
+
+    /* ─── Radius Visual ───────────────────────────────────── */
+    .radius-grid {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .radius-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-sm);
+      min-width: 120px;
+    }
+
+    .radius-box {
+      width: 72px;
+      height: 48px;
+      background: var(--accent-subtle);
+      border: 2px solid var(--accent-border);
+    }
+
+    .radius-token {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    .radius-value {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Shadow Visual ───────────────────────────────────── */
+    .shadow-grid {
+      display: flex;
+      gap: var(--space-lg);
+      flex-wrap: wrap;
+    }
+
+    .shadow-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      min-width: 200px;
+    }
+
+    .shadow-box {
+      width: 100%;
+      height: 56px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-sm);
+    }
+
+    /* ─── Component Demos ─────────────────────────────────── */
+    .component-demo {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+
+    .component-demo-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: var(--space-md);
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+      border: 1px solid var(--accent);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .btn-secondary:hover {
+      background: var(--accent-subtle);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+    }
+
+    .btn-destructive {
+      background: transparent;
+      color: var(--signal-critical);
+      border: 1px solid var(--signal-critical);
+    }
+
+    .btn-destructive:hover {
+      background: var(--signal-critical-subtle);
+    }
+
+    .btn-text {
+      background: transparent;
+      color: var(--accent);
+      border: none;
+      padding-left: 4px;
+      padding-right: 4px;
+      text-decoration: none;
+    }
+
+    .btn-text:hover {
+      text-decoration: underline;
+    }
+
+    /* Badges */
+    .badge-row {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      margin-right: 5px;
+      flex-shrink: 0;
+    }
+
+    .badge-critical { color: var(--signal-critical); background: transparent; padding-left: 0; min-width: 80px; }
+    .badge-high     { color: var(--signal-warning); background: transparent; padding-left: 0; }
+    .badge-medium   { color: var(--text-secondary); background: transparent; padding-left: 0; }
+    .badge-low      { color: var(--text-secondary); background: transparent; padding-left: 0; }
+
+    .badge-online   { color: var(--signal-healthy); }
+    .badge-online .badge-dot   { background: var(--signal-healthy); }
+    .badge-offline  { color: var(--signal-critical); }
+    .badge-offline .badge-dot  { background: var(--signal-critical); }
+    .badge-patching { color: var(--text-secondary); }
+    .badge-patching .badge-dot { background: var(--text-muted); }
+    .badge-stale    { color: var(--signal-warning); }
+    .badge-stale .badge-dot    { background: var(--signal-warning); }
+
+    /* Tags */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Inputs */
+    .input-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      max-width: 340px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      padding: 7px 11px;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .input::placeholder {
+      color: var(--text-faint);
+    }
+
+    .input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-subtle);
+    }
+
+    .input.input-error {
+      border-color: var(--signal-critical);
+    }
+
+    .input.input-error:focus {
+      box-shadow: 0 0 0 2px var(--signal-critical-subtle);
+    }
+
+    .input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .input-error-msg {
+      font-size: 12px;
+      color: var(--signal-critical);
+      margin-top: 3px;
+    }
+
+    .input-state-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    /* Ring Gauge */
+    .gauge-demo {
+      display: flex;
+      gap: var(--space-xl);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .gauge-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gauge-label-center {
+      position: absolute;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .gauge-pct {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-emphasis);
+      display: block;
+      line-height: 1;
+    }
+
+    .gauge-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Table Demo */
+    .table-demo {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .table-demo thead th {
+      background: var(--bg-inset);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 14px;
+      height: var(--table-row-comfortable);
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table-demo tbody tr {
+      border-bottom: 1px solid var(--border-faint);
+      transition: background var(--transition-fast);
+      height: var(--table-row-comfortable);
+    }
+
+    .table-demo tbody tr:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .table-demo tbody tr.selected {
+      background: var(--accent-subtle);
+      border-left: 2px solid var(--accent);
+    }
+
+    .table-demo tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .table-demo td {
+      padding: 0 14px;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .table-demo td.mono {
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    /* Animation tokens table */
+    .anim-demo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .anim-bar {
+      width: 60px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: var(--radius-full);
+    }
+
+    /* Layout tokens */
+    .layout-visual {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      display: flex;
+      gap: var(--space-md);
+    }
+
+    .layout-sidebar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      width: var(--sidebar-width);
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .layout-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .layout-topbar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      height: var(--topbar-height);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--space-md);
+    }
+
+    .layout-content {
+      flex: 1;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+    }
+
+    .layout-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+
+    /* Breakpoints visual */
+    .bp-grid {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .bp-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+    }
+
+    .bp-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      width: 80px;
+    }
+
+    .bp-range {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      width: 140px;
+    }
+
+    .bp-bar-wrap {
+      flex: 1;
+      height: 8px;
+      background: var(--bg-inset);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .bp-bar {
+      height: 100%;
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-full);
+    }
+
+    .bp-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      width: 280px;
+    }
+
+    /* Code block */
+    pre {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-primary);
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+
+    pre .k { color: var(--accent); }
+    pre .p { color: var(--text-muted); }
+    pre .v { color: var(--text-secondary); }
+    pre .c { color: var(--text-faint); font-style: italic; }
+
+    /* TOC */
+    .toc {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+
+    .toc-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-family: var(--font-mono);
+      margin-bottom: var(--space-md);
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 13px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+
+    .toc-item:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+    }
+
+    .toc-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      width: 20px;
+    }
+
+    /* Divider */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: var(--space-lg) 0;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--radius-full); }
+  </style>
+</head>
+<body>
+  <!-- ─── Page Header ───────────────────────────────────────── -->
+  <header class="page-header">
+    <div class="page-header-inner">
+      <div>
+        <div class="page-title">PatchIQ Design Token Specification</div>
+        <div class="page-subtitle">The canonical reference for all design tokens. Implementation must match these values exactly.</div>
+        <div class="page-version">v1.0 — March 2026</div>
+      </div>
+      <div class="theme-toggle" onclick="toggleTheme()">
+        <button class="theme-toggle-btn" id="btn-dark">Dark</button>
+        <button class="theme-toggle-btn" id="btn-light">Light</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ─── Table of Contents ──────────────────────────────── -->
+    <div class="toc">
+      <div class="toc-title">Contents</div>
+      <div class="toc-list">
+        <a href="#section-colors"    class="toc-item"><span class="toc-num">1</span> Color Tokens</a>
+        <a href="#section-type"      class="toc-item"><span class="toc-num">2</span> Typography Tokens</a>
+        <a href="#section-spacing"   class="toc-item"><span class="toc-num">3</span> Spacing Tokens</a>
+        <a href="#section-radius"    class="toc-item"><span class="toc-num">4</span> Border Radius</a>
+        <a href="#section-shadow"    class="toc-item"><span class="toc-num">5</span> Shadow Tokens</a>
+        <a href="#section-component" class="toc-item"><span class="toc-num">6</span> Component Tokens</a>
+        <a href="#section-animation" class="toc-item"><span class="toc-num">7</span> Animation Tokens</a>
+        <a href="#section-layout"    class="toc-item"><span class="toc-num">8</span> Layout Tokens</a>
+        <a href="#section-bp"        class="toc-item"><span class="toc-num">9</span> Breakpoints</a>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECTION 1: COLOR TOKENS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="section" id="section-colors">
+      <div class="section-title">
+        <span class="section-num">01</span>
+        Color Tokens
+      </div>
+
+      <!-- 1.1 Surface Colors -->
+      <div class="subsection-title">1.1 — Surface Colors</div>
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Dark</th>
+            <th>Light</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--bg-page</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#000000;"></div><span class="hex-value">#000000</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#f5f5f5;"></div><span class="hex-value">#f5f5f5</span></div></td>
+            <td class="usage-text">Page background</td>
+          </tr>
+          <tr>
+            <td class="token-name">--bg-card</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#111113;"></div><span class="hex-value">#111113</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#ffffff;"></div><span class="hex-value">#ffffff</span></div></td>
+            <td class="usage-text">Card surfaces</td>
+          </tr>
+          <tr>
+            <td class="token-name">--bg-card-hover</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#1a1a1a;"></div><span class="hex-value">#1a1a1a</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#f8f8f8;"></div><span class="hex-value">#f8f8f8</span></div></td>
+            <td class="usage-text">Card hover state</td>
+          </tr>
+          <tr>
+            <td class="token-name">--bg-elevated</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#141414;"></div><span class="hex-value">#141414</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#ffffff;"></div><span class="hex-value">#ffffff</span></div></td>
+            <td class="usage-text">Elevated surfaces (nodes, popovers)</td>
+          </tr>
+          <tr>
+            <td class="token-name">--bg-canvas</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#080808;"></div><span class="hex-value">#080808</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#eeeeee;"></div><span class="hex-value">#eeeeee</span></div></td>
+            <td class="usage-text">Workflow canvas, chart backgrounds</td>
+          </tr>
+          <tr>
+            <td class="token-name">--bg-inset</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#0a0a0a;"></div><span class="hex-value">#0a0a0a</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#f0f0f0;"></div><span class="hex-value">#f0f0f0</span></div></td>
+            <td class="usage-text">Table headers, inset areas</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 1.2 Border Colors -->
+      <div class="subsection-title">1.2 — Border Colors</div>
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Dark</th>
+            <th>Light</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--border</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#222222;"></div><span class="hex-value">#222222</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#e0e0e0;"></div><span class="hex-value">#e0e0e0</span></div></td>
+            <td class="usage-text">Card borders, dividers</td>
+          </tr>
+          <tr>
+            <td class="token-name">--border-hover</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#2e2e2e;"></div><span class="hex-value">#2e2e2e</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#d4d4d4;"></div><span class="hex-value">#d4d4d4</span></div></td>
+            <td class="usage-text">Hover state borders</td>
+          </tr>
+          <tr>
+            <td class="token-name">--border-strong</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#333333;"></div><span class="hex-value">#333333</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#cccccc;"></div><span class="hex-value">#cccccc</span></div></td>
+            <td class="usage-text">Emphasis borders, form focus fallback</td>
+          </tr>
+          <tr>
+            <td class="token-name">--border-faint</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#1a1a1a;"></div><span class="hex-value">#1a1a1a</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#eeeeee;"></div><span class="hex-value">#eeeeee</span></div></td>
+            <td class="usage-text">Subtle dividers, grid lines</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 1.3 Text Colors -->
+      <div class="subsection-title">1.3 — Text Colors</div>
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Dark</th>
+            <th>Light</th>
+            <th>Usage</th>
+            <th>Min Contrast</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--text-emphasis</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#ffffff;"></div><span class="hex-value">#ffffff</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#0a0a0a;"></div><span class="hex-value">#0a0a0a</span></div></td>
+            <td class="usage-text">Stat numbers, page titles</td>
+            <td class="contrast-label">21:1 / 19:1</td>
+          </tr>
+          <tr>
+            <td class="token-name">--text-primary</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#d4d4d4;"></div><span class="hex-value">#d4d4d4</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#1a1a1a;"></div><span class="hex-value">#1a1a1a</span></div></td>
+            <td class="usage-text">Body text, names</td>
+            <td class="contrast-label">12:1 / 16:1</td>
+          </tr>
+          <tr>
+            <td class="token-name">--text-secondary</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#a1a1a1;"></div><span class="hex-value">#a1a1a1</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#525252;"></div><span class="hex-value">#525252</span></div></td>
+            <td class="usage-text">Descriptions, metadata</td>
+            <td class="contrast-label">7:1 / 7:1</td>
+          </tr>
+          <tr>
+            <td class="token-name">--text-muted</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#737373;"></div><span class="hex-value">#737373</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#737373;"></div><span class="hex-value">#737373</span></div></td>
+            <td class="usage-text">Labels, timestamps</td>
+            <td class="contrast-label">4.6:1 / 4.6:1</td>
+          </tr>
+          <tr>
+            <td class="token-name">--text-faint</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#525252;"></div><span class="hex-value">#525252</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#a1a1a1;"></div><span class="hex-value">#a1a1a1</span></div></td>
+            <td class="usage-text">Axis labels, hints</td>
+            <td class="contrast-label">3.2:1 / 3:1</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 1.4 Brand / Accent Colors -->
+      <div class="subsection-title">1.4 — Brand / Accent Colors</div>
+
+      <table class="token-table" style="margin-bottom: var(--space-md);">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Default Dark</th>
+            <th>Default Light</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--accent</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#10b981;"></div><span class="hex-value">#10b981</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#7c3aed;"></div><span class="hex-value">#7c3aed</span></div></td>
+            <td class="usage-text">Active nav, links, CTAs, primary buttons, rings, chart fills</td>
+          </tr>
+          <tr>
+            <td class="token-name">--accent-subtle</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:rgba(16,185,129,0.08);"></div><span class="hex-value">rgba(16,185,129,0.08)</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:rgba(124,58,237,0.06);"></div><span class="hex-value">rgba(124,58,237,0.06)</span></div></td>
+            <td class="usage-text">Selected row bg, active nav bg, pill active bg</td>
+          </tr>
+          <tr>
+            <td class="token-name">--accent-border</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:rgba(16,185,129,0.3);"></div><span class="hex-value">rgba(16,185,129,0.3)</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:rgba(124,58,237,0.3);"></div><span class="hex-value">rgba(124,58,237,0.3)</span></div></td>
+            <td class="usage-text">Selected borders, focus rings</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom: var(--space-sm);">8 curated accent options (user-configurable):</p>
+      <div class="accent-grid">
+        <div class="accent-card">
+          <div class="accent-swatch-lg" style="background:#10b981;"></div>
+          <div class="accent-name">Forest</div>
+          <div class="accent-hex">#10b981</div>
+        </div>
+        <div class="accent-card">
+          <div class="accent-swatch-lg" style="background:#7c3aed;"></div>
+          <div class="accent-name">Amethyst</div>
+          <div class="accent-hex">#7c3aed</div>
+        </div>
+        <div class="accent-card">
+          <div class="accent-swatch-lg" style="background:#3b82f6;"></div>
+          <div class="accent-name">Ocean</div>
+          <div class="accent-hex">#3b82f6</div>
+        </div>
+        <div class="accent-card">
+          <div class="accent-swatch-lg" style="background:#06b6d4;"></div>
+          <div class="accent-name">Arctic</div>
+          <div class="accent-hex">#06b6d4</div>
+        </div>
+        <div class="accent-card">
+          <div class="accent-swatch-lg" style="background:#f43f5e;"></div>
+          <div class="accent-name">Ruby</div>
+          <div class="accent-hex">#f43f5e</div>
+        </div>
+        <div class="accent-card">
+          <div class="accent-swatch-lg" style="background:#f97316;"></div>
+          <div class="accent-name">Ember</div>
+          <div class="accent-hex">#f97316</div>
+        </div>
+        <div class="accent-card">
+          <div class="accent-swatch-lg" style="background:#6366f1;"></div>
+          <div class="accent-name">Twilight</div>
+          <div class="accent-hex">#6366f1</div>
+        </div>
+        <div class="accent-card">
+          <div class="accent-swatch-lg" style="background:#14b8a6;"></div>
+          <div class="accent-name">Mint</div>
+          <div class="accent-hex">#14b8a6</div>
+        </div>
+      </div>
+
+      <!-- 1.5 Signal Colors -->
+      <div class="subsection-title">1.5 — Signal Colors <span style="font-weight:400; color:var(--signal-critical); font-family:var(--font-mono); font-size:10px; margin-left:8px;">NEVER CHANGE — THEME-INVARIANT</span></div>
+      <table class="token-table" style="margin-bottom: var(--space-md);">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Value</th>
+            <th>Swatch</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--signal-healthy</td>
+            <td class="hex-value">#22c55e</td>
+            <td><div class="swatch" style="background:#22c55e;"></div></td>
+            <td class="usage-text">Online status, healthy, success indicators</td>
+          </tr>
+          <tr>
+            <td class="token-name">--signal-critical</td>
+            <td class="hex-value">#ef4444</td>
+            <td><div class="swatch" style="background:#ef4444;"></div></td>
+            <td class="usage-text">Critical severity, errors, offline, failures</td>
+          </tr>
+          <tr>
+            <td class="token-name">--signal-critical-dark</td>
+            <td class="hex-value">#dc2626</td>
+            <td><div class="swatch" style="background:#dc2626;"></div></td>
+            <td class="usage-text">Critical text on light backgrounds (higher contrast)</td>
+          </tr>
+          <tr>
+            <td class="token-name">--signal-warning</td>
+            <td class="hex-value">#f59e0b</td>
+            <td><div class="swatch" style="background:#f59e0b;"></div></td>
+            <td class="usage-text">High severity, warnings, expiring, attention needed</td>
+          </tr>
+          <tr>
+            <td class="token-name">--signal-warning-dark</td>
+            <td class="hex-value">#d97706</td>
+            <td><div class="swatch" style="background:#d97706;"></div></td>
+            <td class="usage-text">Warning text on light backgrounds</td>
+          </tr>
+          <tr>
+            <td class="token-name">--signal-critical-subtle</td>
+            <td class="hex-value">rgba(239,68,68,0.08)</td>
+            <td><div class="swatch" style="background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.3);"></div></td>
+            <td class="usage-text">Error row backgrounds, error card tints</td>
+          </tr>
+          <tr>
+            <td class="token-name">--signal-warning-subtle</td>
+            <td class="hex-value">rgba(245,158,11,0.08)</td>
+            <td><div class="swatch" style="background:rgba(245,158,11,0.08); border-color:rgba(245,158,11,0.3);"></div></td>
+            <td class="usage-text">Warning backgrounds</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="signal-grid">
+        <div class="signal-card">
+          <div class="signal-dot" style="background:var(--signal-healthy);"></div>
+          <span style="font-size:13px; font-weight:500; color:var(--signal-healthy);">Online</span>
+          <span class="hex-value" style="margin-left:auto;">#22c55e</span>
+        </div>
+        <div class="signal-card">
+          <div class="signal-dot" style="background:var(--signal-critical);"></div>
+          <span style="font-size:13px; font-weight:500; color:var(--signal-critical);">Critical</span>
+          <span class="hex-value" style="margin-left:auto;">#ef4444</span>
+        </div>
+        <div class="signal-card">
+          <div class="signal-dot" style="background:var(--signal-warning);"></div>
+          <span style="font-size:13px; font-weight:500; color:var(--signal-warning);">Warning</span>
+          <span class="hex-value" style="margin-left:auto;">#f59e0b</span>
+        </div>
+      </div>
+
+      <!-- 1.6 Skeleton Colors -->
+      <div class="subsection-title">1.6 — Skeleton / Loading Colors</div>
+      <table class="token-table" style="margin-bottom: var(--space-md);">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Dark</th>
+            <th>Light</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--skel-base</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#1a1a1a;"></div><span class="hex-value">#1a1a1a</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#f0f0f0;"></div><span class="hex-value">#f0f0f0</span></div></td>
+          </tr>
+          <tr>
+            <td class="token-name">--skel-highlight</td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#222222;"></div><span class="hex-value">#222222</span></div></td>
+            <td><div class="swatch-cell"><div class="swatch" style="background:#e5e5e5;"></div><span class="hex-value">#e5e5e5</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="skel-demo">
+        <div class="skel-strip" style="width:180px;"></div>
+        <div class="skel-strip" style="width:120px;"></div>
+        <div class="skel-strip" style="width:80px;"></div>
+        <span class="usage-text" style="margin-left:8px;">Live shimmer animation</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECTION 2: TYPOGRAPHY TOKENS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="section" id="section-type">
+      <div class="section-title">
+        <span class="section-num">02</span>
+        Typography Tokens
+      </div>
+
+      <!-- 2.1 Font Families -->
+      <div class="subsection-title">2.1 — Font Families</div>
+      <table class="token-table" style="margin-bottom: var(--space-lg);">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Value</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--font-sans</td>
+            <td style="font-size:12px; color:var(--text-secondary);">'Geist Variable', -apple-system, system-ui, sans-serif</td>
+            <td class="usage-text">All text</td>
+          </tr>
+          <tr>
+            <td class="token-name">--font-mono</td>
+            <td style="font-size:12px; color:var(--text-secondary);">'GeistMono Variable', 'JetBrains Mono', monospace</td>
+            <td class="usage-text">Data, IDs, code, versions</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 2.2 Type Scale -->
+      <div class="subsection-title">2.2 — Type Scale</div>
+      <table class="type-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Size / Weight</th>
+            <th>Font</th>
+            <th>Usage</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-size:13px; font-weight:500; color:var(--text-secondary);">Display</td>
+            <td class="hex-value">28–32px / 700</td>
+            <td class="hex-value">Sans</td>
+            <td class="usage-text">Stat card numbers</td>
+            <td><span style="font-size:30px; font-weight:700; color:var(--text-emphasis); line-height:1;">1,247</span></td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; font-weight:500; color:var(--text-secondary);">Title</td>
+            <td class="hex-value">20–22px / 600</td>
+            <td class="hex-value">Sans</td>
+            <td class="usage-text">Page titles</td>
+            <td><span style="font-size:21px; font-weight:600; color:var(--text-emphasis); line-height:1;">Endpoints</span></td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; font-weight:500; color:var(--text-secondary);">Heading</td>
+            <td class="hex-value">16px / 600</td>
+            <td class="hex-value">Sans</td>
+            <td class="usage-text">Card titles, section headers</td>
+            <td><span style="font-size:16px; font-weight:600; color:var(--text-emphasis);">Patch Compliance</span></td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; font-weight:500; color:var(--text-secondary);">Body</td>
+            <td class="hex-value">13–14px / 400</td>
+            <td class="hex-value">Sans</td>
+            <td class="usage-text">Body text, descriptions</td>
+            <td><span style="font-size:13px; color:var(--text-primary);">Endpoint shows last heartbeat 4 minutes ago.</span></td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; font-weight:500; color:var(--text-secondary);">Small</td>
+            <td class="hex-value">12px / 400</td>
+            <td class="hex-value">Sans</td>
+            <td class="usage-text">Metadata, timestamps</td>
+            <td><span style="font-size:12px; color:var(--text-secondary);">Updated 3 hours ago</span></td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; font-weight:500; color:var(--text-secondary);">Caption</td>
+            <td class="hex-value">10–11px / 500</td>
+            <td class="hex-value">Mono</td>
+            <td class="usage-text">Labels, column headers</td>
+            <td><span style="font-size:10px; font-weight:500; font-family:var(--font-mono); color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">CVE ID</span></td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; font-weight:500; color:var(--text-secondary);">Data</td>
+            <td class="hex-value">13px / 400</td>
+            <td class="hex-value">Mono</td>
+            <td class="usage-text">CVE IDs, versions, IPs, hashes</td>
+            <td><span style="font-size:13px; font-family:var(--font-mono); color:var(--text-primary);">CVE-2024-21762</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECTION 3: SPACING TOKENS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="section" id="section-spacing">
+      <div class="section-title">
+        <span class="section-num">03</span>
+        Spacing Tokens
+      </div>
+
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden;">
+        <div class="spacing-row" style="background:var(--bg-inset); border-bottom:1px solid var(--border);">
+          <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; width:120px;">Token</span>
+          <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; width:40px;">Value</span>
+          <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; flex:1;">Visual</span>
+          <span style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; width:280px;">Usage</span>
+        </div>
+        <div class="spacing-row">
+          <span class="spacing-name">--space-xs</span>
+          <span class="spacing-value">4px</span>
+          <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:4px;"></div></div>
+          <span class="spacing-usage">Tight gaps (between dots, icon padding)</span>
+        </div>
+        <div class="spacing-row">
+          <span class="spacing-name">--space-sm</span>
+          <span class="spacing-value">8px</span>
+          <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:8px;"></div></div>
+          <span class="spacing-usage">Between related items, compact card padding</span>
+        </div>
+        <div class="spacing-row">
+          <span class="spacing-name">--space-md</span>
+          <span class="spacing-value">16px</span>
+          <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:16px;"></div></div>
+          <span class="spacing-usage">Standard card padding, section gaps</span>
+        </div>
+        <div class="spacing-row">
+          <span class="spacing-name">--space-lg</span>
+          <span class="spacing-value">24px</span>
+          <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:24px;"></div></div>
+          <span class="spacing-usage">Page padding, major section gaps</span>
+        </div>
+        <div class="spacing-row">
+          <span class="spacing-name">--space-xl</span>
+          <span class="spacing-value">32px</span>
+          <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:32px;"></div></div>
+          <span class="spacing-usage">Between page sections</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECTION 4: BORDER RADIUS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="section" id="section-radius">
+      <div class="section-title">
+        <span class="section-num">04</span>
+        Border Radius
+      </div>
+
+      <div class="radius-grid">
+        <div class="radius-card" style="border-radius:var(--radius-lg);">
+          <div class="radius-box" style="border-radius:4px;"></div>
+          <div class="radius-token">--radius-sm</div>
+          <div class="radius-value">4px</div>
+          <div class="usage-text" style="text-align:center; font-size:11px;">Badges, tags, small pills</div>
+        </div>
+        <div class="radius-card" style="border-radius:var(--radius-lg);">
+          <div class="radius-box" style="border-radius:6px;"></div>
+          <div class="radius-token">--radius-md</div>
+          <div class="radius-value">6px</div>
+          <div class="usage-text" style="text-align:center; font-size:11px;">Inputs, buttons</div>
+        </div>
+        <div class="radius-card" style="border-radius:var(--radius-lg);">
+          <div class="radius-box" style="border-radius:8px;"></div>
+          <div class="radius-token">--radius-lg</div>
+          <div class="radius-value">8px</div>
+          <div class="usage-text" style="text-align:center; font-size:11px;">Cards, dialogs</div>
+        </div>
+        <div class="radius-card" style="border-radius:var(--radius-lg);">
+          <div class="radius-box" style="border-radius:12px;"></div>
+          <div class="radius-token">--radius-xl</div>
+          <div class="radius-value">12px</div>
+          <div class="usage-text" style="text-align:center; font-size:11px;">Sheets, command palette</div>
+        </div>
+        <div class="radius-card" style="border-radius:var(--radius-lg);">
+          <div class="radius-box" style="border-radius:9999px;"></div>
+          <div class="radius-token">--radius-full</div>
+          <div class="radius-value">9999px</div>
+          <div class="usage-text" style="text-align:center; font-size:11px;">Circular elements, avatars, dots</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECTION 5: SHADOW TOKENS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="section" id="section-shadow">
+      <div class="section-title">
+        <span class="section-num">05</span>
+        Shadow Tokens
+      </div>
+
+      <table class="token-table" style="margin-bottom: var(--space-md);">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Dark Value</th>
+            <th>Light Value</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--shadow-sm</td>
+            <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">0 1px 2px rgba(0,0,0,0.5)</td>
+            <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">0 1px 2px rgba(0,0,0,0.06)</td>
+            <td class="usage-text">Cards</td>
+          </tr>
+          <tr>
+            <td class="token-name">--shadow-md</td>
+            <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">0 2px 4px rgba(0,0,0,0.4)</td>
+            <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">0 2px 4px rgba(0,0,0,0.08)</td>
+            <td class="usage-text">Elevated elements (nodes, dropdowns)</td>
+          </tr>
+          <tr>
+            <td class="token-name">--shadow-lg</td>
+            <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">0 8px 32px rgba(0,0,0,0.6)</td>
+            <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">0 8px 32px rgba(0,0,0,0.15)</td>
+            <td class="usage-text">Modals, command palette</td>
+          </tr>
+          <tr>
+            <td class="token-name">--shadow-glow</td>
+            <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">0 0 8px var(--accent-border)</td>
+            <td style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary);">same</td>
+            <td class="usage-text">Selected node glow</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="shadow-grid">
+        <div>
+          <p style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">shadow-sm</p>
+          <div style="background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); padding:20px 24px; min-width:160px;">
+            <span style="font-size:12px; color:var(--text-secondary);">Card surface</span>
+          </div>
+        </div>
+        <div>
+          <p style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">shadow-md</p>
+          <div style="background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow-md); padding:20px 24px; min-width:160px;">
+            <span style="font-size:12px; color:var(--text-secondary);">Dropdown / node</span>
+          </div>
+        </div>
+        <div>
+          <p style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">shadow-lg</p>
+          <div style="background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow-lg); padding:20px 24px; min-width:160px;">
+            <span style="font-size:12px; color:var(--text-secondary);">Modal / palette</span>
+          </div>
+        </div>
+        <div>
+          <p style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">shadow-glow</p>
+          <div style="background:var(--bg-elevated); border:1px solid var(--accent-border); border-radius:var(--radius-md); box-shadow:var(--shadow-glow); padding:20px 24px; min-width:160px;">
+            <span style="font-size:12px; color:var(--text-secondary);">Selected node</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECTION 6: COMPONENT TOKENS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="section" id="section-component">
+      <div class="section-title">
+        <span class="section-num">06</span>
+        Component Tokens
+      </div>
+
+      <!-- 6.1 Cards -->
+      <div class="subsection-title">6.1 — Cards</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-md); margin-bottom:var(--space-md);">
+        <pre><span class="k">.card</span> <span class="p">{</span>
+  <span class="k">background</span>: <span class="v">var(--bg-card)</span>;
+  <span class="k">border</span>: <span class="v">1px solid var(--border)</span>;
+  <span class="k">border-radius</span>: <span class="v">var(--radius-lg)</span>;
+  <span class="k">box-shadow</span>: <span class="v">var(--shadow-sm)</span>;
+  <span class="k">padding</span>: <span class="v">var(--space-md)</span>;
+<span class="p">}</span>
+<span class="k">.card:hover</span> <span class="p">{</span>
+  <span class="k">border-color</span>: <span class="v">var(--border-hover)</span>;
+<span class="p">}</span></pre>
+        <div style="display:flex; flex-direction:column; gap:var(--space-sm);">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:var(--space-md); transition:border-color var(--transition-fast);" onmouseenter="this.style.borderColor='var(--border-hover)'" onmouseleave="this.style.borderColor='var(--border)'">
+            <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:4px;">Default card</div>
+            <div style="font-size:12px; color:var(--text-secondary);">Hover to see border change</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6.2 Buttons -->
+      <div class="subsection-title">6.2 — Buttons</div>
+      <div class="component-demo">
+        <div class="component-demo-label">5 Button Variants</div>
+        <div class="btn-row">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+          <button class="btn btn-ghost">Ghost</button>
+          <button class="btn btn-destructive">Destructive</button>
+          <button class="btn btn-text">Text Button</button>
+        </div>
+        <div style="margin-top: var(--space-md);">
+          <table class="token-table">
+            <thead>
+              <tr>
+                <th>Variant</th>
+                <th>Background</th>
+                <th>Border</th>
+                <th>Text</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-size:13px; color:var(--text-primary);">Primary</td>
+                <td class="token-name">var(--accent)</td>
+                <td class="token-name">var(--accent)</td>
+                <td style="font-family:var(--font-mono); font-size:11px; color:var(--text-secondary);">#ffffff</td>
+              </tr>
+              <tr>
+                <td style="font-size:13px; color:var(--text-primary);">Secondary</td>
+                <td style="font-size:12px; color:var(--text-secondary);">transparent</td>
+                <td class="token-name">var(--accent)</td>
+                <td class="token-name">var(--accent)</td>
+              </tr>
+              <tr>
+                <td style="font-size:13px; color:var(--text-primary);">Ghost</td>
+                <td style="font-size:12px; color:var(--text-secondary);">transparent</td>
+                <td class="token-name">var(--border)</td>
+                <td class="token-name">var(--text-secondary)</td>
+              </tr>
+              <tr>
+                <td style="font-size:13px; color:var(--text-primary);">Destructive</td>
+                <td style="font-size:12px; color:var(--text-secondary);">transparent</td>
+                <td class="token-name">var(--signal-critical)</td>
+                <td class="token-name">var(--signal-critical)</td>
+              </tr>
+              <tr>
+                <td style="font-size:13px; color:var(--text-primary);">Text</td>
+                <td style="font-size:12px; color:var(--text-secondary);">none</td>
+                <td style="font-size:12px; color:var(--text-secondary);">none</td>
+                <td class="token-name">var(--accent)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 6.3 Badges -->
+      <div class="subsection-title">6.3 — Badges</div>
+      <div class="component-demo">
+        <div class="component-demo-label">Severity Badges — text color only, no background fill, 80px min-width for Critical</div>
+        <div class="badge-row" style="margin-bottom: var(--space-md);">
+          <span class="badge badge-critical">Critical</span>
+          <span class="badge badge-high">High</span>
+          <span class="badge badge-medium">Medium</span>
+          <span class="badge badge-low">Low</span>
+        </div>
+        <div class="component-demo-label" style="margin-top:var(--space-md);">Status Badges — text + dot indicator</div>
+        <div class="badge-row">
+          <span class="badge badge-online"><span class="badge-dot"></span>Online</span>
+          <span class="badge badge-offline"><span class="badge-dot"></span>Offline</span>
+          <span class="badge badge-patching"><span class="badge-dot"></span>Patching</span>
+          <span class="badge badge-stale"><span class="badge-dot"></span>Stale</span>
+        </div>
+        <div style="margin-top:var(--space-md);">
+          <table class="token-table">
+            <thead>
+              <tr><th>Badge</th><th>Color Token</th><th>Background</th></tr>
+            </thead>
+            <tbody>
+              <tr><td style="font-size:13px; color:var(--signal-critical);">Critical</td><td class="token-name">--signal-critical</td><td style="font-size:12px; color:var(--text-secondary);">none</td></tr>
+              <tr><td style="font-size:13px; color:var(--signal-warning);">High</td><td class="token-name">--signal-warning</td><td style="font-size:12px; color:var(--text-secondary);">none</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-secondary);">Medium / Low</td><td class="token-name">--text-secondary</td><td style="font-size:12px; color:var(--text-secondary);">none</td></tr>
+              <tr><td style="font-size:13px; color:var(--signal-healthy);">Online</td><td class="token-name">--signal-healthy</td><td style="font-size:12px; color:var(--text-secondary);">none</td></tr>
+              <tr><td style="font-size:13px; color:var(--signal-critical);">Offline</td><td class="token-name">--signal-critical</td><td style="font-size:12px; color:var(--text-secondary);">none</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-secondary);">Patching</td><td class="token-name">--text-secondary</td><td style="font-size:12px; color:var(--text-secondary);">none</td></tr>
+              <tr><td style="font-size:13px; color:var(--signal-warning);">Stale</td><td class="token-name">--signal-warning</td><td style="font-size:12px; color:var(--text-secondary);">none</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 6.4 Tags -->
+      <div class="subsection-title">6.4 — Tags</div>
+      <div class="component-demo">
+        <div class="component-demo-label">All monochrome — no color semantics on tags</div>
+        <div style="display:flex; gap:var(--space-sm); flex-wrap:wrap; margin-bottom:var(--space-md);">
+          <span class="tag">env:production</span>
+          <span class="tag">os:ubuntu</span>
+          <span class="tag">tier:web</span>
+          <span class="tag">region:us-east</span>
+          <span class="tag">owner:platform</span>
+        </div>
+        <table class="token-table">
+          <thead><tr><th>Property</th><th>Token</th></tr></thead>
+          <tbody>
+            <tr><td style="font-size:13px; color:var(--text-primary);">Background</td><td class="token-name">--bg-card-hover</td></tr>
+            <tr><td style="font-size:13px; color:var(--text-primary);">Border</td><td class="token-name">--border-strong</td></tr>
+            <tr><td style="font-size:13px; color:var(--text-primary);">Text</td><td class="token-name">--text-secondary</td></tr>
+            <tr><td style="font-size:13px; color:var(--text-primary);">Font</td><td class="token-name">--font-mono, 11px</td></tr>
+            <tr><td style="font-size:13px; color:var(--text-primary);">Radius</td><td class="token-name">--radius-sm</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 6.5 Form Inputs -->
+      <div class="subsection-title">6.5 — Form Inputs</div>
+      <div class="component-demo">
+        <div class="component-demo-label">4 Input States</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-lg);">
+          <div class="input-stack">
+            <div>
+              <div class="input-label">Endpoint name</div>
+              <input class="input" type="text" placeholder="web-prod-01" />
+              <span class="input-state-label">Default</span>
+            </div>
+            <div>
+              <div class="input-label">Hostname</div>
+              <input class="input" type="text" value="web-prod-01.example.com" id="focus-demo" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 2px var(--accent-subtle)'" onblur="this.style.borderColor=''; this.style.boxShadow=''" />
+              <span class="input-state-label">Focus (click to activate)</span>
+            </div>
+          </div>
+          <div class="input-stack">
+            <div>
+              <div class="input-label">CVE ID</div>
+              <input class="input input-error" type="text" value="CVE-invalid" />
+              <div class="input-error-msg">Invalid CVE ID format</div>
+              <span class="input-state-label" style="margin-top:6px;">Error</span>
+            </div>
+            <div>
+              <div class="input-label">License Key</div>
+              <input class="input" type="text" value="PIQ-XXXX-XXXX" disabled />
+              <span class="input-state-label">Disabled (opacity 0.5)</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:var(--space-md);">
+          <table class="token-table">
+            <thead><tr><th>State</th><th>Border</th><th>Box Shadow</th></tr></thead>
+            <tbody>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Default</td><td class="token-name">--border</td><td style="font-size:12px; color:var(--text-secondary);">none</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Focus</td><td class="token-name">--accent</td><td style="font-size:12px; font-family:var(--font-mono); color:var(--text-secondary);">0 0 0 2px var(--accent-subtle)</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Error</td><td class="token-name">--signal-critical</td><td style="font-size:12px; font-family:var(--font-mono); color:var(--text-secondary);">0 0 0 2px var(--signal-critical-subtle)</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Disabled</td><td class="token-name">--border</td><td style="font-size:12px; color:var(--text-secondary);">opacity: 0.5</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 6.6 Ring Gauge -->
+      <div class="subsection-title">6.6 — Ring Gauge</div>
+      <div class="component-demo">
+        <div class="component-demo-label">SVG ring gauge — track + fill + centered label</div>
+        <div class="gauge-demo">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+            <div class="gauge-wrap">
+              <svg width="96" height="96" viewBox="0 0 96 96">
+                <circle cx="48" cy="48" r="38" fill="none" stroke="var(--border)" stroke-width="6"/>
+                <circle cx="48" cy="48" r="38" fill="none" stroke="var(--accent)" stroke-width="6"
+                  stroke-dasharray="239" stroke-dashoffset="57"
+                  stroke-linecap="round"
+                  transform="rotate(-90 48 48)"/>
+              </svg>
+              <div class="gauge-label-center">
+                <span class="gauge-pct">76%</span>
+                <span class="gauge-sub">compliant</span>
+              </div>
+            </div>
+            <span style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">Compliance</span>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+            <div class="gauge-wrap">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" stroke-width="6"/>
+                <circle cx="40" cy="40" r="32" fill="none" stroke="var(--signal-critical)" stroke-width="6"
+                  stroke-dasharray="201" stroke-dashoffset="161"
+                  stroke-linecap="round"
+                  transform="rotate(-90 40 40)"/>
+              </svg>
+              <div class="gauge-label-center">
+                <span class="gauge-pct" style="font-size:16px; color:var(--signal-critical);">20%</span>
+              </div>
+            </div>
+            <span style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">Critical</span>
+          </div>
+          <div style="margin-left:var(--space-lg);">
+            <table class="token-table">
+              <thead><tr><th>Element</th><th>Token</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td style="font-size:13px; color:var(--text-primary);">Track</td><td class="token-name">--border</td><td style="font-size:12px; color:var(--text-secondary);">stroke-width: 6px</td></tr>
+                <tr><td style="font-size:13px; color:var(--text-primary);">Fill</td><td class="token-name">--accent</td><td style="font-size:12px; color:var(--text-secondary);">stroke-linecap: round</td></tr>
+                <tr><td style="font-size:13px; color:var(--text-primary);">Center label</td><td class="token-name">--text-emphasis</td><td style="font-size:12px; color:var(--text-secondary);">Display / 700</td></tr>
+                <tr><td style="font-size:13px; color:var(--text-primary);">Sub-label</td><td class="token-name">--text-muted</td><td style="font-size:12px; color:var(--text-secondary);">Caption / Mono</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6.7 Tables -->
+      <div class="subsection-title">6.7 — Tables</div>
+      <div class="component-demo">
+        <div class="component-demo-label">Data table with header, hover, selected, and monospace cells</div>
+        <table class="table-demo">
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>CVE ID</th>
+              <th>Severity</th>
+              <th>Status</th>
+              <th>Last Seen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="selected">
+              <td>web-prod-01</td>
+              <td class="mono">CVE-2024-21762</td>
+              <td><span class="badge badge-critical">Critical</span></td>
+              <td><span class="badge badge-online"><span class="badge-dot"></span>Online</span></td>
+              <td style="font-size:12px; color:var(--text-muted);">2 min ago</td>
+            </tr>
+            <tr>
+              <td>db-prod-02</td>
+              <td class="mono">CVE-2024-3400</td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-patching"><span class="badge-dot"></span>Patching</span></td>
+              <td style="font-size:12px; color:var(--text-muted);">5 min ago</td>
+            </tr>
+            <tr>
+              <td>api-prod-03</td>
+              <td class="mono">CVE-2023-44487</td>
+              <td><span class="badge badge-medium">Medium</span></td>
+              <td><span class="badge badge-stale"><span class="badge-dot"></span>Stale</span></td>
+              <td style="font-size:12px; color:var(--text-muted);">3 hrs ago</td>
+            </tr>
+            <tr>
+              <td>worker-01</td>
+              <td class="mono">CVE-2024-27198</td>
+              <td><span class="badge badge-low">Low</span></td>
+              <td><span class="badge badge-offline"><span class="badge-dot"></span>Offline</span></td>
+              <td style="font-size:12px; color:var(--text-muted);">2 days ago</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:var(--space-md);">
+          <table class="token-table">
+            <thead><tr><th>Element</th><th>Token</th></tr></thead>
+            <tbody>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Header background</td><td class="token-name">--bg-inset</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Header text</td><td class="token-name">--text-muted, 10px uppercase GeistMono</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Row hover</td><td class="token-name">--bg-card-hover</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Row selected bg</td><td class="token-name">--accent-subtle</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Row selected left border</td><td class="token-name">2px solid var(--accent)</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Cell text</td><td class="token-name">--text-primary</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Mono cells</td><td class="token-name">--text-primary in GeistMono</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Row height (comfortable)</td><td class="token-name">--table-row-comfortable (48px)</td></tr>
+              <tr><td style="font-size:13px; color:var(--text-primary);">Row height (compact)</td><td class="token-name">--table-row-compact (36px)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECTION 7: ANIMATION TOKENS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="section" id="section-animation">
+      <div class="section-title">
+        <span class="section-num">07</span>
+        Animation Tokens
+      </div>
+
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Value</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--transition-fast</td>
+            <td><span class="hex-value">150ms ease</span></td>
+            <td class="usage-text">Button hover, toggle, color changes</td>
+          </tr>
+          <tr>
+            <td class="token-name">--transition-normal</td>
+            <td><span class="hex-value">200ms ease</span></td>
+            <td class="usage-text">Card hover, theme switch</td>
+          </tr>
+          <tr>
+            <td class="token-name">--transition-slow</td>
+            <td><span class="hex-value">300ms ease</span></td>
+            <td class="usage-text">Panel slide, expand/collapse</td>
+          </tr>
+          <tr>
+            <td class="token-name">--shimmer-duration</td>
+            <td><span class="hex-value">1.5s</span></td>
+            <td class="usage-text">Skeleton loading animation</td>
+          </tr>
+          <tr>
+            <td class="token-name">--pulse-duration</td>
+            <td><span class="hex-value">4s</span></td>
+            <td class="usage-text">Status orb breathing (agent)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECTION 8: LAYOUT TOKENS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="section" id="section-layout">
+      <div class="section-title">
+        <span class="section-num">08</span>
+        Layout Tokens
+      </div>
+
+      <table class="token-table" style="margin-bottom: var(--space-lg);">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Value</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">--sidebar-width</td>
+            <td class="hex-value">220px</td>
+            <td class="usage-text">Full sidebar</td>
+          </tr>
+          <tr>
+            <td class="token-name">--sidebar-rail</td>
+            <td class="hex-value">48px</td>
+            <td class="usage-text">Collapsed sidebar / agent rail</td>
+          </tr>
+          <tr>
+            <td class="token-name">--topbar-height</td>
+            <td class="hex-value">48px</td>
+            <td class="usage-text">Main top bar</td>
+          </tr>
+          <tr>
+            <td class="token-name">--tab-height</td>
+            <td class="hex-value">40px</td>
+            <td class="usage-text">Tab bar</td>
+          </tr>
+          <tr>
+            <td class="token-name">--sheet-width</td>
+            <td class="hex-value">560px</td>
+            <td class="usage-text">Wizard/detail sheets</td>
+          </tr>
+          <tr>
+            <td class="token-name">--palette-width</td>
+            <td class="hex-value">200px</td>
+            <td class="usage-text">Workflow node palette</td>
+          </tr>
+          <tr>
+            <td class="token-name">--properties-width</td>
+            <td class="hex-value">260px</td>
+            <td class="usage-text">Workflow properties panel</td>
+          </tr>
+          <tr>
+            <td class="token-name">--table-row-comfortable</td>
+            <td class="hex-value">48px</td>
+            <td class="usage-text">Comfortable density</td>
+          </tr>
+          <tr>
+            <td class="token-name">--table-row-compact</td>
+            <td class="hex-value">36px</td>
+            <td class="usage-text">Compact density</td>
+          </tr>
+          <tr>
+            <td class="token-name">--max-content-width</td>
+            <td class="hex-value">1400px</td>
+            <td class="usage-text">Content max-width</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:var(--space-sm);">Layout structure preview:</p>
+      <div class="layout-visual">
+        <div class="layout-sidebar">
+          <span class="layout-label">Sidebar<br/>220px</span>
+        </div>
+        <div class="layout-main">
+          <div class="layout-topbar">
+            <span class="layout-label">Top bar — 48px</span>
+          </div>
+          <div class="layout-content">
+            <span class="layout-label">Content area<br/>max-width 1400px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECTION 9: BREAKPOINTS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="section" id="section-bp">
+      <div class="section-title">
+        <span class="section-num">09</span>
+        Breakpoints
+      </div>
+
+      <table class="token-table" style="margin-bottom: var(--space-lg);">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Width</th>
+            <th>Layout Changes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-size:13px; font-weight:600; color:var(--text-primary);">Desktop</td>
+            <td class="hex-value">≥1280px</td>
+            <td class="usage-text">Full sidebar, all columns, grid layouts</td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; font-weight:600; color:var(--text-primary);">Laptop</td>
+            <td class="hex-value">1024–1279px</td>
+            <td class="usage-text">Sidebar → icon rail, hide optional table columns</td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; font-weight:600; color:var(--text-primary);">Tablet</td>
+            <td class="hex-value">768–1023px</td>
+            <td class="usage-text">No sidebar (hamburger), 2-column grids → 1-column</td>
+          </tr>
+          <tr>
+            <td style="font-size:13px; font-weight:600; color:var(--text-primary);">Mobile</td>
+            <td class="hex-value">&lt;768px</td>
+            <td class="usage-text">Single column, tables → card list, sheets → full screen</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="bp-grid">
+        <div class="bp-row">
+          <span class="bp-name">Desktop</span>
+          <span class="bp-range">≥1280px</span>
+          <div class="bp-bar-wrap"><div class="bp-bar" style="width:100%;"></div></div>
+          <span class="bp-desc">Full sidebar, all columns, grid layouts</span>
+        </div>
+        <div class="bp-row">
+          <span class="bp-name">Laptop</span>
+          <span class="bp-range">1024–1279px</span>
+          <div class="bp-bar-wrap"><div class="bp-bar" style="width:80%;"></div></div>
+          <span class="bp-desc">Sidebar → icon rail, hide optional table columns</span>
+        </div>
+        <div class="bp-row">
+          <span class="bp-name">Tablet</span>
+          <span class="bp-range">768–1023px</span>
+          <div class="bp-bar-wrap"><div class="bp-bar" style="width:60%;"></div></div>
+          <span class="bp-desc">No sidebar (hamburger), 2-column → 1-column</span>
+        </div>
+        <div class="bp-row">
+          <span class="bp-name">Mobile</span>
+          <span class="bp-range">&lt;768px</span>
+          <div class="bp-bar-wrap"><div class="bp-bar" style="width:35%;"></div></div>
+          <span class="bp-desc">Single column, tables → card list, sheets → full screen</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="border-top:1px solid var(--border); padding-top:var(--space-lg); margin-top:var(--space-xl); display:flex; align-items:center; justify-content:space-between;">
+      <span style="font-size:12px; color:var(--text-muted);">PatchIQ Design Token Specification — v1.0 — March 2026</span>
+      <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-faint);">docs/blueprint/m3/mockups/25-token-spec.html</span>
+    </div>
+
+  </div>
+
+  <script>
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = !html.classList.contains('light');
+      html.classList.toggle('light', isDark);
+      document.getElementById('btn-dark').classList.toggle('active', !isDark);
+      document.getElementById('btn-light').classList.toggle('active', isDark);
+    }
+
+    // Init dark mode as default
+    document.getElementById('btn-dark').classList.add('active');
+  </script>
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatchIQ Hub — KB5034441 Catalog Detail</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;--card:#111827;--card2:#141c2e;--border:#1e293b;
+  --text:#e2e8f0;--muted:#64748b;--primary:#6366f1;--primary-dark:#4f46e5;
+  --secondary:#8b5cf6;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --radius:8px;--sidebar-w:260px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:13px}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+#sidebar{width:var(--sidebar-w);min-height:100vh;background:#0d1120;border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:width .2s}
+#sidebar.collapsed{width:64px}
+.sidebar-brand{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;overflow:hidden}
+.sidebar-brand-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sidebar-brand-text{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.sidebar-brand-sub{font-size:10px;color:var(--muted);display:block}
+.sidebar-nav{flex:1;padding:10px 0;overflow-y:auto;overflow-x:hidden}
+.nav-group-label{padding:8px 16px 3px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 16px;cursor:pointer;color:var(--muted);transition:all .15s;position:relative;font-size:12.5px;white-space:nowrap;text-decoration:none}
+.nav-item:hover{color:var(--text);background:rgba(99,102,241,.07)}
+.nav-item.active{color:var(--primary);background:rgba(99,102,241,.12)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:2px;background:var(--primary);border-radius:0 2px 2px 0}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--warning);color:#000;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.nav-badge.primary{background:var(--primary);color:#fff}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.collapse-btn{position:absolute;top:50%;right:-12px;transform:translateY(-50%);width:24px;height:24px;background:var(--card);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:var(--muted);z-index:101}
+#main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .2s}
+#main.sidebar-collapsed{margin-left:64px}
+#topbar{height:52px;background:#0d1120;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:90}
+.topbar-brand{font-size:13px;font-weight:700;color:var(--primary)}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.breadcrumb span.active{color:var(--text)}
+.breadcrumb .sep{color:var(--border)}
+.client-switcher{margin-left:auto;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:16px}
+.topbar-icon-btn{width:32px;height:32px;border-radius:6px;background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.topbar-icon-btn:hover{border-color:var(--primary);color:var(--primary)}
+.notif-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--danger);border-radius:50%;font-size:8px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center}
+.page-body{padding:24px}
+.btn{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.badge-success{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-warning{background:rgba(245,158,11,.15);color:var(--warning)}
+.badge-danger{background:rgba(239,68,68,.15);color:var(--danger)}
+.badge-primary{background:rgba(99,102,241,.15);color:var(--primary)}
+.badge-secondary{background:rgba(139,92,246,.15);color:var(--secondary)}
+.badge-muted{background:rgba(100,116,139,.15);color:var(--muted)}
+.badge-blue{background:rgba(59,130,246,.15);color:#60a5fa}
+.badge-lg{font-size:13px;padding:4px 12px;border-radius:6px}
+/* DETAIL HEADER */
+.detail-header{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.detail-name{font-size:22px;font-weight:700;font-family:monospace;color:var(--text);margin-bottom:8px}
+.detail-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.detail-actions{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+/* CONTEXT RING */
+.context-ring{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+.ctx-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.ctx-label{font-size:10px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.ctx-value{font-size:20px;font-weight:700;line-height:1}
+.ctx-sub{font-size:10px;color:var(--muted);margin-top:3px}
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:9px 18px;font-size:12.5px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;font-weight:600;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid rgba(30,41,59,.5);font-size:12.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(99,102,241,.03)}
+/* PM GRID */
+.pm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.pm-card{border:1px solid var(--border);border-radius:var(--radius);padding:12px;background:var(--card2)}
+.pm-card.synced{border-color:rgba(16,185,129,.4)}
+.pm-card.pending{border-color:rgba(245,158,11,.4)}
+.pm-card.notpushed{border-color:rgba(100,116,139,.3)}
+.pm-card-name{font-size:12px;font-weight:600;margin-bottom:6px}
+.pm-card-meta{font-size:11px;color:var(--muted);margin-top:2px}
+/* GAUGE */
+.gauge-wrap{display:flex;justify-content:center;padding:4px 0}
+/* JSON PRE */
+.json-pre{background:#060a12;border:1px solid var(--border);border-radius:6px;padding:14px;font-family:monospace;font-size:11px;line-height:1.6;overflow-x:auto;color:#94a3b8;max-height:320px;overflow-y:auto}
+.json-key{color:#818cf8}
+.json-str{color:#86efac}
+.json-num{color:#fbbf24}
+.json-bool{color:#f472b6}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.meta-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(30,41,59,.5);font-size:12.5px}
+.meta-row:last-child{border-bottom:none}
+.meta-label{color:var(--muted)}
+/* CVSS GAUGE inline */
+.cvss-val{display:inline-flex;align-items:center;gap:6px}
+.cvss-bar{width:50px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}
+.cvss-fill{height:100%;border-radius:3px}
+/* EXPLOIT ICONS */
+.exploit-yes{color:var(--danger)}
+.exploit-no{color:var(--muted)}
+/* BACK LINK */
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:16px;cursor:pointer;transition:color .15s}
+.back-link:hover{color:var(--primary)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div style="position:relative">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">H</div>
+      <div>
+        <div class="sidebar-brand-text">PatchIQ Hub</div>
+        <span class="sidebar-brand-sub">Control Plane</span>
+      </div>
+    </div>
+    <button class="collapse-btn" onclick="toggleSidebar()">◀</button>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="../hub-manager.html" class="nav-item"><span class="nav-icon">⬡</span> Dashboard</a>
+    <div class="nav-group-label">Fleet</div>
+    <a href="clients.html" class="nav-item"><span class="nav-icon">🖥</span> Clients <span class="nav-badge">8</span></a>
+    <a href="deployments.html" class="nav-item"><span class="nav-icon">🚀</span> Deployments <span class="nav-badge primary">2</span></a>
+    <div class="nav-group-label">Catalog</div>
+    <a href="catalog.html" class="nav-item active"><span class="nav-icon">📦</span> Catalog</a>
+    <a href="feeds.html" class="nav-item"><span class="nav-icon">⚡</span> Feeds</a>
+    <div class="nav-group-label">Licensing</div>
+    <a href="licenses.html" class="nav-item"><span class="nav-icon">🔑</span> Licenses</a>
+    <div class="nav-group-label">Configuration</div>
+    <a href="configuration.html" class="nav-item"><span class="nav-icon">⚙</span> Settings</a>
+  </div>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer">
+      <div class="avatar">HA</div>
+      <div style="overflow:hidden">
+        <div style="font-size:12px;font-weight:500;white-space:nowrap">hubadmin</div>
+        <div style="font-size:10px;color:var(--muted);white-space:nowrap">hubadmin@msp.com</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <span class="topbar-brand">PatchIQ Hub</span>
+    <div class="breadcrumb">
+      <span class="sep">/</span><span>Home</span>
+      <span class="sep">/</span><a href="catalog.html" style="color:var(--muted)">Catalog</a>
+      <span class="sep">/</span><span class="active">KB5034441</span>
+    </div>
+    <div class="client-switcher" style="margin-left:auto">🏢 All Clients ▾</div>
+    <div class="topbar-right">
+      <div style="position:relative">
+        <button class="topbar-icon-btn">🔔<div class="notif-badge">2</div></button>
+      </div>
+      <button class="topbar-icon-btn" onclick="toggleDark()">🌙</button>
+      <div class="avatar" style="width:30px;height:30px;font-size:11px;cursor:pointer">HA</div>
+    </div>
+  </div>
+
+  <div class="page-body">
+    <a href="catalog.html" class="back-link">← Back to Catalog</a>
+
+    <!-- IDENTITY HEADER -->
+    <div class="detail-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="flex:1">
+          <div class="detail-name">KB5034441 — Windows Security Update</div>
+          <div class="detail-meta">
+            <span class="badge badge-blue" style="font-size:12px;padding:3px 10px">Microsoft</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:12.5px">🪟 Windows Server 2022</span>
+            <span class="badge badge-danger badge-lg">Critical</span>
+            <span style="font-family:monospace;font-size:11.5px;color:var(--muted)">v2024.01.09</span>
+            <span class="badge badge-blue">NVD</span>
+            <span style="font-size:12px;color:var(--muted)">Published: Jan 9, 2024</span>
+          </div>
+        </div>
+        <div class="detail-actions" style="margin-top:0;padding-top:0;border-top:none;flex-shrink:0">
+          <button class="btn btn-primary">🔄 Push to PMs</button>
+          <button class="btn btn-outline">✏️ Edit</button>
+          <button class="btn btn-danger">🗑 Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTEXT RING -->
+    <div class="context-ring">
+      <div class="ctx-card">
+        <div class="ctx-label">CVEs</div>
+        <div class="ctx-value" style="color:var(--danger)">4</div>
+        <div class="ctx-sub">Linked CVEs</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">Highest CVSS</div>
+        <div class="ctx-value" style="color:var(--danger)">9.8</div>
+        <div style="margin-top:6px">
+          <div style="width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+            <div style="width:98%;height:100%;background:var(--danger);border-radius:2px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">Affected PMs</div>
+        <div class="ctx-value" style="color:var(--warning)">6/8</div>
+        <div class="ctx-sub">Synced clients</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">Endpoints Affected</div>
+        <div class="ctx-value" style="color:var(--primary)">~180</div>
+        <div class="ctx-sub">Aggregate estimate</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">Source Feed</div>
+        <div style="margin-top:6px"><span class="badge badge-blue" style="font-size:12px">NVD</span></div>
+        <div class="ctx-sub">National Vuln DB</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-label">Last Updated</div>
+        <div class="ctx-value" style="font-size:16px;color:var(--text)">2d</div>
+        <div class="ctx-sub">Jan 11, 2024</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
+      <div class="tab" onclick="switchTab('distribution',this)">Distribution</div>
+      <div class="tab" onclick="switchTab('source',this)">Source</div>
+    </div>
+
+    <!-- TAB: OVERVIEW -->
+    <div id="tab-overview" class="tab-panel active">
+      <div class="g2">
+        <div>
+          <!-- Metadata -->
+          <div class="card">
+            <div class="card-title">📋 Metadata</div>
+            <div class="meta-row"><span class="meta-label">Description</span></div>
+            <p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:12px;padding:0 0 12px;border-bottom:1px solid rgba(30,41,59,.5)">
+              Critical security update addressing remote code execution vulnerabilities in Windows Server 2022, Windows 11, and Windows 10. Patches a Windows Kernel Elevation of Privilege Vulnerability (CVE-2024-21307) and related flaws that allow authenticated local attackers to execute arbitrary code with SYSTEM privileges.
+            </p>
+            <div class="meta-row"><span class="meta-label">Vendor Advisory</span><a href="#" style="color:var(--primary);font-size:12px">→ microsoft.com/security/advisory</a></div>
+            <div class="meta-row"><span class="meta-label">KB Article</span><a href="#" style="color:var(--primary);font-size:12px">→ support.microsoft.com/KB5034441</a></div>
+            <div class="meta-row"><span class="meta-label">File Size</span><span>45 MB</span></div>
+            <div class="meta-row"><span class="meta-label">SHA-256</span><span style="font-family:monospace;font-size:11px;color:var(--muted)">a3f8c91b2e…d7f4021c</span></div>
+            <div class="meta-row"><span class="meta-label">Product</span><span>Windows Server 2022, Windows 11 23H2, Windows 10 22H2</span></div>
+            <div class="meta-row"><span class="meta-label">Restart Required</span><span style="color:var(--warning)">Yes</span></div>
+          </div>
+
+          <!-- Remediation -->
+          <div class="card">
+            <div class="card-title">🛡 Remediation Notes</div>
+            <div style="font-size:12.5px;color:var(--muted);line-height:1.7">
+              <p style="margin-bottom:8px"><strong style="color:var(--text)">Deployment recommendation:</strong> Deploy immediately to all Windows Server 2022 and Windows 11 systems. This update requires a system restart.</p>
+              <p style="margin-bottom:8px"><strong style="color:var(--text)">Pre-requisites:</strong> Requires Windows Server 2022 RTM or later. Ensure KB5028171 is installed before applying this update.</p>
+              <p><strong style="color:var(--text)">Known issues:</strong> Some environments using Windows Local Administrator Password Solution (LAPS) may encounter issues. Apply hotfix KB5034123 if affected.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <!-- CVE Table -->
+          <div class="card">
+            <div class="card-title">🔒 CVEs (4)</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>CVE ID</th>
+                  <th>CVSS</th>
+                  <th>Severity</th>
+                  <th>Exploit</th>
+                  <th>KEV</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span style="font-family:monospace;font-size:11px;color:var(--primary)">CVE-2024-21307</span></td>
+                  <td>
+                    <div class="cvss-val">
+                      <span style="font-weight:700;color:var(--danger)">9.8</span>
+                      <div class="cvss-bar"><div class="cvss-fill" style="width:98%;background:var(--danger)"></div></div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-danger">Critical</span></td>
+                  <td><span class="exploit-yes" title="Active exploit">⚠ Yes</span></td>
+                  <td><span class="badge badge-success" style="font-size:10px">KEV</span></td>
+                  <td style="font-size:11.5px;color:var(--muted)">Windows Kernel EoP via race condition</td>
+                </tr>
+                <tr>
+                  <td><span style="font-family:monospace;font-size:11px;color:var(--primary)">CVE-2024-21318</span></td>
+                  <td>
+                    <div class="cvss-val">
+                      <span style="font-weight:700;color:var(--danger)">8.8</span>
+                      <div class="cvss-bar"><div class="cvss-fill" style="width:88%;background:var(--warning)"></div></div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-warning">High</span></td>
+                  <td><span class="exploit-no">— No</span></td>
+                  <td><span class="badge badge-muted" style="font-size:10px">—</span></td>
+                  <td style="font-size:11.5px;color:var(--muted)">Remote code execution via LDAP</td>
+                </tr>
+                <tr>
+                  <td><span style="font-family:monospace;font-size:11px;color:var(--primary)">CVE-2024-20697</span></td>
+                  <td>
+                    <div class="cvss-val">
+                      <span style="font-weight:700;color:var(--warning)">7.8</span>
+                      <div class="cvss-bar"><div class="cvss-fill" style="width:78%;background:var(--warning)"></div></div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-warning">High</span></td>
+                  <td><span class="exploit-no">— No</span></td>
+                  <td><span class="badge badge-muted" style="font-size:10px">—</span></td>
+                  <td style="font-size:11.5px;color:var(--muted)">Kernel memory information disclosure</td>
+                </tr>
+                <tr>
+                  <td><span style="font-family:monospace;font-size:11px;color:var(--primary)">CVE-2024-21320</span></td>
+                  <td>
+                    <div class="cvss-val">
+                      <span style="font-weight:700;color:var(--secondary)">5.4</span>
+                      <div class="cvss-bar"><div class="cvss-fill" style="width:54%;background:var(--secondary)"></div></div>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-secondary">Medium</span></td>
+                  <td><span class="exploit-no">— No</span></td>
+                  <td><span class="badge badge-muted" style="font-size:10px">—</span></td>
+                  <td style="font-size:11.5px;color:var(--muted)">NTLM spoofing via crafted theme file</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: DISTRIBUTION -->
+    <div id="tab-distribution" class="tab-panel">
+      <!-- PM Sync Grid -->
+      <div class="card">
+        <div class="card-title">🔄 PM Sync Status
+          <button class="btn btn-primary btn-sm" style="margin-left:auto">🔄 Push to All Unsynchronized PMs</button>
+        </div>
+        <div class="pm-grid">
+          <div class="pm-card synced">
+            <div class="pm-card-name">Acme Corp PM</div>
+            <div><span class="badge badge-success">Synced</span></div>
+            <div class="pm-card-meta">Synced: Jan 11, 2024 09:42</div>
+            <div class="pm-card-meta">Endpoints affected: 47</div>
+          </div>
+          <div class="pm-card synced">
+            <div class="pm-card-name">TechNova Inc PM</div>
+            <div><span class="badge badge-success">Synced</span></div>
+            <div class="pm-card-meta">Synced: Jan 11, 2024 10:15</div>
+            <div class="pm-card-meta">Endpoints affected: 38</div>
+          </div>
+          <div class="pm-card synced">
+            <div class="pm-card-name">Riverside Health PM</div>
+            <div><span class="badge badge-success">Synced</span></div>
+            <div class="pm-card-meta">Synced: Jan 11, 2024 11:02</div>
+            <div class="pm-card-meta">Endpoints affected: 29</div>
+          </div>
+          <div class="pm-card synced">
+            <div class="pm-card-name">Meridian Finance PM</div>
+            <div><span class="badge badge-success">Synced</span></div>
+            <div class="pm-card-meta">Synced: Jan 11, 2024 11:30</div>
+            <div class="pm-card-meta">Endpoints affected: 22</div>
+          </div>
+          <div class="pm-card synced">
+            <div class="pm-card-name">Skyline Retail PM</div>
+            <div><span class="badge badge-success">Synced</span></div>
+            <div class="pm-card-meta">Synced: Jan 11, 2024 12:08</div>
+            <div class="pm-card-meta">Endpoints affected: 31</div>
+          </div>
+          <div class="pm-card synced">
+            <div class="pm-card-name">BluePeak Logistics PM</div>
+            <div><span class="badge badge-success">Synced</span></div>
+            <div class="pm-card-meta">Synced: Jan 12, 2024 08:20</div>
+            <div class="pm-card-meta">Endpoints affected: 13</div>
+          </div>
+          <div class="pm-card pending">
+            <div class="pm-card-name">Northridge Edu PM</div>
+            <div><span class="badge badge-warning">Pending</span></div>
+            <div class="pm-card-meta">Queued: Jan 12, 2024 14:00</div>
+            <div class="pm-card-meta">Endpoints: ~19</div>
+          </div>
+          <div class="pm-card notpushed">
+            <div class="pm-card-name">Vertex Systems PM</div>
+            <div><span class="badge badge-muted">Not Pushed</span></div>
+            <div class="pm-card-meta">No sync initiated</div>
+            <div class="pm-card-meta">Endpoints: ~21</div>
+          </div>
+        </div>
+      </div>
+      <!-- Distribution Timeline -->
+      <div class="card">
+        <div class="card-title">📈 Distribution Timeline — PMs Synced Over Time</div>
+        <div style="height:220px;position:relative">
+          <canvas id="distChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SOURCE -->
+    <div id="tab-source" class="tab-panel">
+      <div class="g2">
+        <div>
+          <div class="card">
+            <div class="card-title">🌐 Feed Origin</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:6px">
+              <div style="width:40px;height:40px;background:rgba(59,130,246,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px">🛡</div>
+              <div>
+                <div style="font-size:13px;font-weight:600">NVD — National Vulnerability Database</div>
+                <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Operated by NIST, U.S. Dept. of Commerce</div>
+              </div>
+              <span class="badge badge-blue" style="margin-left:auto;font-size:12px">NVD</span>
+            </div>
+            <div class="meta-row"><span class="meta-label">Feed URL</span><span style="font-family:monospace;font-size:11px;color:var(--muted)">https://nvd.nist.gov/feeds/json/cve/1.1</span></div>
+            <div class="meta-row"><span class="meta-label">Parse Confidence</span><span class="badge badge-success">High (98%)</span></div>
+            <div class="meta-row"><span class="meta-label">Last Refreshed</span><span>6 hours ago</span></div>
+            <div class="meta-row"><span class="meta-label">Feed Entry ID</span><span style="font-family:monospace;font-size:11px;color:var(--muted)">nvd-2024-21307-cluster</span></div>
+            <div style="margin-top:14px">
+              <button class="btn btn-outline btn-sm">🔄 Re-fetch from Source</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">📄 Raw Feed Entry</div>
+            <div class="json-pre" id="rawJson">
+<span class="json-key">"CVE_data_meta"</span>: {
+  <span class="json-key">"ID"</span>: <span class="json-str">"CVE-2024-21307"</span>,
+  <span class="json-key">"ASSIGNER"</span>: <span class="json-str">"secure@microsoft.com"</span>
+},
+<span class="json-key">"description"</span>: {
+  <span class="json-key">"description_data"</span>: [{
+    <span class="json-key">"lang"</span>: <span class="json-str">"en"</span>,
+    <span class="json-key">"value"</span>: <span class="json-str">"Windows Kernel Elevation of Privilege Vulnerability..."</span>
+  }]
+},
+<span class="json-key">"impact"</span>: {
+  <span class="json-key">"baseMetricV3"</span>: {
+    <span class="json-key">"cvssV3"</span>: {
+      <span class="json-key">"baseScore"</span>: <span class="json-num">9.8</span>,
+      <span class="json-key">"baseSeverity"</span>: <span class="json-str">"CRITICAL"</span>,
+      <span class="json-key">"vectorString"</span>: <span class="json-str">"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"</span>
+    },
+    <span class="json-key">"exploitabilityScore"</span>: <span class="json-num">3.9</span>,
+    <span class="json-key">"impactScore"</span>: <span class="json-num">5.9</span>
+  }
+},
+<span class="json-key">"publishedDate"</span>: <span class="json-str">"2024-01-09T18:15Z"</span>,
+<span class="json-key">"lastModifiedDate"</span>: <span class="json-str">"2024-01-11T02:30Z"</span>,
+<span class="json-key">"references"</span>: [{
+  <span class="json-key">"url"</span>: <span class="json-str">"https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-21307"</span>,
+  <span class="json-key">"source"</span>: <span class="json-str">"secure@microsoft.com"</span>,
+  <span class="json-key">"tags"</span>: [<span class="json-str">"Vendor Advisory"</span>]
+}]
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+if(localStorage.getItem('theme')==='light') document.documentElement.classList.remove('dark');
+function toggleDark(){ document.documentElement.classList.toggle('dark'); localStorage.setItem('theme',document.documentElement.classList.contains('dark')?'dark':'light'); }
+let sidebarCollapsed=false;
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed',sidebarCollapsed);
+  document.getElementById('main').classList.toggle('sidebar-collapsed',sidebarCollapsed);
+}
+function switchTab(id, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  if(id==='distribution') renderDistChart();
+  const hash = id;
+  history.replaceState(null,'','#'+hash);
+}
+
+// Init tab from URL hash
+(function(){
+  const h = location.hash.replace('#','');
+  if(h){
+    const tabEl = document.querySelector(`.tab[onclick*="'${h}'"]`);
+    if(tabEl) switchTab(h, tabEl);
+  }
+})();
+
+// Distribution chart
+let distChartInst=null;
+function renderDistChart(){
+  if(distChartInst) return;
+  const ctx = document.getElementById('distChart');
+  if(!ctx) return;
+  distChartInst = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels:['Jan 9','Jan 10','Jan 11','Jan 12','Jan 13','Jan 14','Jan 15'],
+      datasets:[{
+        label:'PMs Synced',
+        data:[0,2,4,6,6,6,6],
+        borderColor:'#6366f1',
+        backgroundColor:'rgba(99,102,241,.1)',
+        tension:.4,
+        fill:true,
+        pointRadius:4,
+        pointBackgroundColor:'#6366f1',
+      },{
+        label:'Pending',
+        data:[8,6,4,2,2,2,2],
+        borderColor:'#f59e0b',
+        backgroundColor:'rgba(245,158,11,.05)',
+        tension:.4,
+        fill:false,
+        pointRadius:3,
+        borderDash:[4,4],
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},
+      scales:{
+        x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(30,41,59,.5)'}},
+        y:{ticks:{color:'#64748b',font:{size:10},stepSize:2},grid:{color:'rgba(30,41,59,.5)'},max:8,min:0}
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
