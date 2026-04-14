@@ -1,4 +1,4 @@
-# PatchIQ Patch Manager - Complete User Guide
+# Patch Manager - Complete User Guide
 
 > Enterprise Patch Management Platform
 > Version 1.0 | For Administrators and IT Operations Teams
@@ -7,7 +7,7 @@
 
 ## Table of Contents
 
-1. [Welcome to PatchIQ](#1-welcome-to-patchiq)
+1. [Welcome to Patch Manager](#1-welcome-to-patch-manager)
 2. [Getting Started](#2-getting-started)
 3. [Navigating the Interface](#3-navigating-the-interface)
 4. [Dashboard](#4-dashboard)
@@ -29,15 +29,15 @@
 
 ---
 
-## 1. Welcome to PatchIQ
+## 1. Welcome to Patch Manager
 
-### What is PatchIQ?
+### What is Patch Manager?
 
-PatchIQ is an enterprise patch management platform that helps you discover vulnerabilities, deploy patches, and maintain compliance across your entire IT infrastructure. It works across Windows, Linux, and macOS endpoints from a single management console.
+Patch Manager is an enterprise patch management platform that helps you discover vulnerabilities, deploy patches, and maintain compliance across your entire IT infrastructure. It works across Windows, Linux, and macOS endpoints from a single management console.
 
-### How PatchIQ Works
+### How Patch Manager Works
 
-PatchIQ uses a three-tier architecture to deliver patch management at scale:
+Patch Manager uses a three-tier architecture to deliver patch management at scale:
 
 ```
                     YOUR ORGANIZATION
@@ -101,10 +101,10 @@ PatchIQ uses a three-tier architecture to deliver patch management at scale:
 
 | Concept | What it Means |
 |---------|--------------|
-| **Endpoint** | Any device managed by PatchIQ (server, workstation, laptop) |
-| **Agent** | The small PatchIQ software installed on each endpoint |
+| **Endpoint** | Any device managed by Patch Manager (server, workstation, laptop) |
+| **Agent** | The small Patch Manager software installed on each endpoint |
 | **Patch** | A software update that fixes a bug, vulnerability, or adds improvements |
-| **CVE** | Common Vulnerabilities and Exposures - a publicly known security flaw |
+| **CVE** | Common Vulnerabilities and Exposures — a publicly known security flaw |
 | **Deployment** | The process of sending patches to one or more endpoints |
 | **Wave** | A group of endpoints that receive a patch together during a phased deployment |
 | **Policy** | A set of rules that automatically identifies which patches go to which endpoints |
@@ -116,19 +116,19 @@ PatchIQ uses a three-tier architecture to deliver patch management at scale:
 
 ### Step 1: Log In
 
-Open your browser and navigate to your PatchIQ server URL (provided by your administrator).
+Open your browser and navigate to your Patch Manager server URL (provided by your administrator).
 
 ```
 ┌─────────────────────────────────────────────┐
 │                                             │
-│              P A T C H I Q                  │
+│           P A T C H   M A N A G E R         │
 │                                             │
 │   ┌───────────────────────────────────┐     │
 │   │  Email or Username                │     │
 │   └───────────────────────────────────┘     │
 │                                             │
 │   ┌───────────────────────────────────┐     │
-│   │  Password                    [👁]  │     │
+│   │  Password                         │     │
 │   └───────────────────────────────────┘     │
 │                                             │
 │   [✓] Remember me                           │
@@ -146,7 +146,7 @@ Enter your credentials and click **Sign In**. If your organization uses Single S
 
 ### Step 2: Install Agents on Your Endpoints
 
-Before PatchIQ can manage a device, you must install the PatchIQ Agent on it. Navigate to **Agent Downloads** in the sidebar.
+Before Patch Manager can manage a device, you must install the Agent on it. Navigate to **Agent Downloads** in the sidebar.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -196,7 +196,7 @@ Navigate to **Endpoints** in the sidebar. Your newly enrolled device should appe
 
 ### Main Layout
 
-PatchIQ's interface has three main areas:
+Patch Manager's interface has three main areas:
 
 ```
 ┌──────────┬──────────────────────────────────────────────────────┐
@@ -206,35 +206,37 @@ PatchIQ's interface has three main areas:
 │  SIDE    │  └─────────┘  └──────────────────────┘              │
 │  BAR     ├──────────────────────────────────────────────────────┤
 │          │                                                      │
-│  ┌─────┐ │              MAIN CONTENT AREA                       │
-│  │ 📊  │ │                                                      │
+│ Overview │              MAIN CONTENT AREA                       │
+│  ┌─────┐ │                                                      │
 │  │Dash │ │    This area changes based on which page             │
-│  ├─────┤ │    you've selected in the sidebar.                   │
-│  │ 🖥  │ │                                                      │
-│  │Endpt│ │    Tables, charts, forms, and details                │
-│  ├─────┤ │    all appear here.                                  │
-│  │ 📦  │ │                                                      │
+│  │board│ │    you've selected in the sidebar.                   │
+│ Assets  │ │                                                      │
+│  ┌─────┐ │    Tables, charts, forms, and details                │
+│  │Endpt│ │    all appear here.                                  │
+│ Security│ │                                                      │
+│  ┌─────┐ │                                                      │
 │  │Patch│ │                                                      │
 │  ├─────┤ │                                                      │
-│  │ 🛡  │ │                                                      │
 │  │CVEs │ │                                                      │
 │  ├─────┤ │                                                      │
-│  │ 📜  │ │                                                      │
 │  │Polic│ │                                                      │
-│  ├─────┤ │                                                      │
-│  │ 🚀  │ │                                                      │
+│ Ops     │ │                                                      │
+│  ┌─────┐ │                                                      │
 │  │Dploy│ │                                                      │
-│  ├─────┤ │                                                      │
-│  │ 🔔  │ │                                                      │
+│ Complnce│ │                                                      │
+│  ┌─────┐ │                                                      │
 │  │Alert│ │                                                      │
 │  ├─────┤ │                                                      │
-│  │ 📋  │ │                                                      │
 │  │Audit│ │                                                      │
 │  ├─────┤ │                                                      │
-│  │ ⚙  │ │                                                      │
+│  │Reprt│ │                                                      │
+│ System  │ │                                                      │
+│  ┌─────┐ │                                                      │
 │  │Sett.│ │                                                      │
+│  ├─────┤ │                                                      │
+│  │Agent│ │                                                      │
+│  │Dwnld│ │                                                      │
 │  └─────┘ │                                                      │
-│          │                                                      │
 │  ┌─────┐ │                                                      │
 │  │User │ │                                                      │
 │  │Menu │ │                                                      │
@@ -244,7 +246,7 @@ PatchIQ's interface has three main areas:
 
 ### Sidebar Navigation
 
-The sidebar is organized into logical sections:
+The sidebar is organized into 6 sections:
 
 | Section | Pages | What You'll Find |
 |---------|-------|-----------------|
@@ -258,28 +260,28 @@ The sidebar is organized into logical sections:
 ### Top Bar Features
 
 ```
-┌───────────────────────────────────────────────────────────────────────┐
-│  Endpoints / web-server-01    [  Search endpoints, patches, CVEs... ⌘K  ]    [🔔] [☀/🌙] [⬇]  │
-│  ↑ Breadcrumb                  ↑ Command Palette                      ↑     ↑       ↑         │
-│                                                                    Alerts  Theme  Register     │
-└───────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Endpoints / web-server-01    [ Search endpoints, patches, CVEs… ⌘K ]  [🔔] [☀] [⬇] │
+│  ↑ Breadcrumb                  ↑ Command Palette                     ↑    ↑    ↑      │
+│                                                                   Notif Theme Register │
+└────────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Breadcrumb** (left) — Shows where you are. Click the parent link to go back to the list.
-- **Command Palette** (center) — Press `Ctrl+K` (or `Cmd+K` on Mac) to search across everything: endpoints, patches, CVEs, policies, and more.
-- **Alerts Bell** (right) — Quick access to alerts. A red badge appears when critical alerts need attention.
-- **Theme Toggle** (right) — Switch between light and dark mode.
-- **Register Endpoint** (right) — Quick link to the agent download page.
+- **Breadcrumb** (left) — Shows where you are. On detail pages, shows the parent page link and the current entity name. Click the parent to go back.
+- **Command Palette** (center) — Press `Ctrl+K` (or `Cmd+K` on Mac) to search across everything: endpoints, patches, CVEs, and more. The placeholder reads: *"Search endpoints, patches, CVEs..."*
+- **Notifications** (right) — Bell icon. Navigates to the notifications page.
+- **Theme Toggle** (right) — Toggle between light and dark mode. Shows a Moon icon in light mode, Sun icon in dark mode.
+- **Register Endpoint** (right) — Download icon. Navigates to the endpoints page with the registration panel open.
 
 ### User Menu
 
 Click your name at the bottom of the sidebar to access:
-- **Account Settings** — Change password, manage API tokens
-- **Sign Out** — End your session
+- **Account Settings** — Navigates to your account settings page
+- **Sign out** — End your session
 
 ### Permissions
 
-If you see a lock icon next to a menu item, you don't have permission to access that area. Contact your administrator to adjust your role.
+If a sidebar item appears dimmed with a lock icon, you don't have permission to access that area. Contact your administrator to adjust your role.
 
 ---
 
@@ -342,15 +344,19 @@ The Dashboard is your command center. It provides an at-a-glance view of your en
 | **Patch Velocity Trend** | Line chart of patches deployed over time |
 | **Compliance Rings** | Ring gauges showing compliance score per framework |
 | **Deployment Pipeline** | Visual flow of scheduled, running, and completed deployments |
-| **Top Vulnerabilities** | Highest-risk CVEs that need immediate attention |
-| **Risk Landscape** | Heatmap of risk across your infrastructure |
-| **OS Heatmap** | Breakdown of endpoints by operating system |
+| **Top CVEs** | Highest-risk CVEs that need immediate attention |
+| **Risk Ranking** | Risk ranking across your infrastructure |
+| **Vulnerability Matrix** | Vulnerability breakdown visualization |
 | **Activity Feed** | Real-time stream of recent events |
+| **Activity Timeline** | Chronological activity display |
 | **Missing Patches** | Patches with the most affected endpoints |
-| **MTTR Decay Curve** | Mean-time-to-remediate trend |
-| **Exposure Window** | Timeline showing how long vulnerabilities have been open |
+| **Remediation Progress** | Progress tracking for remediation efforts |
+| **Exposure Window Timeline** | Timeline showing how long vulnerabilities have been open |
 | **Blast Radius** | Impact visualization of unpatched CVEs |
 | **Drift Detector** | Endpoints drifting from compliance baselines |
+| **OS Heatmap** | Breakdown of endpoints by operating system |
+| **Health Scorecard** | Overall infrastructure health metrics |
+| **Quick Actions** | Shortcuts to common operations |
 
 ### Onboarding Banner
 
@@ -366,25 +372,25 @@ Navigate to **Endpoints** in the sidebar.
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│  Endpoints                                              [+ Create]   │
+│  Endpoints                                                           │
 │                                                                       │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │
-│  │   ALL    │ │  ONLINE  │ │ OFFLINE  │ │ PENDING  │ │  STALE   │   │
-│  │   260    │ │   247    │ │    8     │ │    3     │ │    2     │   │
-│  │          │ │  (green) │ │  (red)   │ │  (blue)  │ │  (gray)  │   │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘   │
+│  ┌───────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
+│  │TOTAL ENDPT│ │  ONLINE  │ │ OFFLINE  │ │ PENDING  │ │  STALE   │  │
+│  │   260     │ │   247    │ │    8     │ │    3     │ │    2     │  │
+│  │           │ │  (green) │ │  (red)   │ │  (blue)  │ │  (gray)  │  │
+│  └───────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
 │                                                                       │
 │  [Search...]                                                          │
 │                                                                       │
-│  ┌─┬──────────────┬──────┬────────┬──────┬───────┬──────┬─────────┐  │
-│  │☐│ Hostname     │ OS   │ Status │ Risk │ Seen  │Patch │ Tags    │  │
-│  ├─┼──────────────┼──────┼────────┼──────┼───────┼──────┼─────────┤  │
-│  │☐│ web-srv-01   │ U 22 │ ● Onl  │  7.2 │ 2m ago│ C:3  │ prod    │  │
-│  │☐│ db-srv-01    │ R 9  │ ● Onl  │  4.1 │ 5m ago│ H:2  │ prod,db │  │
-│  │☐│ win-pc-042   │ W 11 │ ● Onl  │  8.5 │ 1m ago│ C:5  │ corp    │  │
-│  │☐│ mac-dev-07   │ M 14 │ ● Off  │  2.0 │ 3d ago│ M:1  │ dev     │  │
-│  │☐│ lin-build-03 │ D 12 │ ● Stl  │  6.3 │ 7d ago│ H:4  │ ci      │  │
-│  └─┴──────────────┴──────┴────────┴──────┴───────┴──────┴─────────┘  │
+│  ┌─┬──────────────┬──────┬────────┬─────────┬──────┬───────┬──────┬──────┐
+│  │☐│ Hostname     │ OS   │ Status │Agent Ver│ Risk │ Seen  │Patch │ Tags │
+│  ├─┼──────────────┼──────┼────────┼─────────┼──────┼───────┼──────┼──────┤
+│  │☐│ web-srv-01   │ U 22 │ ● Onl  │ v1.2.3  │ 7.2  │ 2m ago│ C:3  │ prod │
+│  │☐│ db-srv-01    │ R 9  │ ● Onl  │ v1.2.3  │ 4.1  │ 5m ago│ H:2  │ db   │
+│  │☐│ win-pc-042   │ W 11 │ ● Onl  │ v1.2.1  │ 8.5  │ 1m ago│ C:5  │ corp │
+│  │☐│ mac-dev-07   │ M 14 │ ● Off  │ v1.1.0  │ 2.0  │ 3d ago│ M:1  │ dev  │
+│  │☐│ lin-build-03 │ D 12 │ ● Stl  │ v1.0.9  │ 6.3  │ 7d ago│ H:4  │ ci   │
+│  └─┴──────────────┴──────┴────────┴─────────┴──────┴───────┴──────┴──────┘
 │                                                                       │
 │  Rows per page: [20 ▼]                         Page 1 of 13  [<] [>] │
 └───────────────────────────────────────────────────────────────────────┘
@@ -396,8 +402,9 @@ Navigate to **Endpoints** in the sidebar.
 |--------|-------------|
 | **Hostname** | The device name. Click to view full details. |
 | **OS** | Operating system with version. Shows a letter badge: **W** (Windows), **U** (Ubuntu), **R** (RHEL), **D** (Debian), **M** (macOS), **C** (CentOS), **F** (Fedora) |
-| **Status** | Connection state: **Online** (green dot), **Offline** (red dot), **Pending** (blue dot, awaiting first check-in), **Stale** (gray dot, hasn't reported in a while) |
-| **Risk Score** | 0-10 scale. Color-coded: **Green** (0-3, low risk), **Yellow** (3-7, moderate), **Red** (7-10, high risk) |
+| **Status** | Connection state: **Online** (green dot), **Offline** (red dot), **Pending** (blue dot), **Stale** (gray dot) |
+| **Agent Ver** | The version of the Patch Manager agent running on the endpoint |
+| **Risk Score** | 0-10 scale shown as "X/10". Color-coded: **Green** (0-3, low risk), **Yellow** (3-7, moderate), **Red** (7-10, high risk) |
 | **Last Seen** | When the agent last reported in. "2m ago", "3 days ago", etc. |
 | **Patches Pending** | Outstanding patches by severity. **C:3** = 3 critical, **H:2** = 2 high, **M:1** = 1 medium |
 | **Tags** | Labels assigned to this endpoint for grouping and policy targeting |
@@ -409,21 +416,30 @@ The stat cards at the top work as **quick filters**. Click any card to filter th
 - Click **Offline** to see only disconnected devices
 - Click the active card again to clear the filter
 
-### Bulk Actions
+### Expanded Row View
 
-Select multiple endpoints using the checkboxes, then use the bulk action bar that appears at the bottom:
+Click the expand chevron on any row to see a quick summary without leaving the page:
 
 ```
-┌───────────────────────────────────────────────────────────────────┐
-│  3 endpoints selected    [Scan All] [Deploy] [Assign Tags] [...]  │
-└───────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│  SYSTEM HEALTH                    │  PENDING PATCHES               │
+│                                   │                                │
+│  CPU      ████████░░  72%        │  Critical    3  (red)          │
+│  Memory   █████░░░░░  48%        │  High        2  (orange)       │
+│  Disk     ██████████  95%        │  Medium      1  (yellow)       │
+│                                   │                                │
+│           [⎌ Deploy]  [Scan]  [View Details →]                    │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Scan All Selected** — Trigger an inventory scan on all selected endpoints
-- **Deploy to Selected** — Open the Deployment Wizard targeting these endpoints
-- **Assign Tags** — Apply tags to all selected endpoints at once
-- **Decommission All** — Remove selected endpoints from management
-- **Export as CSV** — Download endpoint data
+### Row Actions (Menu)
+
+Right-click or click the menu icon on any row to access:
+- **View Details** — Open the full endpoint detail page
+- **Scan** — Trigger an inventory scan
+- **Deploy Patches** — Open a deployment targeting this endpoint
+- **Assign Tags** — Apply tags to the endpoint
+- **Delete** — Decommission the endpoint (shown in red)
 
 ### Endpoint Detail Page
 
@@ -433,19 +449,20 @@ Click any hostname to open the full detail view:
 ┌───────────────────────────────────────────────────────────────────────┐
 │  ← Endpoints                                                         │
 │                                                                       │
-│  web-server-01                      [Deploy Patches] [Scan Now] [···]│
+│  web-server-01                     [Deploy Patches] [Scan Now] [···] │
 │  ● Online  |  Ubuntu 22.04  |  Agent v1.2.3  |  192.168.1.100       │
 │  Enrolled 30 days ago                                                 │
 │                                                                       │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐    │
 │  │ RISK SCORE  │ │ PATCH       │ │ COMPLIANCE  │ │ LAST SCAN   │    │
 │  │             │ │ COVERAGE    │ │             │ │             │    │
-│  │    7.2      │ │    92%      │ │   3/5       │ │  2 hrs ago  │    │
+│  │  7.2 /10   │ │    92%      │ │   3/5       │ │  2 hrs ago  │    │
 │  │  ████████░░ │ │  █████████░ │ │  ██████░░░░ │ │             │    │
 │  │   (red)     │ │  (green)    │ │  (yellow)   │ │             │    │
 │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘    │
 │                                                                       │
-│  [Overview] [Hardware] [Software] [Patches] [CVEs] [Deployments]     │
+│  [Overview] [Hardware] [Software] [Patches] [CVE Exposure]           │
+│  [Deployments] [Audit]                                                │
 │  ──────────────────────────────────────────────────────────────       │
 │                                                                       │
 │                    (Tab content appears here)                         │
@@ -457,8 +474,8 @@ Click any hostname to open the full detail view:
 
 | Tab | What You'll See |
 |-----|----------------|
-| **Overview** | Hostname, OS, architecture, agent version, IP address, enrollment date |
-| **Hardware** | CPU model, cores, RAM size, disk layout, BIOS/firmware info |
+| **Overview** | Summary card with key metrics and endpoint information |
+| **Hardware** | CPU model, cores, RAM size, disk layout, network info |
 | **Software** | All installed packages/applications with versions |
 | **Patches** | Patches applicable to this endpoint — deployed, pending, and failed |
 | **CVE Exposure** | All CVEs affecting this endpoint, with severity, CVSS score, and exploit status |
@@ -469,10 +486,10 @@ Click any hostname to open the full detail view:
 
 | Action | How to Access | What It Does |
 |--------|---------------|-------------|
-| **Deploy Patches** | Button in header | Opens deployment wizard pre-targeted to this endpoint |
-| **Scan Now** | Button in header | Triggers an immediate inventory scan (shows spinner while running) |
-| **Export Report** | More menu (...) | Downloads a CSV report for this endpoint |
-| **Delete Endpoint** | More menu (...) | Decommissions the endpoint (confirmation required) |
+| **Deploy Patches** | Primary button in header | Opens deployment dialog pre-targeted to this endpoint |
+| **Scan Now** | Outline button in header | Triggers an immediate inventory scan (shows "Scanning..." with spinner while running) |
+| **Export Report** | More menu (...) | Downloads a report for this endpoint |
+| **Delete Endpoint** | More menu (...) | Decommissions the endpoint. Shows a confirmation dialog: *"Are you sure you want to delete [hostname]? The endpoint will be marked as decommissioned."* |
 
 ---
 
@@ -484,28 +501,27 @@ Navigate to **Patches** in the sidebar.
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│  Patches                                                    [Refresh]│
+│  Patches                                                             │
 │                                                                       │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │
-│  │ CRITICAL │ │   HIGH   │ │  MEDIUM  │ │   LOW    │               │
-│  │    23    │ │    41    │ │    18    │ │     7    │               │
-│  │  (red)   │ │ (orange) │ │ (yellow) │ │  (gray)  │               │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘               │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
+│  │  TOTAL   │ │ CRITICAL │ │   HIGH   │ │  MEDIUM  │ │   LOW    │  │
+│  │    89    │ │    23    │ │    41    │ │    18    │ │     7    │  │
+│  │          │ │  (red)   │ │ (orange) │ │ (yellow) │ │  (gray)  │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
 │                                                                       │
-│  [Search patches...]                                                  │
+│  [Search patches (KB, USN, RHSA...)]     [OS Family ▼] [Status ▼]   │
 │                                                                       │
-│  ┌─┬───────────────────┬─────────┬──────┬──────┬─────────┬────────┐  │
-│  │☐│ Patch Name        │Severity │  OS  │ CVSS │Affected │Remediate│  │
-│  ├─┼───────────────────┼─────────┼──────┼──────┼─────────┼────────┤  │
-│  │☐│ curl 7.88.1-10    │CRITICAL │ U 22 │  9.8 │  142    │  12%   │  │
-│  │ │ +deb12u5          │  (red)  │      │ ████ │endpoints│ ██░░░░ │  │
-│  ├─┼───────────────────┼─────────┼──────┼──────┼─────────┼────────┤  │
-│  │☐│ KB5034441         │  HIGH   │ W 11 │  8.1 │   87    │  45%   │  │
-│  │ │ 2024-01 Security  │(orange) │      │ ███░ │endpoints│ ████░░ │  │
-│  ├─┼───────────────────┼─────────┼──────┼──────┼─────────┼────────┤  │
-│  │☐│ openssl 3.0.13    │ MEDIUM  │ R 9  │  6.5 │   34    │  78%   │  │
-│  │ │                   │(yellow) │      │ ██░░ │endpoints│ ██████ │  │
-│  └─┴───────────────────┴─────────┴──────┴──────┴─────────┴────────┘  │
+│  ┌─┬───────────────────┬────────┬─────────┬──────┬──────┬─────────┬────────┬──────────┬────────┐
+│  │☐│ Patch Name        │Vers/KB │Severity │  OS  │ CVEs │ CVSS Hi │Affected│Remediate%│Released│
+│  ├─┼───────────────────┼────────┼─────────┼──────┼──────┼─────────┼────────┼──────────┼────────┤
+│  │☐│ curl              │7.88.1  │CRITICAL │ U 22 │  4   │  9.8    │  142   │   12%    │2025-01 │
+│  │ │                   │-10+deb │  (red)  │      │      │  ████   │        │  ██░░░░  │   -14  │
+│  ├─┼───────────────────┼────────┼─────────┼──────┼──────┼─────────┼────────┼──────────┼────────┤
+│  │☐│ KB5034441         │2024-01 │  HIGH   │ W 11 │  2   │  8.1    │   87   │   45%    │2025-01 │
+│  │ │                   │        │(orange) │      │      │  ███░   │        │  ████░░  │   -10  │
+│  └─┴───────────────────┴────────┴─────────┴──────┴──────┴─────────┴────────┴──────────┴────────┘
+│                                                                       │
+│  Status column shows: Pending | Deployed | Not Applicable             │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -513,14 +529,23 @@ Navigate to **Patches** in the sidebar.
 
 | Column | Description |
 |--------|-------------|
-| **Patch Name** | Name and version of the patch or security update |
+| **Patch Name** | Name of the patch or security update |
+| **Version / KB** | Version number or KB article identifier |
 | **Severity** | Risk level: **Critical** (red), **High** (orange), **Medium** (yellow), **Low** (gray) |
 | **OS** | Target operating system (letter badge + version) |
-| **CVSS** | Highest CVSS score among linked CVEs (0.0 - 10.0). Visual color bar indicates severity. |
+| **CVE Count** | Number of CVEs addressed by this patch |
+| **CVSS Highest** | Highest CVSS score among linked CVEs (0.0 - 10.0). Visual color bar indicates severity. |
 | **Affected Endpoints** | How many of your endpoints need this patch |
 | **Remediation %** | Progress bar showing what percentage of affected endpoints have been patched |
-| **Released** | When the vendor released this patch |
+| **Released** | Date the vendor released this patch (YYYY-MM-DD) |
 | **Status** | **Pending** (needs deployment), **Deployed** (100% remediated), **Not Applicable** (superseded or recalled) |
+
+### Filters
+
+- **Search** — Search by KB number, USN, RHSA, or name. Placeholder: *"Search patches (KB, USN, RHSA...)"*
+- **OS Family** — Filter by operating system: Windows, Ubuntu, RHEL, Debian
+- **Status** — Filter by status: available, superseded, recalled
+- Click **Clear Filters** to reset all filters
 
 ### CVSS Score Color Scale
 
@@ -529,7 +554,7 @@ Navigate to **Patches** in the sidebar.
    │            │            │            │            │
    ├────────────┼────────────┼────────────┼────────────┤
    │    LOW     │   MEDIUM   │    HIGH    │  CRITICAL  │
-   │   (blue)   │  (yellow)  │  (orange)  │   (red)    │
+   │  (green)   │  (yellow)  │  (orange)  │   (red)    │
 ```
 
 ### Patch Detail Page
@@ -540,12 +565,22 @@ Click any patch name to see its full details:
 ┌───────────────────────────────────────────────────────────────────────┐
 │  ← Patches                                                           │
 │                                                                       │
-│  curl 7.88.1-10+deb12u5                                  [Deploy]   │
+│  curl 7.88.1-10+deb12u5                                              │
 │  CRITICAL  |  Debian 12  |  Released Jan 14, 2025                    │
+│                                                                       │
+│                       [Deploy] [Mark Reviewed] [···]                 │
+│                                                                       │
+│  [Overview] [CVEs (4)] [Affected Endpoints (142)]                    │
+│  [Deployment History] [Remediation Metrics]                           │
+│  ──────────────────────────────────────────────────────────────       │
+│                                                                       │
+│  Overview tab content:                                                │
 │                                                                       │
 │  Description:                                                         │
 │  Security update for curl addressing buffer overflow vulnerability    │
 │  in HTTP/2 header processing.                                        │
+│                                                                       │
+│  Highest CVSS Score: 9.8                                             │
 │                                                                       │
 │  ┌──────────────────────────────────────────────────────────────┐    │
 │  │  REMEDIATION STATUS                                          │    │
@@ -555,68 +590,66 @@ Click any patch name to see its full details:
 │  │  ████████   █████░░░░    ████░░░░░░   ██░░░░░░░░            │    │
 │  └──────────────────────────────────────────────────────────────┘    │
 │                                                                       │
-│  LINKED CVEs                                                         │
-│  ┌────────────────┬──────────┬──────┬────────────┬───────────────┐   │
-│  │ CVE ID         │ Severity │ CVSS │ Exploit?   │ CISA KEV?     │   │
-│  ├────────────────┼──────────┼──────┼────────────┼───────────────┤   │
-│  │ CVE-2024-1234  │ CRITICAL │  9.8 │ Yes        │ Yes (Due 2/1) │   │
-│  │ CVE-2024-5678  │ HIGH     │  7.5 │ No         │ No            │   │
-│  └────────────────┴──────────┴──────┴────────────┴───────────────┘   │
-│                                                                       │
-│  AFFECTED ENDPOINTS                                                   │
-│  ┌──────────────┬────────┬─────────┬──────────────────┐              │
-│  │ Hostname     │ OS     │ Status  │ Patch Status     │              │
-│  ├──────────────┼────────┼─────────┼──────────────────┤              │
-│  │ web-srv-01   │ Deb 12 │ Online  │ Pending          │              │
-│  │ web-srv-02   │ Deb 12 │ Online  │ Deployed Jan 15  │              │
-│  │ api-srv-01   │ Deb 12 │ Offline │ Failed           │              │
-│  └──────────────┴────────┴─────────┴──────────────────┘              │
-│                                                                       │
-│  DEPLOYMENT HISTORY                                                   │
-│  ┌─────────────┬────────────┬────────┬─────────┬─────────┬────────┐ │
-│  │ ID          │ Status     │ By     │ Targets │ Success │ Failed │ │
-│  ├─────────────┼────────────┼────────┼─────────┼─────────┼────────┤ │
-│  │ dep-abc123  │ Completed  │ admin  │   50    │   48    │   2    │ │
-│  │ dep-def456  │ Running    │ system │   100   │   42    │   3    │ │
-│  └─────────────┴────────────┴────────┴─────────┴─────────┴────────┘ │
+│  CVEs (4) tab shows linked vulnerabilities                            │
+│  Affected Endpoints (142) tab shows endpoint list with patch status  │
+│  Deployment History tab shows past rollout attempts                   │
+│  Remediation Metrics tab shows detailed remediation analytics        │
 └───────────────────────────────────────────────────────────────────────┘
 ```
+
+### Patch Detail Tabs
+
+| Tab | What You'll See |
+|-----|----------------|
+| **Overview** | Description, CVSS details, remediation status summary |
+| **CVEs** | All CVEs addressed by this patch (count shown in tab label) |
+| **Affected Endpoints** | Endpoints that need this patch (count shown in tab label), with hostname, OS, status, and patch status per endpoint |
+| **Deployment History** | Timeline of all deployments of this patch with status, target count, success/failure counts |
+| **Remediation Metrics** | Detailed remediation analytics |
+
+### Patch Detail Actions
+
+| Action | Description |
+|--------|-------------|
+| **Deploy** | Opens the deployment dialog with this patch pre-selected |
+| **Mark Reviewed** | Marks the patch as reviewed (changes to "Reviewed" with a checkmark once clicked) |
+| **Copy Patch ID** | Copies the patch UUID to clipboard (in the more menu) |
+| **View in Patches List** | Navigates back to the patches list (in the more menu) |
 
 ---
 
 ## 7. Deploying Patches
 
-Deploying patches is the core action in PatchIQ. There are multiple ways to initiate a deployment.
+Deploying patches is the core action in Patch Manager. There are multiple ways to initiate a deployment.
 
 ### Quick Deploy (From Patch Detail)
 
 The fastest way to deploy a single patch:
 
 1. Go to **Patches** and click a patch name
-2. Click the **Deploy** button in the header
+2. Click the **Deploy** button
 3. Fill in the deployment dialog:
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
-│  Deploy: curl 7.88.1-10+deb12u5                              [X] │
+│  Create Patch Deployment                                      [X] │
 │                                                                   │
-│  Deployment Name                                                  │
+│  Deployment Name *                                                │
 │  ┌───────────────────────────────────────────────────────────┐    │
-│  │ curl 7.88.1 - Deployment                                 │    │
+│  │ e.g., KB5034441 - Critical Patch                          │    │
 │  └───────────────────────────────────────────────────────────┘    │
 │                                                                   │
 │  Description                                                      │
 │  ┌───────────────────────────────────────────────────────────┐    │
-│  │ Deploying critical curl security update to all Linux      │    │
-│  │ endpoints.                                                │    │
+│  │ Optional: deployment notes, approval info...              │    │
 │  └───────────────────────────────────────────────────────────┘    │
 │                                                                   │
-│  Configuration Type                                               │
+│  Configuration Type *                                             │
 │  (●) Install    ( ) Rollback                                      │
 │                                                                   │
-│  Target Endpoints                                                 │
+│  Target Endpoints *                                               │
 │  ┌─────────────────────────────────────┐                          │
-│  │ All Endpoints                    [▼]│                          │
+│  │ Select endpoints              [▼]   │                          │
 │  │ ─────────────────────────────────── │                          │
 │  │  All Endpoints                      │                          │
 │  │  Windows Only                       │                          │
@@ -624,23 +657,18 @@ The fastest way to deploy a single patch:
 │  │  Critical Endpoints                 │                          │
 │  └─────────────────────────────────────┘                          │
 │                                                                   │
-│  -- OR select specific endpoints --                               │
-│                                                                   │
-│  ☐ web-srv-01 (Ubuntu 22.04)                                     │
-│  ☐ web-srv-02 (Debian 12)                                        │
-│  ☐ api-srv-01 (Debian 12)                                        │
-│  ☐ db-srv-01  (RHEL 9)                                           │
-│                                                                   │
-│  Schedule Deployment (optional)                                   │
+│  Schedule Deployment (Optional)                                   │
 │  ┌──────────────────┐  ┌──────────────────┐                      │
 │  │ Start Date       │  │ Start Time       │                      │
 │  │ 2025-01-20       │  │ 02:00 AM         │                      │
 │  └──────────────────┘  └──────────────────┘                      │
 │                                                                   │
 │  Patches to Deploy:                                               │
-│  ┌──────────────────────┬─────────────────┬───────────┐          │
-│  │ curl 7.88.1-10+deb12 │ 7.88.1-10+deb12 │ CRITICAL │          │
-│  └──────────────────────┴─────────────────┴───────────┘          │
+│  ┌────────────────────┬──────────────────┬───────────┐           │
+│  │ ID                 │ Version          │ Severity  │           │
+│  ├────────────────────┼──────────────────┼───────────┤           │
+│  │ curl               │ 7.88.1-10+deb12  │ CRITICAL  │           │
+│  └────────────────────┴──────────────────┴───────────┘           │
 │                                                                   │
 │                    [Cancel]  [Save as Draft]  [Publish]           │
 └───────────────────────────────────────────────────────────────────┘
@@ -648,36 +676,7 @@ The fastest way to deploy a single patch:
 
 4. Click **Publish** to start the deployment immediately, or **Save as Draft** to review later
 
-### Deploy Critical Patches (From Endpoint Detail)
-
-Deploy multiple critical patches to a single endpoint at once:
-
-1. Go to an endpoint's detail page
-2. Click **Deploy Patches**
-3. Select the patches to deploy
-4. The system creates ONE deployment with all patches, rather than separate deployments for each
-
-### Deployment Wizard (Full Control)
-
-For complex deployments with wave-based rollout:
-
-1. Click **+ New Deployment** from the **Deployments** page
-2. Walk through the 4-step wizard:
-
-```
-Step 1                Step 2               Step 3               Step 4
-SELECT SOURCE    →    SELECT TARGETS   →   SET STRATEGY     →   REVIEW
-                                                                 & DEPLOY
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐      ┌──────────┐
-│ Choose what  │      │ Choose who  │      │ Choose how  │      │ Confirm  │
-│ to deploy:   │      │ receives it:│      │ to roll out:│      │ and      │
-│              │      │             │      │             │      │ submit   │
-│ ○ Policy     │      │ ○ All       │      │ ○ All at    │      │          │
-│ ○ Patches    │      │ ○ By tags   │      │   once      │      │ Name     │
-│ ○ Catalog    │      │ ○ Manual    │      │ ○ Sequential│      │ Summary  │
-│   search     │      │   select    │      │ ○ Wave-based│      │ Impact   │
-└─────────────┘      └─────────────┘      └─────────────┘      └──────────┘
-```
+> **Note:** The Deployment Name field is required (marked with *). The Publish button is disabled until a name is provided.
 
 ### Wave-Based Deployment (Recommended for Production)
 
@@ -708,18 +707,18 @@ Wave-based deployment lets you deploy in phases, monitoring success before proce
 **How waves work:**
 
 1. **Wave 1** deploys to a small percentage (e.g., 10%) of targets
-2. PatchIQ monitors the success rate
+2. Patch Manager monitors the success rate
 3. If the success rate meets the threshold (e.g., 95%), it waits the configured delay (e.g., 30 minutes)
 4. **Wave 2** deploys to the next batch (e.g., 30%)
 5. This continues until all waves complete
-6. If any wave's failure rate exceeds the maximum error rate, PatchIQ **automatically rolls back** the entire deployment
+6. If any wave's failure rate exceeds the maximum error rate, Patch Manager **automatically rolls back** the entire deployment
 
 ### What Happens During a Deployment
 
-Behind the scenes, this is what PatchIQ does:
+Behind the scenes, this is what Patch Manager does:
 
 ```
-YOU click "Deploy"
+YOU click "Publish"
         │
         ▼
 ┌───────────────────┐
@@ -747,7 +746,7 @@ YOU click "Deploy"
 ┌───────────────────┐
 │ 4. AGENT          │  On the endpoint, the agent:
 │    INSTALLS       │  a) Downloads patch binary (if needed)
-│                   │  b) Verifies checksum
+│                   │  b) Verifies SHA256 checksum
 │                   │  c) Runs pre-install script (if configured)
 │                   │  d) Runs OS-specific installer (apt, yum, msi, etc.)
 │                   │  e) Runs post-install script (if configured)
@@ -793,39 +792,50 @@ Navigate to **Deployments** in the sidebar.
 ┌───────────────────────────────────────────────────────────────────────┐
 │  Deployments                                    [+ Create Deployment]│
 │                                                                       │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │
-│  │ RUNNING  │ │COMPLETED │ │  FAILED  │ │CANCELLED │               │
-│  │    3     │ │    47    │ │    2     │ │    1     │               │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘               │
+│  ┌───────────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+│  │TOTAL DEPLOYMTS│ │ RUNNING  │ │COMPLETED │ │  FAILED  │          │
+│  │     53        │ │    3     │ │    47    │ │    2     │          │
+│  └───────────────┘ └──────────┘ └──────────┘ └──────────┘          │
 │                                                                       │
-│  ┌──────────┬────────────┬──────────┬──────────┬──────────┬───────┐  │
-│  │ Name     │ Status     │ Progress │ Targets  │ Duration │ By    │  │
-│  ├──────────┼────────────┼──────────┼──────────┼──────────┼───────┤  │
-│  │ curl     │ ● Running  │ ████░░░░ │ 42/100   │ 12 min   │ admin │  │
-│  │ deploy   │   (blue)   │  42%     │          │          │       │  │
-│  ├──────────┼────────────┼──────────┼──────────┼──────────┼───────┤  │
-│  │ KB5034   │ ✓ Complete │ ████████ │ 87/87    │ 45 min   │system │  │
-│  │ rollout  │   (green)  │  100%    │          │          │       │  │
-│  ├──────────┼────────────┼──────────┼──────────┼──────────┼───────┤  │
-│  │ openssl  │ ✗ Failed   │ ██████░░ │ 28/34    │ 20 min   │ admin │  │
-│  │ update   │   (red)    │  82%     │ (6 fail) │          │       │  │
-│  └──────────┴────────────┴──────────┴──────────┴──────────┴───────┘  │
+│  Filter: [All] [Running] [Completed] [Failed] [Created]              │
+│          [Scheduled] [Cancelled]                                      │
+│                                                                       │
+│  ┌──────────┬────────────┬──────────────┬──────────┬──────────┬─────┐│
+│  │ Name     │ Status     │ Target Count │ Duration │ Created  │ By  ││
+│  ├──────────┼────────────┼──────────────┼──────────┼──────────┼─────┤│
+│  │ curl     │ ● Running  │ ████░░░░     │ 12 min   │ 10:30 AM │admin││
+│  │ deploy   │   (green)  │ 42/100       │          │          │     ││
+│  ├──────────┼────────────┼──────────────┼──────────┼──────────┼─────┤│
+│  │ KB5034   │ ✓ Completed│ ████████     │ 45 min   │ 09:00 AM │sys  ││
+│  │ rollout  │   (green)  │ 87/87        │          │          │     ││
+│  ├──────────┼────────────┼──────────────┼──────────┼──────────┼─────┤│
+│  │ openssl  │ ✗ Failed   │ ██████░░     │ 20 min   │ 08:15 AM │admin││
+│  │ update   │   (red)    │ 28/34 (6fail)│          │          │     ││
+│  └──────────┴────────────┴──────────────┴──────────┴──────────┴─────┘│
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Deployment Status Colors
 
-| Status | Color | Meaning |
-|--------|-------|---------|
-| **Scheduled** | Gray | Waiting for scheduled time |
-| **Created** | Blue (light) | Just created, about to start |
-| **Running** | Blue (animated) | Actively deploying to endpoints |
-| **Completed** | Green | All waves succeeded |
-| **Failed** | Red | Error threshold exceeded |
-| **Cancelled** | Gray | Manually cancelled by user |
-| **Rolling Back** | Orange (animated) | Undoing installed patches |
-| **Rolled Back** | Orange | Rollback completed successfully |
-| **Rollback Failed** | Dark Red | Rollback could not complete |
+| Status | Color | Indicator | Meaning |
+|--------|-------|-----------|---------|
+| **Running** | Green | Pulsing dot | Actively deploying to endpoints |
+| **Completed** | Green | Static | All waves succeeded |
+| **Failed** | Red | Static | Error threshold exceeded |
+| **Rollback Failed** | Red | Static | Rollback could not complete |
+| **Rolling Back** | Orange | Pulsing dot | Undoing installed patches |
+| **Rolled Back** | Muted | Static | Rollback completed successfully |
+| **Scheduled** | Muted | Static | Waiting for scheduled time |
+| **Created** | Muted | Static | Just created, about to start |
+| **Cancelled** | Muted | Static | Manually cancelled by user |
+
+### Target Count Progress Bar
+
+The Target Count column shows a segmented progress bar:
+- **Green** = Succeeded endpoints
+- **Orange** = Active (currently installing)
+- **Red** = Failed endpoints
+- **Gray** = Pending (not yet started)
 
 ### Deployment Detail Page
 
@@ -838,22 +848,16 @@ Click a deployment to see the full detail view:
 │  curl 7.88.1 - Deployment                                            │
 │  ● RUNNING  |  Started 12 min ago  |  By: admin                     │
 │                                                                       │
-│  Progress: 42/100 endpoints (42%)                                    │
-│  ┌───────────────────────────────────────────────────────────────┐   │
-│  │████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│   │
-│  │  38 success       4 active       2 failed       54 pending   │   │
-│  │  (green)          (blue)         (red)          (gray)       │   │
-│  └───────────────────────────────────────────────────────────────┘   │
+│                    [Cancel] [Retry] [Rollback] [···]                 │
 │                                                                       │
-│  [Cancel] [Retry Failed] [Rollback]                                  │
+│  [Overview] [Progress] [Targets] [Patches] [History]                 │
+│  ──────────────────────────────────────────────────────────────       │
 │                                                                       │
-│  ═══════════════════════════════════════════════════════════════      │
-│  WAVE PIPELINE                                                        │
-│  ═══════════════════════════════════════════════════════════════      │
+│  Progress tab — Wave Pipeline:                                        │
 │                                                                       │
 │  Wave 1 (10%)           Wave 2 (30%)          Wave 3 (60%)           │
 │  ┌──────────────┐      ┌──────────────┐      ┌──────────────┐       │
-│  │ ✓ COMPLETED  │ ──→  │ ● RUNNING    │ ──→  │ ○ PENDING    │       │
+│  │ ✓ Completed  │ ──→  │ ▶ In Progress│ ──→  │ ◼ Waiting    │       │
 │  │              │      │              │      │              │       │
 │  │ 10/10 (100%)│      │ 28/30 (93%)  │      │ 0/60         │       │
 │  │ ●●●●●●●●●●  │      │ ●●●●●●●●●●  │      │ ○○○○○○○○○○  │       │
@@ -864,30 +868,56 @@ Click a deployment to see the full detail view:
 │  └──────────────┘      │ 28 success   │      │ Wave 2 + 60m │       │
 │                        └──────────────┘      └──────────────┘       │
 │                                                                       │
-│  ═══════════════════════════════════════════════════════════════      │
-│  ENDPOINT STATUS                                                      │
-│  ═══════════════════════════════════════════════════════════════      │
+│  Targets tab — Endpoint Status:                                       │
 │                                                                       │
-│  ┌──────────────┬────────┬──────────┬──────────────────────────┐     │
-│  │ Hostname     │ Wave   │ Status   │ Details                  │     │
-│  ├──────────────┼────────┼──────────┼──────────────────────────┤     │
-│  │ web-srv-01   │ Wave 1 │✓ Success │ Installed in 45s         │     │
-│  │ web-srv-02   │ Wave 1 │✓ Success │ Installed in 32s         │     │
-│  │ api-srv-01   │ Wave 2 │✗ Failed  │ Exit code 1: dep conflict│     │
-│  │ api-srv-02   │ Wave 2 │● Active  │ Installing...            │     │
-│  │ db-srv-01    │ Wave 3 │○ Pending │ Waiting for Wave 3       │     │
-│  └──────────────┴────────┴──────────┴──────────────────────────┘     │
+│  ┌──────────────┬────────┬──────────────┬──────────────────────┐     │
+│  │ Hostname     │ Wave   │ Status       │ Details              │     │
+│  ├──────────────┼────────┼──────────────┼──────────────────────┤     │
+│  │ web-srv-01   │ Wave 1 │ ✓ Succeeded  │ Installed in 45s     │     │
+│  │ web-srv-02   │ Wave 1 │ ✓ Succeeded  │ Installed in 32s     │     │
+│  │ api-srv-01   │ Wave 2 │ ✗ Failed     │ Exit code 1: dep err │     │
+│  │ api-srv-02   │ Wave 2 │ ⟳ Executing  │ Installing...        │     │
+│  │ db-srv-01    │ Wave 3 │ ◼ Pending    │ Waiting for Wave 3   │     │
+│  └──────────────┴────────┴──────────────┴──────────────────────┘     │
 └───────────────────────────────────────────────────────────────────────┘
 ```
+
+### Deployment Detail Tabs
+
+| Tab | What You'll See |
+|-----|----------------|
+| **Overview** | Summary metrics, source policy/patch, scope, configuration |
+| **Progress** | Wave pipeline visualization showing wave status and per-endpoint progress |
+| **Targets** | Per-endpoint status table with hostname, wave, status, and error details |
+| **Patches** | List of patches being deployed |
+| **History** | Chronological timeline of deployment events |
+
+### Wave Status Indicators
+
+| Indicator | Meaning |
+|-----------|---------|
+| ✓ Completed | Wave finished successfully |
+| ▶ In Progress | Wave is actively deploying |
+| ✗ Failed | Wave failed (error threshold exceeded) |
+| ◼ Waiting | Wave hasn't started yet |
+
+### Target Status Indicators
+
+| Indicator | Meaning |
+|-----------|---------|
+| ◼ Pending | Waiting to be dispatched |
+| ⟳ Sent | Command sent to agent |
+| ⟳ Executing | Agent is installing (pulsing animation) |
+| ✓ Succeeded | Patch installed successfully |
+| ✗ Failed | Installation failed |
 
 ### Deployment Actions
 
 | Action | When Available | What It Does |
 |--------|---------------|-------------|
 | **Cancel** | While Running or Created | Immediately stops the deployment. Pending targets are cancelled. Already-installed patches remain. |
-| **Retry Failed** | After deployment has Failed | Resets all failed targets back to "pending" and restarts the deployment. Only failed endpoints are retried. |
-| **Rollback** | While Running or after Completion | Sends rollback commands to endpoints that already installed the patch, reverting them to their previous version. |
-| **Download Logs** | Any time | Exports detailed logs for troubleshooting |
+| **Retry** | After deployment has Failed | Resets all failed targets back to "pending" and restarts the deployment. Only failed endpoints are retried. |
+| **Rollback** | While Running or after Completion/Failure | Sends rollback commands to endpoints that already installed the patch, reverting them to their previous version. |
 
 ### Understanding Rollback
 
@@ -898,6 +928,7 @@ ROLLBACK PROCESS
 ─────────────────
 
 1. Deployment status changes to "Rolling Back"
+   (pulsing orange indicator)
 
 2. All remaining waves are CANCELLED
    (endpoints that haven't received the patch yet are safe)
@@ -910,10 +941,10 @@ ROLLBACK PROCESS
    → Agent reports success/failure
 
 5. If all rollbacks succeed:
-   → Status: "Rolled Back" (orange)
+   → Status: "Rolled Back" (muted)
 
 6. If any rollback fails:
-   → Status: "Rollback Failed" (dark red)
+   → Status: "Rollback Failed" (red)
    → Manual intervention required
 ```
 
@@ -929,21 +960,18 @@ Navigate to **CVEs** in the sidebar to view all known vulnerabilities affecting 
 ┌───────────────────────────────────────────────────────────────────────┐
 │  CVEs                                                                 │
 │                                                                       │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐                             │
-│  │ CRITICAL │ │   HIGH   │ │  MEDIUM  │                             │
-│  │    12    │ │    34    │ │    56    │                             │
-│  └──────────┘ └──────────┘ └──────────┘                             │
+│  Severity:  [Critical] [High] [Medium] [Low]                        │
+│  Also:      [Exploitable] [KEV (CISA)] [Has Patches]                │
+│  View:      [Table | Cards]                                          │
 │                                                                       │
-│  [Search CVE ID or description...]                                    │
-│                                                                       │
-│  ┌──────────────┬──────┬──────────┬────────┬──────┬─────┬─────────┐  │
-│  │ CVE ID       │ CVSS │ Severity │ Attack │Explt?│ KEV │Affected │  │
-│  ├──────────────┼──────┼──────────┼────────┼──────┼─────┼─────────┤  │
-│  │CVE-2024-1234 │  9.8 │ CRITICAL │Network │ Yes  │ Yes │  142    │  │
-│  │CVE-2024-5678 │  9.1 │ CRITICAL │Network │ No   │ Yes │   87    │  │
-│  │CVE-2024-9012 │  8.8 │  HIGH    │Network │ POC  │ No  │   34    │  │
-│  │CVE-2024-3456 │  7.5 │  HIGH    │Local   │ No   │ No  │   12    │  │
-│  └──────────────┴──────┴──────────┴────────┴──────┴─────┴─────────┘  │
+│  ┌──────────────┬──────┬──────────┬────────┬──────┬─────┬─────────┬─────────┬────────┬─────────┐
+│  │ CVE ID       │ CVSS │ Severity │ Attack │Explt │ KEV │Aff. Pkgs│Aff Endpt│Patches │Published│
+│  ├──────────────┼──────┼──────────┼────────┼──────┼─────┼─────────┼─────────┼────────┼─────────┤
+│  │CVE-2024-1234 │  9.8 │ CRITICAL │  N     │ Yes  │ Yes │   4     │  142    │Availble│2024-12  │
+│  │CVE-2024-5678 │  9.1 │ CRITICAL │  N     │ No   │ Yes │   2     │   87    │Availble│2024-11  │
+│  │CVE-2024-9012 │  8.8 │  HIGH    │  N     │ POC  │ No  │   1     │   34    │  —     │2024-10  │
+│  │CVE-2024-3456 │  7.5 │  HIGH    │  L     │ No   │ No  │   1     │   12    │Availble│2024-09  │
+│  └──────────────┴──────┴──────────┴────────┴──────┴─────┴─────────┴─────────┴────────┴─────────┘
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -951,13 +979,24 @@ Navigate to **CVEs** in the sidebar to view all known vulnerabilities affecting 
 
 | Column | Description |
 |--------|-------------|
-| **CVE ID** | The unique vulnerability identifier (e.g., CVE-2024-1234) |
-| **CVSS** | Common Vulnerability Scoring System score (0.0-10.0). Higher = more dangerous. |
+| **CVE ID** | The unique vulnerability identifier (e.g., CVE-2024-1234). Click to view details. |
+| **CVSS Score** | Severity score from 0.0-10.0 with a visual color bar |
 | **Severity** | Derived from CVSS: Critical (9.0+), High (7.0-8.9), Medium (4.0-6.9), Low (0-3.9) |
-| **Attack Vector** | How the vulnerability can be exploited: **Network** (remote), **Adjacent** (local network), **Local** (physical access), **Physical** (direct hardware access) |
-| **Exploit?** | Whether a known exploit exists: **Yes** (actively exploited), **POC** (proof of concept available), **No** |
-| **KEV** | Whether CISA has listed this as a Known Exploited Vulnerability. **Yes** means active exploitation in the wild with a remediation deadline. |
-| **Affected** | Number of your endpoints vulnerable to this CVE |
+| **Attack Vector** | **N** (Network — remote), **A** (Adjacent — local network), **L** (Local — physical access), **P** (Physical) |
+| **Exploit** | Whether a known exploit exists: **Yes** (actively exploited), **POC** (proof of concept), or dash |
+| **KEV** | Whether CISA lists this as a Known Exploited Vulnerability, with due date if applicable |
+| **Affected Pkgs** | Number of affected packages |
+| **Affected Endpoints** | Number of your endpoints vulnerable to this CVE |
+| **Patches** | **Available** (green badge) if a fix exists, or a dash if no patch yet |
+| **Published** | When the CVE was published |
+
+### CVE Filter Options
+
+| Filter Group | Options |
+|-------------|---------|
+| **Severity** | Critical, High, Medium, Low (each with count and color) |
+| **Availability** | Exploitable, KEV (CISA), Has Patches |
+| **View** | Table view or Card view toggle |
 
 ### CVE Detail Page
 
@@ -967,7 +1006,7 @@ Click a CVE ID to see the full breakdown:
 ┌───────────────────────────────────────────────────────────────────────┐
 │  ← CVEs                                                              │
 │                                                                       │
-│  CVE-2024-1234                                        [Deploy Fixes] │
+│  CVE-2024-1234                                                       │
 │  CRITICAL  |  CVSS 9.8  |  Published Dec 1, 2024                    │
 │                                                                       │
 │  Buffer overflow in curl HTTP/2 header processing allows remote      │
@@ -976,33 +1015,37 @@ Click a CVE ID to see the full breakdown:
 │  ┌──────────────────────────────────────────────────────────────┐    │
 │  │  CVSS v3.1 BREAKDOWN                                         │    │
 │  │                                                              │    │
-│  │  Attack Vector:     Network         Scope:       Unchanged  │    │
-│  │  Attack Complexity: Low             Confidentiality: High   │    │
-│  │  Privileges Req:    None            Integrity:      High    │    │
-│  │  User Interaction:  None            Availability:   High    │    │
+│  │  Attack Vector:     Network     │ Scope:       Unchanged    │    │
+│  │  Attack Complexity: Low         │ Confidentiality: High     │    │
+│  │  Privileges Req:    None        │ Integrity:      High      │    │
+│  │  User Interaction:  None        │ Availability:   High      │    │
 │  └──────────────────────────────────────────────────────────────┘    │
 │                                                                       │
-│  ⚠  CISA KEV: Remediation due by February 1, 2025                   │
-│  ⚠  Exploit: Active exploitation confirmed in the wild              │
-│                                                                       │
-│  AVAILABLE PATCHES                                                    │
-│  ┌──────────────────────┬──────────┬──────────┬──────────────────┐   │
-│  │ Patch Name           │ OS       │ Released │ Coverage         │   │
-│  ├──────────────────────┼──────────┼──────────┼──────────────────┤   │
-│  │ curl 7.88.1-10+deb12 │ Debian 12│ Jan 14   │ 80/142 patched  │   │
-│  │ curl 8.5.0-1ubuntu1  │ Ubuntu 22│ Jan 15   │ 45/87 patched   │   │
-│  └──────────────────────┴──────────┴──────────┴──────────────────┘   │
-│                                                                       │
 │  AFFECTED ENDPOINTS                                                   │
-│  ┌──────────────┬──────────┬──────────┬────────────────────────────┐ │
-│  │ Hostname     │ OS       │ Status   │ Remediation                │ │
-│  ├──────────────┼──────────┼──────────┼────────────────────────────┤ │
-│  │ web-srv-01   │ Debian 12│ Online   │ Vulnerable (patch pending) │ │
-│  │ web-srv-02   │ Debian 12│ Online   │ Patched (Jan 15)           │ │
-│  │ api-srv-01   │ Ubuntu 22│ Offline  │ Vulnerable (deploy failed) │ │
-│  └──────────────┴──────────┴──────────┴────────────────────────────┘ │
+│  ┌──────────────┬──────────┬──────────────┬────────────────────┐     │
+│  │ Hostname     │ Status   │ Patch Status │ Tags               │     │
+│  ├──────────────┼──────────┼──────────────┼────────────────────┤     │
+│  │ web-srv-01   │ Online   │ Affected     │ prod, web          │     │
+│  │ web-srv-02   │ Online   │ Patched      │ prod, web          │     │
+│  │ api-srv-01   │ Offline  │ Affected     │ prod, api          │     │
+│  └──────────────┴──────────┴──────────────┴────────────────────┘     │
+│                                                                       │
+│  RELATED PACKAGES                                                     │
+│  ┌──────────────────────┬──────────────┬───────────────────────┐     │
+│  │ Package Name         │ Version      │ Available Patches     │     │
+│  ├──────────────────────┼──────────────┼───────────────────────┤     │
+│  │ curl                 │ 7.87.0       │ curl 7.88.1-10+deb12  │     │
+│  └──────────────────────┴──────────────┴───────────────────────┘     │
 └───────────────────────────────────────────────────────────────────────┘
 ```
+
+### Endpoint Remediation Status in CVE Detail
+
+| Status | Color | Meaning |
+|--------|-------|---------|
+| **Patched** | Green | CVE has been remediated on this endpoint |
+| **Affected** | Red | Endpoint is still vulnerable |
+| **Mitigated** | Orange | Workaround applied but not fully patched |
 
 ---
 
@@ -1010,137 +1053,151 @@ Click a CVE ID to see the full breakdown:
 
 Policies let you define rules for automatic patch deployment. Instead of manually deploying every patch, you create policies that handle it for you.
 
+### Policy Types
+
+Before choosing a mode, you first select the policy type:
+
+| Type | Color | Description |
+|------|-------|-------------|
+| **Patch Policy** | Accent (blue) | Select patches by severity, CVE, or regex. Evaluate and optionally auto-deploy. |
+| **Deploy Policy** | Green | Target specific updates for direct deployment to endpoints. |
+| **Compliance Policy** | Muted (gray) | Evaluate patch compliance on a schedule. Report only, no deployments. |
+
 ### Policy Modes
 
-| Mode | Icon | Behavior |
-|------|------|----------|
-| **Automatic** | Green badge | Patches are deployed automatically on schedule. No human approval needed. |
-| **Manual** | Blue badge | Policy identifies applicable patches, but a human must approve each deployment. |
-| **Advisory** | Gray badge | Policy only sends notifications about applicable patches. No deployment occurs. |
+Each policy type supports different modes:
+
+| Mode | Available For | Behavior |
+|------|-------------|----------|
+| **Automatic** | Patch, Deploy | Evaluates on schedule. Matching patches deploy automatically within the maintenance window. |
+| **Manual** | Patch, Deploy | Evaluates on schedule. Patches are queued but NOT deployed until you click Deploy. |
+| **Advisory** | Patch, Compliance | Evaluates on schedule. Reports compliance status only. No patches are ever deployed. |
 
 ### Creating a Policy
 
 Navigate to **Policies** and click **+ New Policy**:
 
 ```
-STEP 1: BASICS
+STEP 1: POLICY TYPE
 ═══════════════════════════════════════════════════════════════
 
-  Policy Name:     [Critical Linux Security Updates          ]
-  Description:     [Auto-deploy critical security patches to ]
-                   [all production Linux servers              ]
+  Select the type of policy:
+
+  ┌─────────────────────────────────────────────────────┐
+  │ (●) PATCH POLICY                           (blue)   │
+  │     Select patches by severity, CVE, or regex.      │
+  │     Evaluate and optionally auto-deploy.             │
+  ├─────────────────────────────────────────────────────┤
+  │ ( ) DEPLOY POLICY                          (green)  │
+  │     Target specific updates for direct               │
+  │     deployment to endpoints.                         │
+  ├─────────────────────────────────────────────────────┤
+  │ ( ) COMPLIANCE POLICY                      (gray)   │
+  │     Evaluate patch compliance on a schedule.         │
+  │     Report only, no deployments.                     │
+  └─────────────────────────────────────────────────────┘
+
+
+STEP 2: BASICS & MODE
+═══════════════════════════════════════════════════════════════
+
+  Name *
+  ┌──────────────────────────────────────────────────────┐
+  │ Critical Linux Security Updates                      │
+  └──────────────────────────────────────────────────────┘
+
+  Description
+  ┌──────────────────────────────────────────────────────┐
+  │ Auto-deploy critical security patches to all         │
+  │ production Linux servers.                            │
+  └──────────────────────────────────────────────────────┘
 
   Mode:
-  (●) Automatic — Deploy patches without manual approval
-  ( ) Manual    — Require approval before deployment
-  ( ) Advisory  — Notify only, do not deploy
+  (●) Automatic — Evaluates on schedule. Matching patches
+                   deploy automatically within the maintenance
+                   window.
+  ( ) Manual    — Evaluates on schedule. Patches are queued
+                   but NOT deployed until you click Deploy.
+  ( ) Advisory  — Reports compliance status only. No patches
+                   are ever deployed.
 
 
-STEP 2: PATCH SELECTION
+STEP 3: PATCH SELECTION (Patch Policy only)
 ═══════════════════════════════════════════════════════════════
 
-  Severity Filter (select which severities to include):
-  [✓] Critical    [✓] High    [ ] Medium    [ ] Low
+  How should patches be selected?
 
-  OS Filter:
-  [✓] Linux (all distributions)
-  [ ] Windows
-  [ ] macOS
-
-  Additional Filters:
-  [ ] Exclude superseded patches
-  [✓] Only patches with CVE links
-
-  Preview: 23 patches currently match these criteria
+  ( ) All Available Patches
+  (●) By Severity
+      Minimum Severity: [Critical ▼]  (Critical/High/Medium/Low)
+  ( ) By CVE List
+      CVE IDs: [CVE-2024-1234, CVE-2024-5678, ...]
+  ( ) By Package Regex
+      Pattern: [^curl.*]
+      Exclude: [libcurl-doc, ...]
 
 
-STEP 3: TARGET SELECTION
+STEP 4: TARGET ENDPOINTS
 ═══════════════════════════════════════════════════════════════
 
-  Target Endpoints:
-  ( ) All endpoints
-  (●) By tags
-  ( ) Select manually
-
-  Tag Expression:
+  Tag Selector (define which endpoints this policy targets):
   ┌──────────────────────────────────────────────────────┐
   │  environment = "production"  AND  os = "linux"       │
   └──────────────────────────────────────────────────────┘
 
-  Preview: 87 endpoints match this criteria
 
-
-STEP 4: SCHEDULE (Automatic mode only)
+STEP 5: SCHEDULE
 ═══════════════════════════════════════════════════════════════
 
-  Frequency:    [Weekly               ▼]
-  Day:          [Sunday               ▼]
-  Time:         [02:00 AM             ▼]
-  Timezone:     [UTC                  ▼]
+  ( ) Manual — trigger on demand
+  (●) Recurring — run on cron schedule
+
+  Preset:  ( ) Daily  (●) Weekly  ( ) Monthly  ( ) Custom
+
+  Day of week: [Sunday ▼]
+  Time: [02:00 AM ▼]
+  Timezone: [UTC ▼]
+
+  Next 3 runs:
+    - Sun, Jan 19, 2025, 2:00 AM UTC
+    - Sun, Jan 26, 2025, 2:00 AM UTC
+    - Sun, Feb 2, 2025, 2:00 AM UTC
 
   Maintenance Window:
-  Start: [01:00 AM]    End: [05:00 AM]
-  (Patches will only install during this window)
+  [✓] Enable maintenance window
+      Start: [01:00 AM]    End: [05:00 AM]
 
-  Rollback Configuration:
-  [✓] Auto-rollback if failure rate exceeds: [20]%
-
-  Wave Strategy:
-  (●) All at once
-  ( ) Phased rollout (waves)
-
-
-STEP 5: REVIEW
-═══════════════════════════════════════════════════════════════
-
-  Policy:     Critical Linux Security Updates
-  Mode:       Automatic
-  Patches:    Critical + High severity, Linux only (23 patches)
-  Targets:    87 endpoints (production Linux servers)
-  Schedule:   Every Sunday at 2:00 AM UTC
-  Window:     1:00 AM - 5:00 AM
-  Rollback:   Auto-rollback at 20% failure rate
-
-                              [Cancel]  [Create Policy]
+                                              [Create Policy]
 ```
 
-### Managing Policies
+### Policy Detail Page
 
-```
-┌───────────────────────────────────────────────────────────────────────┐
-│  Policies                                           [+ New Policy]   │
-│                                                                       │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │
-│  │   ALL    │ │AUTOMATIC │ │  MANUAL  │ │ ADVISORY │               │
-│  │    8     │ │    3     │ │    3     │ │    2     │               │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘               │
-│                                                                       │
-│  ┌──────────────────────┬──────────┬──────┬──────────┬─────┬──────┐  │
-│  │ Policy Name          │ Mode     │Target│ Schedule │On/Of│ Menu │  │
-│  ├──────────────────────┼──────────┼──────┼──────────┼─────┼──────┤  │
-│  │ Critical Linux       │AUTOMATIC │ 87   │ Sun 2AM  │ [●] │ [···]│  │
-│  │ Windows Monthly      │ MANUAL   │ 156  │ 2nd Tue  │ [●] │ [···]│  │
-│  │ macOS Advisory       │ADVISORY  │ 23   │ Daily 8AM│ [○] │ [···]│  │
-│  └──────────────────────┴──────────┴──────┴──────────┴─────┴──────┘  │
-└───────────────────────────────────────────────────────────────────────┘
-```
+After creating a policy, its detail page shows:
 
-### Policy Actions (from the menu)
+| Tab | Content |
+|-----|---------|
+| **Overview** | Policy name, mode (color-coded), type, created/updated dates, status |
+| **Patch Scope** | Severity filters, OS filters, selection criteria, matching patch count |
+| **Groups & Endpoints** | Tag selector expression, matched endpoint count, endpoint list |
+| **Evaluation History** | When policy was last evaluated, how many endpoints/patches matched |
+| **Deployment History** | All deployments triggered by this policy with status and results |
+| **Schedule** | Cron expression, next run times, timezone, maintenance window |
 
-| Action | Description |
-|--------|-------------|
-| **Edit** | Modify the policy settings |
-| **Evaluate** | Run the policy evaluation immediately (see how many patches/endpoints match) |
-| **Deploy** | Manually trigger a deployment using this policy's criteria |
-| **Copy** | Duplicate the policy as a starting point for a new one |
-| **Delete** | Remove the policy |
-| **Enable/Disable toggle** | Turn the policy on or off without deleting it |
+### Policy Actions
+
+| Action | Icon | Description |
+|--------|------|-------------|
+| **Edit** | Pencil | Modify the policy settings |
+| **Evaluate** | Refresh | Run the policy evaluation immediately |
+| **Deploy** | Rocket | Manually trigger a deployment using this policy's criteria |
+| **Copy** | Copy | Duplicate the policy |
+| **Delete** | Trash (red) | Remove the policy |
 
 ---
 
 ## 11. Compliance Management
 
-PatchIQ evaluates your infrastructure against industry security frameworks.
+Patch Manager evaluates your infrastructure against industry security frameworks.
 
 ### Supported Frameworks
 
@@ -1155,9 +1212,14 @@ PatchIQ evaluates your infrastructure against industry security frameworks.
 
 ### Compliance Dashboard
 
+Navigate to **Reports > Compliance** or the Compliance section:
+
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│  Compliance                          [Manage Frameworks] [Evaluate]  │
+│  Compliance                                                           │
+│  Security framework evaluation and tracking                          │
+│                                                                       │
+│                [Manage Frameworks] [Evaluate All] [Export Report]     │
 │                                                                       │
 │  ┌──────────────────────────────────────────────────────────────┐    │
 │  │  OVERALL COMPLIANCE SCORE                                    │    │
@@ -1171,28 +1233,23 @@ PatchIQ evaluates your infrastructure against industry security frameworks.
 │                                                                       │
 │  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌──────────┐ │
 │  │  CIS          │ │  PCI-DSS      │ │  HIPAA        │ │  NIST    │ │
-│  │               │ │               │ │               │ │          │ │
 │  │  Score: 82%   │ │  Score: 95%   │ │  Score: 74%   │ │Score:85% │ │
 │  │  ████████░░   │ │  █████████░   │ │  ███████░░░   │ │████████░ │ │
-│  │               │ │               │ │               │ │          │ │
 │  │  42/50 ctrls  │ │  28/30 ctrls  │ │  37/50 ctrls  │ │34/40 ctl │ │
-│  │               │ │               │ │               │ │          │ │
-│  │  Last eval:   │ │  Last eval:   │ │  Last eval:   │ │Last eval:│ │
-│  │  2 hours ago  │ │  2 hours ago  │ │  2 hours ago  │ │2 hrs ago │ │
-│  │               │ │               │ │               │ │          │ │
+│  │  Last: 2h ago │ │  Last: 2h ago │ │  Last: 2h ago │ │Last:2h   │ │
 │  │  [Evaluate]   │ │  [Evaluate]   │ │  [Evaluate]   │ │[Evaluate]│ │
 │  └───────────────┘ └───────────────┘ └───────────────┘ └──────────┘ │
-│                                                                       │
-│  OVERDUE CONTROLS                                                     │
-│  ┌───────────┬────────────────┬──────────────────┬──────────────┐    │
-│  │ Framework │ Control ID     │ Control Name     │ Days Overdue │    │
-│  ├───────────┼────────────────┼──────────────────┼──────────────┤    │
-│  │ HIPAA     │ 164.312(a)(1)  │ Access Control   │ 12 days      │    │
-│  │ CIS       │ 5.1.4          │ Ensure rsyslog   │ 5 days       │    │
-│  │ HIPAA     │ 164.312(e)(1)  │ Transmission Sec │ 3 days       │    │
-│  └───────────┴────────────────┴──────────────────┴──────────────┘    │
 └───────────────────────────────────────────────────────────────────────┘
 ```
+
+### Compliance Actions
+
+| Action | Description |
+|--------|-------------|
+| **Manage Frameworks** | Enable/disable frameworks, configure custom frameworks |
+| **Evaluate All** | Trigger immediate evaluation across all frameworks (button shows "Evaluating..." with spinner while running) |
+| **Export Report** | Download compliance report (coming soon) |
+| **Evaluate** (per card) | Evaluate a single framework |
 
 ---
 
@@ -1200,47 +1257,62 @@ PatchIQ evaluates your infrastructure against industry security frameworks.
 
 ### Alerts Page
 
-Navigate to **Alerts** in the sidebar. A red badge shows the count of unread critical/warning alerts.
+Navigate to **Alerts** in the sidebar. A red or orange badge on the sidebar shows unread alert count.
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│  Alerts                              [Alert Rules] [Refresh: 30s ▼] │
+│  Alerts                                          [Alert Rules]       │
 │                                                                       │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐                             │
-│  │ UNREAD   │ │ CRITICAL │ │ WARNING  │                             │
-│  │    5     │ │    2     │ │    3     │                             │
-│  └──────────┘ └──────────┘ └──────────┘                             │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │
+│  │  TOTAL   │ │ CRITICAL │ │ WARNING  │ │   INFO   │               │
+│  │    14    │ │    2     │ │    5     │ │    7     │               │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘               │
 │                                                                       │
-│  ┌──────────┬────────────────────────────────────────┬──────┬──────┐ │
-│  │ Severity │ Alert                                  │Status│ Time │ │
-│  ├──────────┼────────────────────────────────────────┼──────┼──────┤ │
-│  │ CRITICAL │ Deployment "KB5034" failed on 6        │Unread│ 5m   │ │
-│  │  (red)   │ endpoints. Error rate exceeded 20%.    │      │ ago  │ │
-│  ├──────────┼────────────────────────────────────────┼──────┼──────┤ │
-│  │ CRITICAL │ CVE-2024-1234 exploit detected.        │Unread│ 1h   │ │
-│  │  (red)   │ 142 endpoints affected.                │      │ ago  │ │
-│  ├──────────┼────────────────────────────────────────┼──────┼──────┤ │
-│  │ WARNING  │ 3 endpoints offline for >24 hours.     │Unread│ 2h   │ │
-│  │ (orange) │ Last heartbeat: db-srv-03, web-04...   │      │ ago  │ │
-│  └──────────┴────────────────────────────────────────┴──────┴──────┘ │
+│  Status: [Active] [Acknowledged] [Dismissed] [All]                   │
+│  Category: [All] [Deployments] [Agents] [CVEs] [Compliance] [System]│
+│  Date: [Last 24h ▼]                                                  │
+│                                                                       │
+│  ┌──────────┬────────────────────────────────────────┬──────────┬────┐│
+│  │ Severity │ Title                                  │ Status   │Time││
+│  ├──────────┼────────────────────────────────────────┼──────────┼────┤│
+│  │ CRITICAL │ Deployment "KB5034" failed on 6        │ Active   │ 5m ││
+│  │  (red)   │ endpoints. Error rate exceeded 20%.    │          │ago ││
+│  ├──────────┼────────────────────────────────────────┼──────────┼────┤│
+│  │ WARNING  │ 3 endpoints offline for >24 hours.     │ Active   │ 2h ││
+│  │ (orange) │ Last heartbeat: db-srv-03, web-04...   │          │ago ││
+│  ├──────────┼────────────────────────────────────────┼──────────┼────┤│
+│  │ INFO     │ Catalog sync completed. 5 new patches. │Dismissed │ 4h ││
+│  │ (blue)   │                                        │          │ago ││
+│  └──────────┴────────────────────────────────────────┴──────────┴────┘│
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
+### Alert Filters
+
+| Filter | Options |
+|--------|---------|
+| **Status** | Active, Acknowledged, Dismissed, All |
+| **Category** | All, Deployments, Agents, CVEs, Compliance, System |
+| **Date Range** | Last 24h, Last 7 days, Last 30 days, Custom Range |
+
 ### Alert Actions
 
-- **Mark as Read** — Acknowledge you've seen the alert
+- **Mark Read** — Acknowledge you've seen the alert
 - **Acknowledge** — Confirm you're working on it
 - **Dismiss** — Remove the alert from the active list
-- **View Details** — Navigate to the related resource (deployment, CVE, endpoint)
 
 ### Configuring Notification Channels
 
-Navigate to **Settings > Notifications** to set up where alerts are delivered:
+Navigate to **Settings > Notifications**:
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│  Notification Channels                                                │
+│  Notifications                                                        │
 │                                                                       │
+│  [Preferences]  [History]                                             │
+│  ──────────────────────────────────────────────────────────────       │
+│                                                                       │
+│  Notification Channels                                                │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐      │
 │  │                  │  │                 │  │                 │      │
 │  │    EM            │  │    SL           │  │    WH           │      │
@@ -1262,31 +1334,59 @@ Navigate to **Settings > Notifications** to set up where alerts are delivered:
 │  │ Policy triggered           │ [○]   │ [○]   │  [●]    │ Daily    │ │
 │  └────────────────────────────┴───────┴───────┴─────────┴──────────┘ │
 │                                                                       │
-│  Digest Settings                                                      │
-│  Frequency: [Daily ▼]   Time: [08:00 AM ▼]   Format: [HTML ▼]      │
-│                                                  [Send Test Digest]   │
+│  Digest Configuration                                                 │
+│  Configure when and how digest notifications are delivered            │
+│                                                                       │
+│  Frequency: [Daily ▼]   Delivery Time (UTC): [08:00 AM ▼]           │
+│  Format: [HTML ▼]                             [Send Test Digest]      │
 └───────────────────────────────────────────────────────────────────────┘
 ```
+
+### Notification Channel Setup
+
+Click **Set up** on any unconfigured channel:
+
+| Field | Description |
+|-------|-------------|
+| **Channel Name** | A display name for this channel |
+| **Shoutrrr URL** | The notification URL (SMTP for email, webhook URL for Slack/Discord/Webhook) |
+
+Supported channel types: **Email**, **Slack**, **Webhook**, **Discord**
+
+### Notification Tabs
+
+| Tab | Content |
+|-----|---------|
+| **Preferences** | Channel configuration, per-event toggle switches, digest settings |
+| **History** | Log of all notifications sent — channel, event type, recipient, status, time, and resend option |
 
 ---
 
 ## 13. Audit Log
 
-The Audit Log is an **immutable record** of every action taken in PatchIQ. It cannot be edited or deleted.
+The Audit Log is an **immutable record** of every action taken in Patch Manager. It cannot be edited or deleted.
 
 Navigate to **Audit** in the sidebar:
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│  Audit Log                                     [Stream] [Timeline]   │
+│  Audit                                                                │
 │                                                                       │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │
 │  │  TOTAL   │ │  SYSTEM  │ │   USER   │ │  TODAY   │               │
 │  │  12,847  │ │  8,234   │ │  4,613   │ │   342    │               │
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘               │
 │                                                                       │
+│  View: [Activity Stream]  [Timeline View]                             │
+│                                                                       │
 │  Filters:                                                             │
-│  Event: [All Types ▼]  Actor: [Search...]  Date: [Last 24h ▼]       │
+│  Event: [All Event Types ▼]  (Endpoint/Patch/Deployment/Policy/      │
+│                                Compliance/Auth/System)                │
+│  Actor: [Search by actor...]                                          │
+│  Resource: [All Resources ▼]  (Endpoints/Deployments/Policies/       │
+│                                 Settings)                             │
+│  Date: [Last 24h ▼]  (Last 24h / Last 7 days / Last 30 days /       │
+│                        Custom Range)                                  │
 │                                                                       │
 │  ┌──────────────────┬──────────┬──────────┬──────────────────────┐   │
 │  │ Timestamp        │ Actor    │ Resource │ Event                │   │
@@ -1301,25 +1401,32 @@ Navigate to **Audit** in the sidebar:
 │  │ (18 min ago)     │          │ Critical │ 23 patches, 87 endpts│   │
 │  └──────────────────┴──────────┴──────────┴──────────────────────┘   │
 │                                                                       │
-│  Click any row to expand and see the full event details (JSON).      │
+│  Click any row to expand and see the full event details.             │
 │                                                                       │
-│                                              [Export CSV] [Export JSON]│
+│  Audit logs retained for 365 days.         [Export as CSV]            │
+│  Oldest entry: March 12, 2025.             [Export as JSON]           │
+│  Manage Retention Policy                                              │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
-### Audit Event Categories
+### Audit View Modes
 
-| Category | Events Captured |
-|----------|----------------|
+| Mode | Description |
+|------|-------------|
+| **Activity Stream** | Chronological list of events with expandable details |
+| **Timeline View** | Visual timeline grouped by time period |
+
+### Audit Event Type Filters
+
+| Event Type | What It Covers |
+|-----------|----------------|
 | **Endpoint** | Created, updated, deleted, enrolled, scanned |
 | **Patch** | Discovered, synced from Hub |
 | **Deployment** | Created, started, completed, failed, cancelled, rolled back |
 | **Policy** | Created, updated, deleted, evaluated, auto-deployed |
-| **CVE** | Discovered, linked to endpoint, remediation available |
 | **Compliance** | Framework enabled, evaluation completed, threshold breach |
-| **User/Role** | Role created, user role assigned, login, logout |
-| **Notification** | Channel configured, notification sent, notification failed |
-| **Settings** | General updated, IAM updated, license loaded |
+| **Auth** | Login, logout, user provisioned, role assigned |
+| **System** | Settings changed, license events, notification events |
 
 ---
 
@@ -1333,29 +1440,54 @@ Navigate to **Reports** in the sidebar:
 ┌───────────────────────────────────────────────────────────────────────┐
 │  Reports                                         [+ Generate Report] │
 │                                                                       │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
+│  │   ALL    │ │COMPLETED │ │GENERATING│ │  FAILED  │ │  TODAY   │  │
+│  │    15    │ │    12    │ │    1     │ │    0     │ │    2     │  │
+│  │          │ │ (green)  │ │(pulsing) │ │  (red)   │ │          │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
+│                                                                       │
+│  Type: [All Types ▼]    Format: [All Formats ▼]                      │
+│                                                                       │
 │  ┌──────────────────┬─────────────┬──────┬───────────┬──────┬──────┐ │
 │  │ Report Name      │ Type        │Format│ Status    │ Size │ Date │ │
 │  ├──────────────────┼─────────────┼──────┼───────────┼──────┼──────┤ │
-│  │ Q1 Patch Status  │ Patch Status│ PDF  │✓ Complete │ 2.4MB│ Jan 1│ │
-│  │ HIPAA Compliance │ Compliance  │ XLSX │✓ Complete │ 1.1MB│ Dec 1│ │
-│  │ Monthly Vulns    │Vulnerability│ CSV  │● Generating│  —  │ Now  │ │
+│  │ Q1 Patch Status  │ PATCHES     │ PDF  │✓ Complete │ 2.4MB│ Jan 1│ │
+│  │ HIPAA Compliance │ COMPLIANCE  │ XLSX │✓ Complete │ 1.1MB│ Dec 1│ │
+│  │ Monthly Vulns    │ CVES        │ CSV  │● Generating│  — │ Now  │ │
 │  └──────────────────┴─────────────┴──────┴───────────┴──────┴──────┘ │
 └───────────────────────────────────────────────────────────────────────┘
 ```
+
+### Report Types
+
+| Type | Description |
+|------|-------------|
+| **Endpoints** | Endpoint inventory and status report |
+| **Patches** | Patch catalog and deployment status |
+| **CVEs** | Vulnerability exposure report |
+| **Deployments** | Deployment history and results |
+| **Compliance** | Compliance framework scores and control status |
+| **Executive** | High-level summary for management |
+
+### Report Formats
+
+| Format | Badge Color | Use Case |
+|--------|-------------|----------|
+| **PDF** | Blue | Formatted reports for sharing with stakeholders |
+| **CSV** | Green | Raw data for analysis in spreadsheets |
+| **XLSX** | Yellow | Excel format with formatting |
 
 ### Generate Report Dialog
 
 Click **+ Generate Report** and configure:
 
-| Field | Options |
-|-------|---------|
-| **Report Type** | Patch Status, Compliance, Vulnerability, Deployment Summary |
-| **Date Range** | Last 7 days, Last 30 days, Last 90 days, Custom range |
-| **Format** | PDF (formatted), CSV (raw data), XLSX (Excel) |
-| **Scope** | All endpoints, Specific groups, Specific endpoints |
-| **Sections** | Executive Summary, Details, Remediation Status, Compliance, etc. |
+| Field | Description |
+|-------|-------------|
+| **Report Type** | Select from the 6 types above |
+| **Format** | Choose PDF, CSV, or XLSX |
+| **Type-specific filters** | Varies by report type: severity, OS family, status, framework, date range, exploit/KEV status |
 
-Click **Generate** and the report appears in the list. Downloads start automatically when ready.
+Click **Generate** and the report appears in the list. Reports download automatically when ready.
 
 ---
 
@@ -1363,9 +1495,33 @@ Click **Generate** and the report appears in the list. Downloads start automatic
 
 Workflows let you build custom automation using a visual drag-and-drop canvas.
 
+Navigate to **Workflows** (if available in your sidebar):
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│  Workflows                                       [+ Create Workflow] │
+│                                                                       │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │
+│  │  TOTAL   │ │PUBLISHED │ │  DRAFT   │ │ ARCHIVED │               │
+│  │    5     │ │    3     │ │    1     │ │    1     │               │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘               │
+│                                                                       │
+│  [Search workflows...]                                                │
+│  [Published] [Draft] [Archived]                                       │
+│                                                                       │
+│  ┌──────────────┬──────────┬───────┬──────┬──────────┬────────┬─────┐│
+│  │ Name         │ Status   │ Nodes │ Runs │ Last Run │Updated │ Act ││
+│  ├──────────────┼──────────┼───────┼──────┼──────────┼────────┼─────┤│
+│  │ Auto-patch   │Published │   5   │  12  │ 2h ago   │ Jan 15 │[▶][✎]│
+│  │ critical     │          │       │      │          │        │     ││
+│  │ CVE response │ Draft    │   3   │   0  │ Never    │ Jan 14 │[✎]  ││
+│  └──────────────┴──────────┴───────┴──────┴──────────┴────────┴─────┘│
+└───────────────────────────────────────────────────────────────────────┘
+```
+
 ### Workflow Editor
 
-Navigate to **Workflows** and create or edit a workflow:
+Click **Create Workflow** or **Edit** to open the visual editor:
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
@@ -1373,38 +1529,41 @@ Navigate to **Workflows** and create or edit a workflow:
 │                                                                       │
 │  ┌──────────┐  ┌────────────────────────────────────────────────────┐│
 │  │ PALETTE  │  │                                                    ││
+│  │          │  │     ┌──────────┐                                   ││
+│  │ Triggers │  │     │ TRIGGER  │                                   ││
+│  │ ├ Event  │  │     │ On CVE   │                                   ││
+│  │ ├ Sched  │  │     │ Critical │                                   ││
+│  │          │  │     └────┬─────┘                                   ││
+│  │ Actions  │  │          │                                         ││
+│  │ ├ Deploy │  │     ┌────▼─────┐                                   ││
+│  │ ├ Script │  │     │ DECISION │                                   ││
+│  │ ├ Notify │  │     │ Is prod? │                                   ││
+│  │ ├ Scan   │  │     └──┬────┬──┘                                   ││
+│  │          │  │   Yes  │    │  No                                  ││
+│  │ Control  │  │   ┌────▼──┐ ┌──▼────┐                             ││
+│  │ ├ Branch │  │   │DEPLOY │ │NOTIFY │                             ││
+│  │ ├ Delay  │  │   │Waves  │ │Slack  │                             ││
+│  │ ├ End    │  │   └───────┘ └───────┘                             ││
 │  │          │  │                                                    ││
-│  │ Triggers │  │     ┌──────────┐                                   ││
-│  │ ├ Event  │  │     │ TRIGGER  │                                   ││
-│  │ ├ Sched  │  │     │ On CVE   │                                   ││
-│  │          │  │     │ Critical │                                   ││
-│  │ Actions  │  │     └────┬─────┘                                   ││
-│  │ ├ Deploy │  │          │                                         ││
-│  │ ├ Script │  │     ┌────▼─────┐                                   ││
-│  │ ├ Notify │  │     │ DECISION │                                   ││
-│  │ ├ Scan   │  │     │ Is prod? │                                   ││
-│  │          │  │     └──┬────┬──┘                                   ││
-│  │ Control  │  │   Yes  │    │  No                                  ││
-│  │ ├ Branch │  │   ┌────▼──┐ ┌──▼────┐                             ││
-│  │ ├ Delay  │  │   │DEPLOY │ │NOTIFY │                             ││
-│  │ ├ End    │  │   │Waves  │ │Slack  │                             ││
-│  │          │  │   └───────┘ └───────┘                             ││
-│  └──────────┘  │                                                    ││
-│                └────────────────────────────────────────────────────┘│
-│  2 nodes, 3 connections                               Valid ✓       │
+│  └──────────┘  └────────────────────────────────────────────────────┘│
+│  5 nodes, 4 connections                               Valid ✓       │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
-### Available Node Types
+### Workflow Toolbar
 
-| Node Type | Purpose |
-|-----------|---------|
-| **Trigger** | Starts the workflow (on event, on schedule) |
-| **Action** | Performs an operation (deploy patches, run script, send notification, scan endpoint) |
-| **Decision** | Branches the workflow based on a condition (endpoint attribute, event data) |
-| **Delay** | Pauses the workflow for a specified time |
-| **Script** | Runs a custom script |
-| **End** | Terminates the workflow |
+| Button | Shortcut | Action |
+|--------|----------|--------|
+| **?** | — | Show keyboard shortcuts help |
+| **↩** | Ctrl+Z | Undo last change |
+| **↪** | Ctrl+Shift+Z | Redo |
+| **⊞** | — | Auto-layout nodes |
+| **Save** | — | Save workflow |
+| **Publish** | — | Publish workflow (makes it active) |
+
+### Workflow Status Bar
+
+The bottom of the editor shows: *"X nodes, Y connections"* and whether the workflow is **Valid** or has **Errors**.
 
 ---
 
@@ -1412,35 +1571,51 @@ Navigate to **Workflows** and create or edit a workflow:
 
 ### Settings Navigation
 
+Navigate to **Settings** in the sidebar. The settings page has its own sidebar with 4 groups:
+
 ```
-┌──────────────────┐
-│ SETTINGS         │
-│                  │
-│ Configuration    │
-│ ├ General        │  ← Organization name, timezone, scan interval
-│ ├ Identity       │  ← SSO / OIDC configuration (Zitadel)
-│ ├ Notifications  │  ← Email, Slack, Discord, webhook channels
-│                  │
-│ Account          │
-│ ├ My Account     │  ← Password, API tokens, sessions
-│ ├ License        │  ← License tier, seats, expiration
-│ ├ Appearance     │  ← Theme (light/dark), density
-│                  │
-│ Admin            │
-│ ├ Tags           │  ← Create/manage endpoint tags
-│ ├ Roles          │  ← RBAC role definitions with permission matrix
-│ ├ User Roles     │  ← Assign roles to users
-│                  │
-│ System           │
-│ ├ About          │  ← Version info, build details
-└──────────────────┘
+┌──────────────────────┐
+│ SETTINGS             │
+│                      │
+│ Configuration        │
+│ ├ General            │  Organization name, timezone, date format,
+│ │                    │  default scan interval
+│ ├ Identity & Access  │  OIDC/SSO configuration (Zitadel)
+│ │                    │  Shows connection status indicator
+│ ├ Patch Sources      │  Repository URLs, credentials, sync schedules
+│ ├ Agent Fleet        │  Agent download center, available binaries
+│ └ Notifications      │  Email, Slack, Discord, webhook channels
+│                      │
+│ Account              │
+│ ├ My Account         │  Profile, password change, API tokens
+│ ├ License            │  License tier, seats, expiration
+│ └ Appearance         │  Theme (light/dark), density
+│                      │
+│ Administration       │
+│ ├ Tags               │  Create/manage endpoint tags
+│ ├ Roles              │  RBAC role definitions with permission matrix
+│ └ User Roles         │  Assign roles to users
+│                      │
+│ System               │
+│ └ About              │  Version info, build details
+└──────────────────────┘
 ```
+
+### General Settings
+
+| Field | Description |
+|-------|-------------|
+| **Organization Name** | Displayed in reports, notifications, and the dashboard header |
+| **Timezone** | System timezone (UTC, America/New_York, Europe/London, Asia/Tokyo, etc.) |
+| **Date Format** | YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY, DD MMM YYYY |
+| **Default Scan Interval** | How often agents scan (1, 2, 4, 6, 12, or 24 hours). Overridden by per-endpoint settings. |
 
 ### Role-Based Access Control (RBAC)
 
-PatchIQ uses a permission matrix to control access:
+Navigate to **Settings > Roles** to manage permissions:
 
 ```
+Permission Matrix for a Role:
 ┌───────────────────┬───────┬────────┬────────┬────────┐
 │ Resource          │ Read  │ Create │ Update │ Delete │
 ├───────────────────┼───────┼────────┼────────┼────────┤
@@ -1452,6 +1627,7 @@ PatchIQ uses a permission matrix to control access:
 │ Audit             │  [✓]  │  [○]   │  [○]   │  [○]   │
 │ Reports           │  [✓]  │  [✓]   │  [○]   │  [✓]   │
 │ Settings          │  [✓]  │  [○]   │  [✓]   │  [○]   │
+│ Alerts            │  [✓]  │  [○]   │  [✓]   │  [○]   │
 │ Roles             │  [○]  │  [○]   │  [○]   │  [○]   │
 └───────────────────┴───────┴────────┴────────┴────────┘
   [✓] = Permitted    [○] = Denied
@@ -1467,17 +1643,21 @@ PatchIQ uses a permission matrix to control access:
 
 ```
 STEP 1                    STEP 2                    STEP 3
-Go to CVEs            →   Find the CVE          →   Click "Deploy Fixes"
-                          (filter: Critical)
+Go to CVEs            →   Filter: Critical      →   Click CVE to see
+                          + Exploitable               affected endpoints
 
 STEP 4                    STEP 5                    STEP 6
-Select target         →   Choose strategy:       →   Click "Deploy"
-endpoints                  Wave-based (10/30/60)
-(All affected)             for safety
+Go to Patches         →   Find the fix patch    →   Click "Deploy"
+(or from CVE detail)       (check "Patches"           on the patch
+                          column = "Available")
 
 STEP 7                    STEP 8                    STEP 9
+Fill deployment       →   Target: All or select  →   Click "Publish"
+name                       specific endpoints
+
+STEP 10                   STEP 11                   STEP 12
 Monitor on            →   Check per-endpoint     →   If any fail:
-Deployments page          status in detail view       Click "Retry Failed"
+Deployments page          status in detail view       Click "Retry"
 ```
 
 **Visual flow:**
@@ -1485,15 +1665,8 @@ Deployments page          status in detail view       Click "Retry Failed"
 ```
 ┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐
 │  CVEs   │ ──→ │  Find   │ ──→ │ Deploy  │ ──→ │ Monitor │
-│  page   │     │  CVE    │     │  Fixes  │     │Progress │
+│  page   │     │  patch  │     │  patch  │     │Progress │
 └─────────┘     └─────────┘     └─────────┘     └─────────┘
-                                      │
-                                      ▼
-                                ┌─────────┐
-                                │  Wave 1 │ 10% → verify → 
-                                │  Wave 2 │ 30% → verify →
-                                │  Wave 3 │ 60% → done
-                                └─────────┘
 ```
 
 ### Workflow 2: Setting Up Automated Patching
@@ -1502,26 +1675,30 @@ Deployments page          status in detail view       Click "Retry Failed"
 
 ```
 STEP 1                    STEP 2                    STEP 3
-Go to Policies        →   Click "+ New Policy"   →   Name: "Prod Auto-Patch"
+Go to Policies        →   Click "+ New Policy"   →   Type: Patch Policy
                                                       Mode: Automatic
 
 STEP 4                    STEP 5                    STEP 6
-Patch Selection:      →   Target Selection:      →   Schedule:
-[✓] Critical              By tags:                    Weekly, Sunday
-[✓] High                  env = production            2:00 AM UTC
-[ ] Medium                os = linux                  Window: 1AM-5AM
-[ ] Low
+Name: "Prod           →   Patch Selection:       →   Target Endpoints:
+Auto-Patch"                By Severity                Tag selector:
+                          Min: Critical               env = production
+                          (includes Critical           AND os = linux
+                           + High)
 
-STEP 7                    STEP 8
-Review & Create       →   Policy runs automatically
-                          every Sunday at 2 AM.
-                          Check Deployments page
-                          Monday morning.
+STEP 7                    STEP 8                    STEP 9
+Schedule:             →   Maintenance Window:    →   Review & click
+Recurring, Weekly          Enable                     "Create Policy"
+Sunday, 2:00 AM UTC        Start: 1:00 AM
+                          End: 5:00 AM
+
+STEP 10
+Policy runs automatically every Sunday at 2 AM.
+Check Deployments page Monday morning.
 ```
 
 ### Workflow 3: Onboarding New Endpoints
 
-**Scenario:** You're adding 50 new servers to PatchIQ.
+**Scenario:** You're adding 50 new servers to Patch Manager.
 
 ```
 STEP 1                    STEP 2                    STEP 3
@@ -1537,7 +1714,7 @@ like Ansible)
 STEP 7                    STEP 8
 Trigger Scan on       →   Existing policies
 new endpoints              automatically evaluate
-(bulk select → Scan)       new endpoints on
+(select all → Scan)        new endpoints on
                           next scheduled run
 ```
 
@@ -1547,32 +1724,28 @@ new endpoints              automatically evaluate
 
 ```
 STEP 1                    STEP 2                    STEP 3
-Go to Deployments     →   Click the failed        →   Check the progress
-                          deployment                   bar: how many failed?
+Go to Deployments     →   Click the failed        →   Go to "Targets" tab
+                          deployment
 
 STEP 4                    STEP 5                    STEP 6
-Scroll to Endpoint    →   Find failed endpoints   →   Click endpoint to
-Status table               and check error             see full details
-                          messages
+Find endpoints with   →   Check error messages    →   Fix the root cause
+"✗ Failed" status          (stdout/stderr shown)       on affected endpoints
 
-STEP 7                    STEP 8
-Fix the root cause    →   Go back to deployment
-(e.g., dependency          and click
-conflict, disk space)      "Retry Failed"
+STEP 7
+Go back to deployment
+and click "Retry"
 
-                                    │
-                          ┌─────────▼─────────┐
-                          │  Common Causes:    │
-                          │                    │
-                          │  - Disk full       │
-                          │  - Dependency      │
-                          │    conflict        │
-                          │  - Agent offline   │
-                          │  - Maintenance     │
-                          │    window closed   │
-                          │  - Permission      │
-                          │    denied          │
-                          └────────────────────┘
+                          ┌─────────────────────┐
+                          │  Common Causes:      │
+                          │                      │
+                          │  - Disk full         │
+                          │  - Dependency        │
+                          │    conflict          │
+                          │  - Agent offline     │
+                          │  - Maintenance       │
+                          │    window closed     │
+                          │  - Permission denied │
+                          └──────────────────────┘
 ```
 
 ### Workflow 5: Generating a Compliance Report for Auditors
@@ -1585,14 +1758,14 @@ Go to Compliance      →   Review framework        →   Click "Evaluate All"
 STEP 4                    STEP 5                    STEP 6
 Go to Reports         →   Click "+ Generate       →   Configure:
                           Report"                      Type: Compliance
-                                                       Range: Last 90 days
+                                                       Framework: HIPAA (*)
                                                        Format: PDF
 
 STEP 7                    STEP 8
 Report generates      →   Download and share
-(may take a few            with auditors
-minutes for large
-environments)
+(status shows              with auditors
+"Generating" with
+pulsing indicator)
 ```
 
 ---
@@ -1614,8 +1787,8 @@ environments)
 |-------|----------|
 | Are target endpoints online? | Check Endpoints page for offline devices |
 | Is it within the maintenance window? | Patches only install during configured windows |
-| Has the max concurrent limit been reached? | Check deployment's max_concurrent setting |
-| Are commands timing out? | Default timeout is 30 minutes. Check agent logs. |
+| Has the max concurrent limit been reached? | Check deployment configuration |
+| Are commands timing out? | Default timeout is 30 minutes per endpoint. Check agent logs. |
 
 ### Patches Not Appearing in Catalog
 
@@ -1623,15 +1796,22 @@ environments)
 |-------|----------|
 | Is Hub sync working? | Check Settings for last catalog sync time |
 | Is the patch for your OS? | Patches are OS-specific. Verify OS family matches. |
-| Has the patch been recalled? | Recalled patches are hidden from the active catalog |
+| Has the patch been recalled? | Recalled patches have "Not Applicable" status |
 
 ### Agent Showing "Stale" Status
 
 The agent hasn't sent a heartbeat recently. Common causes:
 - Endpoint is powered off or unreachable
-- Agent service crashed — restart it
+- Agent service crashed — restart it with `patchiq-agent start`
 - Network firewall blocking gRPC port 50051
 - Agent needs updating to latest version
+
+### Deployment Auto-Rolled Back
+
+If a deployment automatically rolled back, it means the wave's failure rate exceeded the configured error rate maximum. Check the deployment detail for:
+- Which endpoints failed and why (Targets tab)
+- The wave configuration thresholds (Overview tab)
+- Whether the issue is systemic (same error on all failed endpoints) or isolated
 
 ---
 
@@ -1639,30 +1819,31 @@ The agent hasn't sent a heartbeat recently. Common causes:
 
 | Term | Definition |
 |------|-----------|
-| **Agent** | The PatchIQ software installed on managed endpoints that reports inventory and executes patch commands |
-| **Attack Vector** | How a vulnerability can be exploited (Network, Adjacent, Local, Physical) |
-| **CISA KEV** | Cybersecurity and Infrastructure Security Agency's Known Exploited Vulnerabilities catalog |
+| **Agent** | The Patch Manager software installed on managed endpoints that reports inventory and executes patch commands |
+| **Attack Vector** | How a vulnerability can be exploited: Network (N), Adjacent (A), Local (L), Physical (P) |
+| **CISA KEV** | Cybersecurity and Infrastructure Security Agency's Known Exploited Vulnerabilities catalog — vulnerabilities confirmed to be actively exploited |
 | **Compliance Framework** | A set of security controls and benchmarks (CIS, PCI-DSS, HIPAA, NIST, ISO 27001, SOC 2) |
 | **CVE** | Common Vulnerabilities and Exposures — a unique identifier for a publicly known security vulnerability |
 | **CVSS** | Common Vulnerability Scoring System — rates vulnerability severity from 0.0 (none) to 10.0 (critical) |
 | **Deployment** | The process of distributing and installing patches on one or more endpoints |
 | **Deployment Target** | A single endpoint+patch combination within a deployment |
-| **Endpoint** | Any device managed by PatchIQ (server, workstation, laptop, virtual machine) |
+| **Endpoint** | Any device managed by Patch Manager (server, workstation, laptop, virtual machine) |
 | **gRPC** | The encrypted communication protocol used between agents and the Patch Manager server |
 | **Hub** | The central cloud service that aggregates vulnerability data from global sources |
-| **Maintenance Window** | A scheduled time period during which patches are allowed to be installed |
+| **Maintenance Window** | A scheduled time period during which patches are allowed to be installed on endpoints |
 | **Patch** | A software update that fixes bugs, vulnerabilities, or adds improvements |
 | **Patch Manager** | The on-premises server that orchestrates all patch management operations |
 | **Policy** | A set of rules defining which patches should be deployed to which endpoints and when |
 | **RBAC** | Role-Based Access Control — permissions system controlling who can do what |
 | **Remediation** | The process of fixing a vulnerability by applying the appropriate patch |
 | **Rollback** | Reverting an installed patch to the previous version |
-| **Severity** | Risk classification: Critical, High, Medium, Low |
-| **Tag** | A label applied to endpoints for grouping and policy targeting |
-| **Tenant** | An organizational unit in PatchIQ (for multi-tenant/MSP deployments) |
-| **Wave** | A group of endpoints that receive a patch together during phased deployment |
+| **Severity** | Risk classification: Critical (9.0+ CVSS), High (7.0-8.9), Medium (4.0-6.9), Low (0-3.9) |
+| **Shoutrrr** | The notification library used by Patch Manager to send alerts via Email, Slack, Discord, and webhooks |
+| **Tag** | A key-value label applied to endpoints for grouping and policy targeting |
+| **Tenant** | An organizational unit in Patch Manager (for multi-tenant/MSP deployments) |
+| **Wave** | A group of endpoints that receive a patch together during phased deployment. Each wave has its own success threshold and error rate maximum. |
 
 ---
 
-*PatchIQ Patch Manager User Guide v1.0*
-*For support, contact your system administrator or visit the PatchIQ documentation portal.*
+*Patch Manager User Guide v1.0*
+*For support, contact your system administrator.*
